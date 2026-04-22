@@ -96,11 +96,15 @@ export function createInitialGameState(
 ): GameState
 {
 	const now = new Date().toISOString();
+	const status =
+		blackPlayerId !== null && whitePlayerId !== null
+			? STATUS_ACTIVE
+			: STATUS_WAITING;
 
 	return ({
 		board: createInitialBoard(),
 		currentTurn: BLACK,
-		status: STATUS_ACTIVE,
+		status,
 		blackPlayerId,
 		whitePlayerId,
 		winner: null,

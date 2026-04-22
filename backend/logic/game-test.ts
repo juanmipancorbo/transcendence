@@ -15,6 +15,10 @@ function separator(title: string): void
 	console.log('\n=== ' + title + ' ===');
 }
 
+separator('initial state status');
+console.log('without players =>', createInitialGameState().status);
+console.log('with players =>', createInitialGameState('u1', 'u2').status);
+
 const state = createInitialGameState('u1', 'u2');
 
 separator('initial board');
@@ -79,4 +83,4 @@ catch (error)
 		console.log(error.message);
 }
 
-// to execute:  npx ts-node logic/game-test.ts
+// Run with: npx ts-node logic/game-test.ts
