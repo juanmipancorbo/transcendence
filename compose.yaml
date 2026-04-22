@@ -1,0 +1,12 @@
+services:
+  database:
+    image: postgres:18-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/inidb.d:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
