@@ -155,6 +155,32 @@ export function applyPlayerMove(
 	return (applyMove(state, row, col));
 }
 
+export function abandonGame(
+	state: GameState,
+	userId: string,
+): GameState
+{
+	const player = getPlayerByUserId(state, userId);
+
+	if (player === null)
+		throw new Error('User is not part of this game');
+	if (state.status === STATUS_FINISHED)
+		throw new Error('Game is already finished');
+	if (state.status === STATUS_ABANDONED)
+		return (state);
+
+	const bothPlayersAssigned =
+		state.blackPlayerId !== null && state.whitePlayerId !== null;
+	const winner = bothPlayersAssigned ? getOpponent(player) : null;
+
+	return ({
+		...state,
+		status: STATUS_ABANDONED,
+		winner,
+		updatedAt: new Date().toISOString(),
+	});
+}
+
 export function getFlipsInDirection(
 	board: Board,
 	row: number,

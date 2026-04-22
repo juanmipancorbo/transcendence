@@ -7,6 +7,7 @@ import {
 	isPlayersTurn,
 	getPlayerByUserId,
 	getPublicGameState,
+	abandonGame,
 	printBoard,
 } from './game';
 
@@ -75,6 +76,29 @@ separator('reject invalid move');
 try
 {
 	applyPlayerMove(state, 'u1', 0, 0);
+	console.log('ERROR: this should have failed');
+}
+catch (error)
+{
+	if (error instanceof Error)
+		console.log(error.message);
+}
+
+separator('abandon active game');
+const abandonedState = abandonGame(state, 'u1');
+console.log('status =>', abandonedState.status);
+console.log('winner =>', abandonedState.winner);
+
+separator('abandon waiting game');
+const waitingState = createInitialGameState('u1', null);
+const abandonedWaitingState = abandonGame(waitingState, 'u1');
+console.log('status =>', abandonedWaitingState.status);
+console.log('winner =>', abandonedWaitingState.winner);
+
+separator('reject abandon from outsider');
+try
+{
+	abandonGame(state, 'u3');
 	console.log('ERROR: this should have failed');
 }
 catch (error)
