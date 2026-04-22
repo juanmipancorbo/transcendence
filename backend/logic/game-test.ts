@@ -6,6 +6,7 @@ import {
 	applyPlayerMove,
 	isPlayersTurn,
 	getPlayerByUserId,
+	getPublicGameState,
 	printBoard,
 } from './game';
 
@@ -31,6 +32,11 @@ console.log('is u2 turn?', isPlayersTurn(state, 'u2'));
 separator('valid moves');
 console.log('BLACK valid moves:', getValidMoves(state.board, BLACK));
 console.log('WHITE valid moves:', getValidMoves(state.board, WHITE));
+
+separator('public game state');
+const publicState = getPublicGameState(state);
+console.log('currentTurn =>', publicState.currentTurn);
+console.log('validMoves =>', publicState.validMoves);
 
 separator('apply valid move from u1');
 const nextState = applyPlayerMove(state, 'u1', 2, 3);

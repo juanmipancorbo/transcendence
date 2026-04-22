@@ -34,6 +34,10 @@ export type GameState = {
 	updatedAt: string;
 };
 
+export type PublicGameState = GameState & {
+	validMoves: Position[];
+};
+
 const DIRECTIONS: Position[] = [
 	{ row: -1, col: -1 },
 	{ row: -1, col: 0 },
@@ -235,6 +239,14 @@ export function getValidMoves(board: Board, player: Player): Position[]
 	return (moves);
 }
 
+export function getPublicGameState(state: GameState): PublicGameState
+{
+	return ({
+		...state,
+		validMoves: getValidMoves(state.board, state.currentTurn),
+	});
+}
+
 export function hasAnyValidMove(board: Board, player: Player): boolean
 {
 	return (getValidMoves(board, player).length > 0);
@@ -354,5 +366,18 @@ export function applyMove(
 export function printBoard(board: Board): void
 {
 	for (let row = 0; row < 8; row++)
-		console.log(board[row].join(' '));
+	{
+		const line = board[row]
+			.map((cell) =>
+			{
+				if (cell === EMPTY)
+					return ('.');
+				if (cell === BLACK)
+					return ('B');
+				return ('W');
+			})
+			.join(' ');
+
+		console.log(line);
+	}
 }
