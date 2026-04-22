@@ -45,6 +45,21 @@ const DIRECTIONS: Position[] = [
 	{ row: 1, col: 1 },
 ];
 
+export function isInsideBoard(row: number, col: number): boolean
+{
+	return (row >= 0 && row < 8 && col >= 0 && col < 8);
+}
+
+export function getOpponent(player: Player): Player
+{
+	return (player === BLACK ? WHITE : BLACK);
+}
+
+export function cloneBoard(board: Board): Board
+{
+	return (board.map((row) => [...row]) as Board);
+}
+
 export function createEmptyBoard(): Board
 {
 	const board: Board = [];
@@ -90,19 +105,46 @@ export function createInitialGameState(
 	});
 }
 
-export function isInsideBoard(row: number, col: number): boolean
+export function getPlayerByUserId(
+	state: GameState,
+	userId: string,
+): Player | null
 {
-	return (row >= 0 && row < 8 && col >= 0 && col < 8);
+	if (state.blackPlayerId === userId)
+		return (BLACK);
+	if (state.whitePlayerId === userId)
+		return (WHITE);
+	return (null);
 }
 
-export function getOpponent(player: Player): Player
+export function isPlayersTurn(
+	state: GameState,
+	userId: string,
+): boolean
 {
-	return (player === BLACK ? WHITE : BLACK);
+	const player = getPlayerByUserId(state, userId);
+
+	if (player === null)
+		return (false);
+	return (state.currentTurn === player);
 }
 
-export function cloneBoard(board: Board): Board
+export function applyPlayerMove(
+	state: GameState,
+	userId: string,
+	row: number,
+	col: number,
+): GameState
 {
-	return (board.map((row) => [...row]) as Board);
+	const player = getPlayerByUserId(state, userId);
+
+	if (player === null)
+		throw new Error('User is not part of this game');
+	if (state.status !== STATUS_ACTIVE)
+		throw new Error('Game is not active');
+	if (state.currentTurn !== player)
+		throw new Error('It is not this player turn');
+	return (applyMove(state, row, col));
 }
 
 export function getFlipsInDirection(
@@ -128,17 +170,11 @@ export function getFlipsInDirection(
 		const cell = board[currentRow][currentCol];
 
 		if (cell === opponent)
-		{
 			flips.push({ row: currentRow, col: currentCol });
-		}
 		else if (cell === player)
-		{
 			return (flips);
-		}
 		else
-		{
 			return ([]);
-		}
 		currentRow += dRow;
 		currentCol += dCol;
 	}
@@ -199,6 +235,24 @@ export function getValidMoves(board: Board, player: Player): Position[]
 	return (moves);
 }
 
+export function hasAnyValidMove(board: Board, player: Player): boolean
+{
+	return (getValidMoves(board, player).length > 0);
+}
+
+export function isBoardFull(board: Board): boolean
+{
+	for (let row = 0; row < 8; row++)
+	{
+		for (let col = 0; col < 8; col++)
+		{
+			if (board[row][col] === EMPTY)
+				return (false);
+		}
+	}
+	return (true);
+}
+
 export function countPieces(board: Board): { black: number; white: number }
 {
 	let black = 0;
@@ -226,24 +280,6 @@ export function getWinner(board: Board): Winner
 	if (counts.white > counts.black)
 		return (WHITE);
 	return ('DRAW');
-}
-
-export function hasAnyValidMove(board: Board, player: Player): boolean
-{
-	return (getValidMoves(board, player).length > 0);
-}
-
-export function isBoardFull(board: Board): boolean
-{
-	for (let row = 0; row < 8; row++)
-	{
-		for (let col = 0; col < 8; col++)
-		{
-			if (board[row][col] === EMPTY)
-				return (false);
-		}
-	}
-	return (true);
 }
 
 export function isGameOver(board: Board): boolean
@@ -288,7 +324,6 @@ export function applyMove(
 			updatedAt: now,
 		});
 	}
-
 	if (opponentHasMove)
 	{
 		return ({
@@ -298,7 +333,6 @@ export function applyMove(
 			updatedAt: now,
 		});
 	}
-
 	if (playerHasMove)
 	{
 		return ({
@@ -308,7 +342,6 @@ export function applyMove(
 			updatedAt: now,
 		});
 	}
-
 	return ({
 		...state,
 		board,
