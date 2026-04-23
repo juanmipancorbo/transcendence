@@ -1,0 +1,14 @@
+{
+	"name": "Backend",
+	"dockerComposeFile": "../compose.yaml",
+	"service": "backend",
+	"workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+}

@@ -1,0 +1,26 @@
+services:
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file: "./database/container/.env"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./database/initdb.d:/docker-entrypoint-initdb.d
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ./container/Dockerfile
+      target: development
+    restart: unless-stopped
+    ports:
+      - "3000:3000" # TODO dependent of an env file
+    env_file: "./backend/container/.env"
+    volumes:
+      - ./backend/app:/app
+      - backend_node_modules:/app/node_modules
+
+volumes:
+  postgres_data:
+  backend_node_modules:
