@@ -1,17 +1,18 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-export async function api(path: string, options?: RequestInit) {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
-  });
 
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
   }
-
-  return res.json();
 }
+
+export const leaderboardApi = {
+  getTop: async () => [],
+};
+
+export const authApi = {
+  login: async () => ({}),
+  register: async () => ({}),
+  me: async () => null,
+};

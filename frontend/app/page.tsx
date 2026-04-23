@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { leaderboardApi } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
 import type { LeaderboardEntry } from "@/types";
 
 const RANK_TIERS = [
@@ -13,20 +11,68 @@ const RANK_TIERS = [
   { min: 11,  max: 999, label: "ELITE",       color: "text-on-surface-variant", bg: "bg-surface-variant",  text: "text-on-surface-variant" },
 ];
 
+const MOCK_ENTRIES: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    xp: 2450,
+    winRate: 78,
+    user: {
+      id: "1",
+      username: "zen",
+      displayName: "ZenMaster",
+      avatarUrl: "",
+      status: "offline"
+    },
+    wins: 3000,
+    losses: 10
+  },
+  {
+    rank: 2,
+    xp: 2100,
+    winRate: 72,
+    user: {
+      id: "2",
+      username: "neo",
+      displayName: "Neo",
+      avatarUrl: "",
+      status: "offline"
+    },
+    wins: 1000,
+    losses: 10
+  },
+  {
+    rank: 3,
+    xp: 1980,
+    winRate: 69,
+    user: {
+      id: "3",
+      username: "trinity",
+      displayName: "Trinity",
+      avatarUrl: "",
+      status: "offline"
+    },
+    wins: 100,
+    losses: 0
+  },
+];
+
 function getTier(rank: number) {
   return RANK_TIERS.find(t => rank >= t.min && rank <= t.max) ?? RANK_TIERS[3];
 }
 
 export default function LeaderboardPage() {
-  const { user: me } = useAuth();
+  const usermock = { id: "1",
+      username: "zen",
+      displayName: "ZenMaster",
+      avatarUrl: "",
+      status: "offline" }; // simulate logged user
+  //const { user: me } = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    leaderboardApi.getTop(50)
-      .then(setEntries)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    setEntries(MOCK_ENTRIES);
+    setLoading(false);
   }, []);
 
   return (
@@ -72,7 +118,7 @@ export default function LeaderboardPage() {
                 {/* Rows */}
                 {entries.map((entry, i) => {
                   const tier = getTier(entry.rank);
-                  const isMe = entry.user.id === me?.id;
+                  const isMe = entry.user.id === usermock.id;
                   const winRate = entry.winRate;
                   const rankStr = String(entry.rank).padStart(2, "0");
 
