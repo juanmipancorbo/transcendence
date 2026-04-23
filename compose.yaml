@@ -11,6 +11,7 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: ./container/Dockerfile
       target: development
     restart: unless-stopped
     ports:
