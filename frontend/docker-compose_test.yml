@@ -1,0 +1,67 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ft_transcendance – docker-compose
+#
+# Usage:
+#   Frontend only (your branch, right now):
+#     docker compose up frontend
+#
+#   Full stack (once backend Dockerfile is ready):
+#     docker compose up
+#
+#   Rebuild after code changes:
+#     docker compose up --build frontend
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Frontend (Next.js) ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # These become NEXT_PUBLIC_ env vars baked in at build time.
+        # Override here if your backend runs on a different host/port.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        NEXT_PUBLIC_WS_URL:  ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001/ws}
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    # Start even without a backend (auth/API calls will fail gracefully)
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Backend (uncomment + fill Dockerfile when ready) ──────────────────────
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     NODE_ENV: production
+  #     # DATABASE_URL: postgres://user:pass@db:5432/transcendance
+  #   restart: unless-stopped
+
+  # ── Database (uncomment when backend needs it) ────────────────────────────
+  # db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: transcendance
+  #     POSTGRES_PASSWORD: transcendance
+  #     POSTGRES_DB: transcendance
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+# volumes:
+#   pg_data:

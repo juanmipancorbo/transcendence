@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Material Symbols ─────────────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #0e0e13;
+  color: #f8f5fd;
+  font-family: 'Manrope', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2,h3,h4,h5,h6 { font-family: 'Space Grotesk', sans-serif; }
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0e0e13; }
+::-webkit-scrollbar-thumb { background: #25252c; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #8ff5ff44; }
+
+/* ── Glass panels (from Stitch) ───────────────────────────────── */
+.glass-panel {
+  background: rgba(37, 37, 44, 0.4);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+.velocity-glass {
+  background: rgba(37, 37, 44, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.glass-card {
+  background: rgba(37, 37, 44, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Scanning line animation (login page) ─────────────────────── */
+.scanning-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #8ff5ff, transparent);
+  animation: scan 3s linear infinite;
+}
+@keyframes scan {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(400px); }
+}
+
+/* ── Active scanline on focused inputs ────────────────────────── */
+.scanline-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #8ff5ff;
+  box-shadow: 0 0 8px #00eefc;
+}
+
+/* ── Sidebar nav item active state ───────────────────────────── */
+.sidebar-item-active {
+  background: linear-gradient(to right, rgba(124,58,237,0.2), transparent);
+  color: #a78bfa;
+  border-left: 4px solid #7c3aed;
+}
+
+/* ── Reversi board grid ───────────────────────────────────────── */
+.reversi-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  aspect-ratio: 1 / 1;
+}
+
+/* ── Stagger delays ───────────────────────────────────────────── */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
