@@ -6,7 +6,7 @@ services:
       - "5432:5432"
     env_file: "./database/container/.env"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./database/inidb.d:/docker-entrypoint-initdb.d
   backend:
     build:
