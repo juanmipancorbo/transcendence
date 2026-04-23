@@ -7,7 +7,7 @@ services:
     env_file: "./database/container/.env"
     volumes:
       - postgres_data:/var/lib/postgresql
-      - ./database/inidb.d:/docker-entrypoint-initdb.d
+      - ./database/initdb.d:/docker-entrypoint-initdb.d
 
 volumes:
   postgres_data:
