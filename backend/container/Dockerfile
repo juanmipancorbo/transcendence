@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y openssl && apt-get install -y curl && r
 FROM base AS development
 # TODO remove the true
 RUN npm install || true
+COPY ./container/.bashrc /root/.bashrc
 COPY ./app ./
 CMD ["npm", "run", "start"]
 
