@@ -9,7 +9,6 @@ FROM base AS development
 # TODO remove the true
 RUN npm install || true
 COPY ./app ./
-COPY ./container/.env ./
 CMD ["npm", "run", "start"]
 
 # --- Builder ---
