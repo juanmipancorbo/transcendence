@@ -1,21 +1,21 @@
 # --- Base ---
 FROM node:24-bookworm-slim AS base
 WORKDIR /app
-COPY ../app/package*.json ./
-COPY ./.env ./
-RUN apt-get update && apt-get install -y openssl && apt-get install curl && rm -rf /var/lib/apt/lists/*
+COPY ./app/package*.json ./
+RUN apt-get update && apt-get install -y openssl && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # --- Development ---
 FROM base AS development
 # TODO remove the true
 RUN npm install || true
-COPY ../app ./
+COPY ./app ./
+COPY ./container/.env ./
 CMD ["npm", "run", "start"]
 
 # --- Builder ---
 FROM base AS builder
 RUN npm install
-COPY ../app ./
+COPY ./app ./
 RUN npm run build
 
 # --- Production ---
