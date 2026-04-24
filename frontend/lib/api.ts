@@ -1,6 +1,25 @@
 
 import type { User, LeaderboardEntry } from "@/types";
 
+// Set up for real backend
+
+import { API_URL } from "./config";
+
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...options,
+  });
+
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`);
+  }
+
+  return res.json();
+}
+
 //   Mock data                      
 
 export const MOCK_USER: User = {
