@@ -1,123 +1,103 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { leaderboardApi } from "@/lib/api";
-import type { LeaderboardEntry } from "@/types";
+import { MOCK_LEADERBOARD, MOCK_USER } from "@/lib/api";
 
 export default function LeaderboardPage() {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    leaderboardApi.getTop(50)
-      .then(setEntries)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  // TODO: replace MOCK_LEADERBOARD with leaderboardApi.getTop()
+  const entries = MOCK_LEADERBOARD;
 
   return (
-    <ProtectedLayout>
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-10 animate-slide-up">
-          <p className="font-body text-label-sm uppercase tracking-widest mb-2" style={{ color: "var(--on-surface-variant)" }}>
-            Global
-          </p>
-          <h1 className="font-display font-bold text-display-md" style={{ color: "var(--on-surface)" }}>
-            Rankings
-          </h1>
+    <ProtectedLayout activeRoute="/leaderboard">
+      <main className="px-12 py-10 max-w-screen-2xl">
+
+        {/* ── Header ───────────────────────────────────────────────── */}
+        <div className="mb-12 flex items-end gap-6">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-headline font-bold tracking-[0.4em] text-primary uppercase mb-2">
+              Global_Rankings
+            </span>
+            <h1 className="text-6xl font-headline font-black tracking-tighter text-on-surface italic">
+              LEADERBOARD
+            </h1>
+          </div>
+          <div className="mb-2 bg-surface-container-high px-4 py-2 rounded flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Live</span>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <span className="font-body text-sm animate-pulse" style={{ color: "var(--on-surface-variant)" }}>
-              Loading rankings…
-            </span>
-          </div>
-        ) : (
-          <div className="animate-slide-up delay-100">
-            {/* Column headers */}
-            <div
-              className="grid grid-cols-[40px_1fr_80px_80px_80px] gap-4 px-5 py-2 mb-1"
-            >
-              {["#", "PLAYER", "WINS", "LOSSES", "WIN%"].map(h => (
-                <span key={h} className="font-body text-label-sm uppercase tracking-widest text-right first:text-left" style={{ color: "var(--on-surface-variant)" }}>
-                  {h}
-                </span>
-              ))}
-            </div>
+        {/* ── Column headers ────────────────────────────────────────── */}
+        <div className="grid grid-cols-12 px-8 py-4 bg-surface-container-low font-headline text-[10px] text-on-surface-variant font-black tracking-widest uppercase mb-4">
+          <div className="col-span-1">Rank</div>
+          <div className="col-span-5">Competitor</div>
+          <div className="col-span-2 text-center">Wins</div>
+          <div className="col-span-2 text-center">Losses</div>
+          <div className="col-span-2 text-right">Win Rate</div>
+        </div>
 
-            {entries.map((entry, i) => (
-              <LeaderboardRow key={entry.user.id} entry={entry} index={i} />
-            ))}
+        {/* ── Rows ──────────────────────────────────────────────────── */}
+        <div className="flex flex-col space-y-2">
+          {entries.map((entry, i) => {
+            const isMe      = entry.user.id === MOCK_USER.id;
+            const rankColor = entry.rank === 1 ? "text-primary" : entry.rank <= 3 ? "text-secondary" : "text-on-surface-variant";
 
-            {entries.length === 0 && (
-              <p className="text-center py-16 font-body text-sm" style={{ color: "var(--on-surface-variant)" }}>
-                No players yet. Be the first to play!
-              </p>
-            )}
-          </div>
-        )}
+            return (
+              <div
+                key={entry.user.id}
+                className={`grid grid-cols-12 px-8 py-6 items-center transition-all relative ${
+                  isMe
+                    ? "bg-primary/10 ring-1 ring-primary/30"
+                    : i % 2 === 0 ? "bg-surface-container" : "bg-surface-container-low hover:bg-surface-container-high"
+                }`}
+              >
+                {isMe && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
+
+                {/* Rank */}
+                <div className={`col-span-1 font-headline text-2xl font-bold ${rankColor}`}>
+                  {String(entry.rank).padStart(2, "0")}
+                </div>
+
+                {/* Competitor */}
+                <div className="col-span-5 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-surface-variant rounded-lg flex items-center justify-center font-headline font-black text-lg text-on-surface-variant flex-shrink-0">
+                    {entry.user.username[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-headline font-bold text-on-surface text-sm">{entry.user.displayName}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: entry.user.status === "online" ? "var(--tw-color-primary, #8ff5ff)" : entry.user.status === "in-game" ? "#d575ff" : "#76747b" }} />
+                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                        {entry.user.status === "in-game" ? "In Game" : entry.user.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wins */}
+                <div className="col-span-2 text-center font-headline font-bold text-on-surface">{entry.wins}</div>
+
+                {/* Losses */}
+                <div className="col-span-2 text-center font-headline font-bold text-on-surface-variant">{entry.losses}</div>
+
+                {/* Win rate */}
+                <div className="col-span-2 text-right">
+                  <div className="w-full bg-surface-container-low h-1 mb-1">
+                    <div className="bg-primary h-full shadow-[0_0_8px_#8ff5ff]"
+                         style={{ width: `${entry.winRate}%` }} />
+                  </div>
+                  <span className="text-[10px] font-bold text-on-surface-variant">{entry.winRate}%</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </main>
+
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
       </div>
     </ProtectedLayout>
-  );
-}
-
-function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
-  const { rank, user, wins, losses, winRate } = entry;
-  const isTop3 = rank <= 3;
-  const rankColors = ["var(--primary)", "var(--secondary)", "var(--tertiary)"];
-
-  return (
-    <div
-      className="grid grid-cols-[40px_1fr_80px_80px_80px] gap-4 px-5 py-4 rounded transition-colors"
-      style={{
-        background: index % 2 === 0 ? "var(--surface)" : "var(--surface-container-low)",
-        animationDelay: `${index * 30}ms`,
-      }}
-    >
-      {/* Rank */}
-      <span
-        className="font-display font-bold text-headline-sm self-center"
-        style={{ color: isTop3 ? rankColors[rank - 1] : "var(--on-surface-variant)" }}
-      >
-        {rank}
-      </span>
-
-      {/* Player */}
-      <div className="flex items-center gap-3">
-        {/* Avatar placeholder */}
-        <div
-          className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-display font-bold text-xs"
-          style={{ background: "var(--surface-container-highest)", color: "var(--on-surface-variant)" }}
-        >
-          {user.username[0].toUpperCase()}
-        </div>
-        <div>
-          <p className="font-body font-semibold text-sm" style={{ color: "var(--on-surface)" }}>
-            {user.displayName}
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span
-              className="w-1 h-1 rounded-full"
-              style={{
-                background: user.status === "online" ? "var(--primary)" : user.status === "in-game" ? "var(--tertiary)" : "var(--on-surface-variant)",
-              }}
-            />
-            <span className="font-body text-label-sm" style={{ color: "var(--on-surface-variant)" }}>
-              {user.status === "in-game" ? "In game" : user.status}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <span className="font-body font-semibold text-sm text-right self-center" style={{ color: "var(--on-surface)" }}>{wins}</span>
-      <span className="font-body font-semibold text-sm text-right self-center" style={{ color: "var(--on-surface-variant)" }}>{losses}</span>
-      <span className="font-body font-semibold text-sm text-right self-center" style={{ color: isTop3 ? rankColors[rank - 1] : "var(--on-surface)" }}>
-        {winRate.toFixed(0)}%
-      </span>
-    </div>
   );
 }

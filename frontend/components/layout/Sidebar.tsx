@@ -1,25 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { href: "/lobby",       label: "Lobby",       icon: "sports_esports" },
-  { href: "/leaderboard", label: "Leaderboard",  icon: "leaderboard" },
-  { href: "/profile",     label: "Profile",      icon: "person_search" },
-  { href: "/terms",       label: "Policy",       icon: "gavel" },
+  { href: "/lobby",       label: "Lobby",      icon: "sports_esports" },
+  { href: "/leaderboard", label: "Leaderboard", icon: "leaderboard"    },
+  { href: "/profile",     label: "Profile",     icon: "person_search"  },
+  { href: "/terms",       label: "Policy",      icon: "gavel"          },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { logout } = useAuth();
-  const router = useRouter();
-
-  async function handleLogout() {
-    await logout();
-    router.push("/login");
-  }
 
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[#0e0e13] flex flex-col py-10 z-50"
@@ -49,21 +41,17 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Find Match CTA + Logout */}
       <div className="px-6 mt-auto flex flex-col gap-3">
         <Link
           href="/lobby"
-          className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-headline font-bold text-xs tracking-widest uppercase text-center transition-transform active:scale-95"
-          style={{ display: "block" }}
+          className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-headline font-bold text-xs tracking-widest uppercase text-center block transition-all hover:shadow-[0_0_20px_rgba(0,238,252,0.3)]"
         >
           FIND MATCH
         </Link>
-        <button
-          onClick={handleLogout}
-          className="w-full py-2 text-[10px] font-headline font-bold tracking-widest uppercase text-slate-600 hover:text-slate-400 transition-colors"
-        >
+        {/* TODO: wire to authApi.logout() */}
+        <Link href="/login" className="w-full py-2 text-[10px] font-headline font-bold tracking-widest uppercase text-slate-600 hover:text-slate-400 transition-colors text-center">
           LOG OUT
-        </button>
+        </Link>
       </div>
     </aside>
   );

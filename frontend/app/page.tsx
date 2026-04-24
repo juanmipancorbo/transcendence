@@ -1,204 +1,134 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import type { LeaderboardEntry } from "@/types";
+import { MOCK_USER } from "@/lib/api";
 
-const RANK_TIERS = [
-  { min: 1,   max: 1,   label: "LEGENDARY",   color: "text-primary",          bg: "bg-primary/10",          text: "text-primary" },
-  { min: 2,   max: 3,   label: "GRANDMASTER", color: "text-on-surface-variant", bg: "bg-surface-variant",  text: "text-on-surface-variant" },
-  { min: 4,   max: 10,  label: "MASTER",      color: "text-secondary",          bg: "bg-secondary/10",     text: "text-secondary" },
-  { min: 11,  max: 999, label: "ELITE",       color: "text-on-surface-variant", bg: "bg-surface-variant",  text: "text-on-surface-variant" },
-];
+export default function LobbyPage() {
+  const user = MOCK_USER;
 
-const MOCK_ENTRIES: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    xp: 2450,
-    winRate: 78,
-    user: {
-      id: "1",
-      username: "zen",
-      displayName: "ZenMaster",
-      avatarUrl: "",
-      status: "offline"
-    },
-    wins: 3000,
-    losses: 10
-  },
-  {
-    rank: 2,
-    xp: 2100,
-    winRate: 72,
-    user: {
-      id: "2",
-      username: "neo",
-      displayName: "Neo",
-      avatarUrl: "",
-      status: "offline"
-    },
-    wins: 1000,
-    losses: 10
-  },
-  {
-    rank: 3,
-    xp: 1980,
-    winRate: 69,
-    user: {
-      id: "3",
-      username: "trinity",
-      displayName: "Trinity",
-      avatarUrl: "",
-      status: "offline"
-    },
-    wins: 100,
-    losses: 0
-  },
-];
-
-function getTier(rank: number) {
-  return RANK_TIERS.find(t => rank >= t.min && rank <= t.max) ?? RANK_TIERS[3];
-}
-
-export default function LeaderboardPage() {
-  const usermock = { id: "1",
-      username: "zen",
-      displayName: "ZenMaster",
-      avatarUrl: "",
-      status: "offline" }; // simulate logged user
-  //const { user: me } = useAuth();
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Queue UI state purely visual
+  const [inQueue,  setInQueue]  = useState(false);
+  const [elapsed,  setElapsed]  = useState(0);
 
   useEffect(() => {
-    setEntries(MOCK_ENTRIES);
-    setLoading(false);
-  }, []);
+    if (!inQueue) { setElapsed(0); return; }
+    const t = setInterval(() => setElapsed(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [inQueue]);
+
+  const fmt = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
+
+  const xpProgress = (user.xp % 1000) / 10;
 
   return (
-    <ProtectedLayout activeRoute="/leaderboard">
-      <main className="px-12 py-10 max-w-screen-2xl">
-        <div className="grid grid-cols-12 gap-8">
-          <section className="col-span-12">
+    <ProtectedLayout activeRoute="/lobby">
+      <div className="p-8">
+        <div className="max-w-screen-xl mx-auto flex flex-col gap-8">
 
-            {/* ── Header ───────────────────────────────────────────── */}
-            <div className="mb-12 flex items-end gap-6">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-headline font-bold tracking-[0.4em] text-primary uppercase mb-2">
-                  Global_Rankings
-                </span>
-                <h1 className="text-6xl font-headline font-black tracking-tighter text-on-surface italic">
-                  LEADERBOARD
-                </h1>
-              </div>
-              <div className="mb-2 bg-surface-container-high px-4 py-2 rounded flex items-center gap-2">
+          {/* Hero banner */}
+          <section className="relative w-full h-[400px] overflow-hidden rounded bg-surface-container-low">
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-tertiary/5" />
+
+            <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start gap-4 z-20">
+              <span className="px-3 py-1 bg-primary/20 text-primary text-[10px] font-bold tracking-[0.3em] uppercase rounded-full flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Live</span>
-              </div>
-            </div>
+                Live Now: Sector 7 Championship
+              </span>
 
-            {loading ? (
-              <div className="flex justify-center py-20">
-                <span className="font-headline font-black text-3xl italic tracking-widest text-violet-500 animate-pulse">
-                  LOADING…
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col space-y-4">
+              <h1 className="font-headline text-7xl font-bold tracking-tighter uppercase text-white leading-none">
+                READY_FOR <br />
+                <span className="text-primary italic">DEPLOYMENT</span>
+              </h1>
 
-                {/* Column headers */}
-                <div className="grid grid-cols-12 px-8 py-4 bg-surface-container-low font-headline text-[10px] text-on-surface-variant font-black tracking-widest uppercase mb-4">
-                  <div className="col-span-1">Rank</div>
-                  <div className="col-span-5">Competitor</div>
-                  <div className="col-span-2 text-center">Level</div>
-                  <div className="col-span-2 text-center">ELO Rating</div>
-                  <div className="col-span-2 text-right">Win Rate</div>
+              <div className="mt-8 flex gap-4">
+                {!inQueue ? (
+                  <button
+                    onClick={() => setInQueue(true)}
+                    className="px-10 py-5 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-black text-lg tracking-tighter font-headline flex items-center gap-4 transition-all hover:shadow-[0_0_30px_rgba(0,238,252,0.4)] active:scale-95"
+                  >
+                    FIND MATCH
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setInQueue(false)}
+                    className="px-10 py-5 bg-error/20 border border-error/40 text-error font-black text-lg tracking-tighter font-headline flex items-center gap-4 transition-all hover:bg-error/30 active:scale-95"
+                  >
+                    CANCEL SEARCH
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                )}
+
+                <div className="px-6 py-5 bg-surface-container-high/60 backdrop-blur-md flex flex-col justify-center">
+                  <span className="text-[10px] text-on-surface-variant font-bold tracking-[0.2em] uppercase">
+                    {inQueue ? "Queue Time" : "Avg Queue"}
+                  </span>
+                  <span className="font-headline text-xl font-bold text-white tracking-widest">
+                    {inQueue ? fmt(elapsed) : "02:45_"}
+                  </span>
                 </div>
 
-                {/* Rows */}
-                {entries.map((entry, i) => {
-                  const tier = getTier(entry.rank);
-                  const isMe = entry.user.id === usermock.id;
-                  const winRate = entry.winRate;
-                  const rankStr = String(entry.rank).padStart(2, "0");
-
-                  return (
-                    <div
-                      key={entry.user.id}
-                      className={`grid grid-cols-12 px-8 py-6 items-center transition-all relative ${
-                        isMe
-                          ? "bg-primary/10 ring-1 ring-primary/30"
-                          : "bg-surface-container hover:bg-surface-container-high"
-                      }`}
-                    >
-                      {/* "You" left accent bar */}
-                      {isMe && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-                      )}
-
-                      {/* Rank */}
-                      <div className={`col-span-1 font-headline text-2xl font-bold ${entry.rank === 1 ? "text-primary" : "text-on-surface-variant"}`}>
-                        {rankStr}
-                      </div>
-
-                      {/* Competitor */}
-                      <div className="col-span-5 flex items-center gap-4">
-                        <div className="w-12 h-12 bg-surface-variant rounded-lg flex items-center justify-center font-headline font-black text-lg text-on-surface-variant flex-shrink-0">
-                          {entry.user.username[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-headline font-bold text-on-surface text-sm">
-                            {entry.user.displayName}
-                          </p>
-                          <span className={`text-[10px] ${tier.bg} ${tier.text} px-2 py-0.5 rounded font-black tracking-widest`}>
-                            {isMe ? "YOUR CURRENT RANK" : tier.label}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Level */}
-                      <div className="col-span-2 text-center font-headline font-bold text-on-surface">
-                        {/* TODO: expose level from API */}—
-                      </div>
-
-                      {/* ELO */}
-                      <div className="col-span-2 text-center">
-                        <span className={`font-headline font-bold ${entry.rank === 1 ? "text-primary" : "text-on-surface"}`}>
-                          {entry.xp.toLocaleString()}
-                        </span>
-                      </div>
-
-                      {/* Win rate */}
-                      <div className="col-span-2 text-right">
-                        <div className="w-full bg-surface-container-low h-1 mb-1">
-                          <div
-                            className="bg-primary h-full shadow-[0_0_8px_#8ff5ff]"
-                            style={{ width: `${Math.min(winRate, 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-bold text-on-surface-variant">{winRate.toFixed(0)}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {entries.length === 0 && (
-                  <div className="py-20 text-center">
-                    <p className="font-headline font-bold text-on-surface-variant tracking-widest uppercase">
-                      No competitors yet. Initialize the first match.
-                    </p>
-                  </div>
-                )}
+                {/* Fake shortcut straight to game page */}
+                <Link
+                  href="/game"
+                  className="px-6 py-5 bg-surface-container-high/40 border border-outline-variant text-on-surface-variant font-headline text-xs font-bold tracking-widest flex items-center gap-2 hover:border-primary hover:text-primary transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  PREVIEW GAME
+                </Link>
               </div>
-            )}
+            </div>
           </section>
-        </div>
-      </main>
 
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-5%] left-[-5%] w-[40%] h-[40%] bg-secondary/5 blur-[100px] rounded-full" />
+          {/*  Mode card  */}
+          <div className="bg-surface-container-low p-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 flex gap-4">
+              <span className="material-symbols-outlined text-primary">stars</span>
+              <span className="material-symbols-outlined text-secondary">rocket_launch</span>
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+              <div className="flex-1">
+                <div className="text-[10px] font-bold tracking-[0.4em] text-primary mb-2 uppercase">Protocol_Unified_Nexus</div>
+                <h3 className="font-headline text-4xl font-bold text-white uppercase mb-4">Find Match</h3>
+                <p className="text-on-surface-variant text-base font-medium leading-relaxed max-w-2xl">
+                  Initialize core combat protocols. System will automatically match you based on skill level.
+                  Experience gains and rank adjustments enabled for all sessions.
+                </p>
+              </div>
+              <div className="w-full md:w-72 shrink-0">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-[10px] font-bold text-primary tracking-widest uppercase">Level Progress</span>
+                  <span className="text-[10px] font-bold text-on-surface tracking-widest">LVL {user.level}</span>
+                </div>
+                <div className="h-2 w-full bg-surface-container-highest overflow-hidden rounded-full">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_#8ff5ff] transition-all duration-700"
+                    style={{ width: `${xpProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "GLOBAL_RANK", value: `#${user.rank}`,   color: "text-primary" },
+              { label: "WINS",        value: user.wins,          color: "text-secondary" },
+              { label: "LOSSES",      value: user.losses,        color: "text-on-surface-variant" },
+              { label: "WIN_RATE",    value: `${Math.round(user.wins / (user.wins + user.losses) * 100)}%`, color: "text-tertiary" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="bg-surface-container-low p-6">
+                <div className={`font-headline text-4xl font-black tracking-tighter ${color}`}>{value}</div>
+                <div className="text-[10px] font-label text-on-surface-variant tracking-widest uppercase mt-1">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </ProtectedLayout>
   );
