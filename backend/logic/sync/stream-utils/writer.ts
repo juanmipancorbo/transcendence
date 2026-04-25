@@ -2,7 +2,7 @@ export class ByteWriter {
 	private buf: Buffer;
 	private offset = 0;
 
-	constructor(size: number) {
+	constructor(size = 50) {
 		this.buf = Buffer.allocUnsafe(size);
 	}
 
@@ -37,5 +37,9 @@ export class ByteWriter {
 		this.buf.writeUint32BE(s.length, this.offset);
 		this.offset += 4;
 		this.offset += this.buf.write(s, this.offset, "utf8");
+	}
+
+	freeze(): BufferSource {
+		return this.buf.subarray(0, this.offset) as unknown as BufferSource;
 	}
 }

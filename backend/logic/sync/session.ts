@@ -1,10 +1,14 @@
 import { randomUUID, UUID } from "crypto";
 import { createInitialGameState, GameState, Player, Position } from "../game";
 
+export const SESSIONS: Map<UUID, GameSession> = new Map();
+
+// TODO: Chat
 export type GameConnection = WebSocket & {
 	lastKeepAlive: number,
-	pollTimeout: number,
-	player: SessionPlayer
+	pollTimeout?: NodeJS.Timeout,
+	id: UUID,
+	player?: SessionPlayer
 }
 
 export type SessionPlayer = /*Identity &?*/ {
@@ -18,7 +22,7 @@ export type PlayerMove = {
 	pos: Position
 }
 
-export interface GameSession {
+export type GameSession = {
 	id: UUID,
 	state: GameState,
 	blackPlayer: SessionPlayer,
@@ -30,24 +34,35 @@ export interface GameSession {
 }
 
 /**
-* Create a game session
+* Create a game session and store it in SESSIONS
 * timeLimit set to -1 for unlimited time.
 */
 export function createGameSession(
-	white: SessionPlayer,
-	black: SessionPlayer,
+	white: GameConnection,
+	black: GameConnection,
 	allowSpectators: boolean,
 	timeLimit: number
 ): GameSession {
-	return {
+	const blackPlayer: SessionPlayer = { conn: [ black ], id: black.id };
+	const whitePlayer: SessionPlayer = { conn: [ white ], id: white.id };
+	black.player = blackPlayer;
+	white.player = whitePlayer;
+	const game: GameSession = {
 		id: randomUUID(),
 		state: createInitialGameState(),
-		blackPlayer: black,
-		whitePlayer: white,
+		blackPlayer: blackPlayer,
+		whitePlayer: whitePlayer,
 		spectators: [],
 		allowSpectators, timeLimit,
 		moves: []
 	};
+
+	blackPlayer.game = game;
+	whitePlayer.game = game;
+
+	SESSIONS.set(game.id, game);
+
+	return game;
 }
 
 export function isConnectionAlive(conn: GameConnection): boolean {
@@ -58,4 +73,11 @@ export function isPlayerAlive(p: SessionPlayer): boolean {
 	return p.conn.some(isConnectionAlive);
 }
 
+export function onConnectionCut(conn: GameConnection) {
+	// TODO
+}
 
+export function resetTimeout(conn: GameConnection) {
+	clearTimeout(conn.pollTimeout);
+	conn.pollTimeout = setTimeout(() => onConnectionCut(conn));
+}
