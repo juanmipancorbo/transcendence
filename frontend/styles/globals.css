@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #8B5CF6;
+  --brand-light: #A78BFA;
+  --brand-dark: #7C3AED;
+  --bg-deep: #0e0e13;
+  --bg-surface: #1a1a24;
+  --border: #2d2d3d;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-deep);
+    color: #e2e8f0; /* slate-200 */
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0;
+  }
+}
+
+/* Custom utility classes if Tailwind tokens aren't loading */
+.bg-brand { background-color: var(--brand); }
+.text-brand { color: var(--brand); }
+.bg-surface-800 { background-color: var(--bg-surface); }
+.border-surface-700 { border-color: var(--border); }
