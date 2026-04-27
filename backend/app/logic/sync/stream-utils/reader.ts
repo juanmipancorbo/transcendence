@@ -10,7 +10,7 @@ export class ByteReader {
 	private buf: Buffer;
 	private offset = 0;
 
-	constructor(data: RawData) {
+	constructor(data: RawData | Buffer) {
 		this.buf = toBuffer(data);
 	}
 

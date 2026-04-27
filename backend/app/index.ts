@@ -1,15 +1,12 @@
 import express from "express";
-import dotenv from "dotenv";
-
-const res = dotenv.config();
-if (res.error)
-	throw res.error;
+import routerWs from "./websockets";
 
 const app: express.Application = express();
 
 const host = process.env.HOST ?? "localhost";
 const port = Number(process.env.PORT ?? "3000");
 
+app.use("/matches", routerWs);
 app.get('/', (_req, _res) => {
 	_res.send("TypeScript With Express");
 });

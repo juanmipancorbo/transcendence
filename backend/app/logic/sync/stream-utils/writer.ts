@@ -11,32 +11,37 @@ export class ByteWriter {
 			this.buf = Buffer.concat([this.buf, Buffer.allocUnsafe(Math.max(this.buf.byteLength * 2, this.offset + size))]);
 	}
 
-	writeUint8(n: number) {
+	writeUint8(n: number): ByteWriter {
 		this.ensureCapacity(1);
 		this.buf.writeUint8(n, this.offset++);
+		return this;
 	}
 
-	writeBool(b: boolean) {
+	writeBool(b: boolean): ByteWriter {
 		this.writeUint8(b ? 1 : 0);
+		return this;
 	}
 
-	writeInt32(n: number) {
+	writeInt32(n: number): ByteWriter {
 		this.ensureCapacity(4);
 		this.buf.writeInt32BE(n, this.offset)
 		this.offset += 4;
+		return this;
 	}
 
-	writeUint32(n: number) {
+	writeUint32(n: number): ByteWriter {
 		this.ensureCapacity(4);
 		this.buf.writeUint32BE(n, this.offset)
 		this.offset += 4;
+		return this;
 	}
 
-	writePrefixedUTF(s: string) {
+	writePrefixedUTF(s: string): ByteWriter {
 		this.ensureCapacity(4 + Buffer.byteLength(s, "utf8"));
 		this.buf.writeUint32BE(s.length, this.offset);
 		this.offset += 4;
 		this.offset += this.buf.write(s, this.offset, "utf8");
+		return this;
 	}
 
 	freeze(): BufferSource {

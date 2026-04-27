@@ -1,5 +1,7 @@
 import { randomUUID, UUID } from "crypto";
 import { createInitialGameState, GameState, Player, Position } from "../game";
+import { WebSocket } from "ws";
+import { onPlayerDisconnect } from "./protocol";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
@@ -14,12 +16,18 @@ export type GameConnection = WebSocket & {
 export type SessionPlayer = /*Identity &?*/ {
 	conn: GameConnection[],
 	game?: GameSession,
+	ready: boolean,
 	id: UUID,
 }
 
 export type PlayerMove = {
 	player: Player,
 	pos: Position
+}
+
+export type Message = {
+	source: UUID,
+	content: string
 }
 
 export type GameSession = {
@@ -30,7 +38,14 @@ export type GameSession = {
 	spectators: SessionPlayer[],
 	allowSpectators: boolean,
 	timeLimit: number, // In seconds, -1 for unlimited
-	moves: PlayerMove[]
+	moves: PlayerMove[],
+	messages: Message[]
+}
+
+export function broadcastToGame(game: GameSession, buf: BufferSource) {
+	game.blackPlayer.conn.forEach(b => b.send(buf));
+	game.whitePlayer.conn.forEach(w => w.send(buf));
+	game.spectators.forEach(spec => spec.conn.forEach(conn => conn.send(buf)));
 }
 
 /**
@@ -43,8 +58,8 @@ export function createGameSession(
 	allowSpectators: boolean,
 	timeLimit: number
 ): GameSession {
-	const blackPlayer: SessionPlayer = { conn: [ black ], id: black.id };
-	const whitePlayer: SessionPlayer = { conn: [ white ], id: white.id };
+	const blackPlayer: SessionPlayer = { conn: [ black ], id: black.id, ready: false };
+	const whitePlayer: SessionPlayer = { conn: [ white ], id: white.id, ready: false };
 	black.player = blackPlayer;
 	white.player = whitePlayer;
 	const game: GameSession = {
@@ -54,7 +69,8 @@ export function createGameSession(
 		whitePlayer: whitePlayer,
 		spectators: [],
 		allowSpectators, timeLimit,
-		moves: []
+		moves: [],
+		messages: []
 	};
 
 	blackPlayer.game = game;
@@ -73,11 +89,7 @@ export function isPlayerAlive(p: SessionPlayer): boolean {
 	return p.conn.some(isConnectionAlive);
 }
 
-export function onConnectionCut(conn: GameConnection) {
-	// TODO
-}
-
 export function resetTimeout(conn: GameConnection) {
 	clearTimeout(conn.pollTimeout);
-	conn.pollTimeout = setTimeout(() => onConnectionCut(conn));
+	conn.pollTimeout = setTimeout(() => onPlayerDisconnect(conn));
 }

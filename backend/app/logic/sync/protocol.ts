@@ -1,20 +1,22 @@
 import { RawData } from "ws";
 import { ByteReader } from "./stream-utils/reader";
-import { createGameSession, GameConnection, GameSession, resetTimeout, SessionPlayer } from "./session";
+import { broadcastToGame, GameConnection, GameSession } from "./session";
 import { UUID } from "crypto";
-import { buildMatchFound, buildMatchmakeError } from "./protocol-utils";
-import { BLACK, WHITE } from "../game";
+import { buildSpectatorLeave } from "./protocol-utils";
+import { abandonGame } from "../game";
+import { onPlayerMove } from "./game-callbacks";
+import { onKeepAlive, onQuickplay, quickplay, unsetQuickplay } from "./callbacks";
 
 function isUUID(s: string): s is UUID {
 	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
 export enum PreGameProtocol {
-	Quickplay,
-	KeepAlive,
-	Error,
-	MatchFound,
-	MatchmakeError,
+	Quickplay = 0,
+	KeepAlive = 1,
+	Error = 2,
+	MatchFound = 3,
+	MatchmakeError = 4
 }
 
 const pregameCallbacks = [
@@ -22,40 +24,21 @@ const pregameCallbacks = [
 	onKeepAlive
 ]
 
-let quickplay: GameConnection | null = null
-
-function onQuickplay(_: ByteReader, conn: GameConnection) {
-	if (!quickplay)
-		quickplay = conn;
-	else if (quickplay.id === conn.id)
-		conn.send(buildMatchmakeError("You are already on queue"));
-	else {
-		const game = createGameSession(quickplay, conn, false /* TODO: Maybe take into account user settings */, 100);
-		quickplay.send(buildMatchFound(game.id, WHITE, conn.id));
-		conn.send(buildMatchFound(game.id, BLACK, quickplay.id));
-		quickplay = null;
-	}
-}
-
-function onKeepAlive(_: ByteReader, conn: GameConnection) {
-	conn.lastKeepAlive = Date.now();
-	resetTimeout(conn);
-}
-
 export enum Protocol {
-	PlayerMoved,
-	PlayerMoveRejected,
-	PlayerAbandoned,
-	PlayerDisconnected,
-	onSpectatorJoin,
-	StatusChanged,
-	Error
+	PlayerMoved = 0,
+	PlayerAbandoned = 1,
+	PlayerDisconnected = 2,
+	Ready = 3,
+	ChatMessage = 4,
+	SpectatorJoin = 5,
+	SpectatorLeave = 6,
+	StatusChanged = 7,
+	PlayerMoveRejected = 8,
+	Error = 9
 }
 
 const gameCallbacks = [
 	onPlayerMove,
-	onPlayerAbandon,
-	onPlayerDisconnect
 ];
 
 export function onMessageReceive(data: RawData, conn: GameConnection) {
@@ -68,14 +51,43 @@ export function onMessageReceive(data: RawData, conn: GameConnection) {
 		pregameCallbacks[typeId](reader, conn);
 }
 
-function onPlayerMove(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
+export function onPlayerAbandon(conn: GameConnection, game: GameSession) {
+	for (let i = game.spectators.length - 1; i >= 0; i--) {
+		if (game.spectators[i].id == conn.id) {
+			const spec = game.spectators[i];
+			game.spectators.splice(i, 1);
 
+			broadcastToGame(game, buildSpectatorLeave(spec.id));
+			return;
+		}
+	}
+
+	try {
+		abandonGame(game.state, conn.id);
+	} catch (e) {
+		console.log("Failed to abandon game: " + e);
+	}
 }
 
-function onPlayerAbandon(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
+export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
+	// Remove spectator
+	for (let i = game.spectators.length - 1; i >= 0; --i) {
+		if (game.spectators[i].id === conn.id) {
+			for (let j = game.spectators[i].conn.length - 1; j >= 0; --j)
+			game.spectators[i].conn.splice(j, 1);
 
-}
+			if (game.spectators[i].conn.length === 0) {
+				const spec = game.spectators[i];
+				game.spectators.splice(i, 1);
+				broadcastToGame(game, buildSpectatorLeave(spec.id));
+			}
+		}
+	}
 
-function onPlayerDisconnect(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
+	try {
+		abandonGame(game.state, conn.id);
+	} catch (e) {
+		console.log("Failed to abandon game: " + e);
+	}
 
 }
