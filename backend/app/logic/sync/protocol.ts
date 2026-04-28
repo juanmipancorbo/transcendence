@@ -5,28 +5,26 @@ import { UUID } from "crypto";
 import { buildOpponentAbandon, buildSpectatorLeave } from "./protocol-utils";
 import { abandonGame } from "../game";
 import { onPlayerMove } from "./game-callbacks";
-import { onKeepAlive, onQuickplay, quickplay, unsetQuickplay } from "./callbacks";
+import { onKeepAlive } from "./callbacks";
+import { quickplay, unsetQuickplay } from "../../websockets";
 
 function isUUID(s: string): s is UUID {
 	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
 export enum PreGameProtocol {
-	Quickplay = 0,
-	KeepAlive = 1,
-	Error = 2,
-	MatchFound = 3,
-	MatchmakeError = 4
+	KeepAlive = 0,
+	Error = 1,
+	MatchFound = 2,
+	MatchmakeError = 3
 }
 
 const pregameCallbacks = [
-	onQuickplay,
 	onKeepAlive
 ]
 
 export enum Protocol {
 	PlayerMoved = 0,
-	OpponentAbandon = 1,
 	//PlayerDisconnected = 2,
 	Ready = 3,
 	ChatMessage = 4,
@@ -34,8 +32,9 @@ export enum Protocol {
 	SpectatorLeave = 6,
 	StatusChanged = 7,
 	PlayerMoveRejected = 8,
-	PlayerAbandoned = 9,
-	Error = 10
+	PlayerAbandon = 9,
+	OpponentAbandon = 10,
+	Error = 11
 }
 
 const gameCallbacks = [
