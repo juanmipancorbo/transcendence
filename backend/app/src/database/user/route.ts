@@ -1,9 +1,13 @@
 import Router from "express"
 import { getAllUsers, getFullUser } from "./controller";
 import * as EPSchema from "@endpoints/users-request"
-import { validateBody, validateParams } from "@utils/validation-middelwares";
+import { validateParams } from "@utils/validation-middelwares";
 
 const router = Router();
 
+// Testing Route DELETE in prod
 router.get("/admin/all", getAllUsers)
-router.get("/admin/:user", validateParams(EPSchema.FullUserReqSchema), getFullUser)
+// Testing Route DELETE in prod
+router.get("/admin/:username", validateParams(EPSchema.FullUserReqSchema), getFullUser)
+
+export { router };

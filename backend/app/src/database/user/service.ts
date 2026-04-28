@@ -1,21 +1,31 @@
 import * as Repo from "./repository"
 
-export function readUserData(username: string)
-{
-}
-
-export function updateUserGame(userId: string, gameId:string)
-{
-  const user = Repo.selectPublicUser(userId);
+// Testing Service DELETE in prod
+export async function readUserData(username: string) {
+  const user = await Repo.selectUser(username);
   if (!user)
     throw ("INVALID_CREDENTIAL");
-  Repo.updateUserGame(userId, gameId);
+  return (user);
 }
 
-export function updateUserGameNull(userId: string)
-{
-  const user = Repo.selectPublicUser(userId);
+// Testing Service DELETE in prod
+export async function readUserTable() {
+  const table = await Repo.selectUserTable();
+  if (!table)
+    throw ("INTERNAL_SERVER_ERROR");
+  return (table)
+}
+
+export async function updateUserGame(userId: string, gameId:string) {
+  const user = await Repo.selectPublicUser(userId);
   if (!user)
     throw ("INVALID_CREDENTIAL");
-  Repo.updateUserGameNull(userId);
+  await Repo.updateUserGame(userId, gameId);
+}
+
+export async function updateUserGameNull(userId: string) {
+  const user = await Repo.selectPublicUser(userId);
+  if (!user)
+    throw ("INVALID_CREDENTIAL");
+  await Repo.updateUserGameNull(userId);
 }

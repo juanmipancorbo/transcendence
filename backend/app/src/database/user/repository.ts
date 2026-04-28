@@ -1,8 +1,21 @@
 import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
-import { PublicUser } from "@endpoints/users-response" 
+import { PublicUser, User } from "@endpoints/users-response" 
 
-export async function selectUser(username: string){
+// Testing Query DELETE in prod
+export async function selectUser(username: string): Promise<User | null>{
+  const res = await pool.query(sql`
+    SELECT * FROM users
+    WHERE username = $1;
+  `, [username]);
+  return (res.rows[0] ?? null)
+}
+
+// Testing Query DELETE in prod
+export async function selectUserTable(): Promise< User[] | null >{
+  const res = await pool.query(sql`
+    SELECT * FROM users`);
+  return (res.rows ?? null);
 }
 
 export async function selectPublicUser(userId: string): Promise<PublicUser | null>
