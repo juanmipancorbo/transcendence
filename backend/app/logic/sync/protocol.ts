@@ -1,8 +1,8 @@
 import { RawData } from "ws";
 import { ByteReader } from "./stream-utils/reader";
-import { broadcastToGame, GameConnection, GameSession } from "./session";
+import { broadcastToGame, GameConnection, GameSession, send } from "./session";
 import { UUID } from "crypto";
-import { buildSpectatorLeave } from "./protocol-utils";
+import { buildOpponentAbandon, buildSpectatorLeave } from "./protocol-utils";
 import { abandonGame } from "../game";
 import { onPlayerMove } from "./game-callbacks";
 import { onKeepAlive, onQuickplay, quickplay, unsetQuickplay } from "./callbacks";
@@ -26,15 +26,16 @@ const pregameCallbacks = [
 
 export enum Protocol {
 	PlayerMoved = 0,
-	PlayerAbandoned = 1,
-	PlayerDisconnected = 2,
+	OpponentAbandon = 1,
+	//PlayerDisconnected = 2,
 	Ready = 3,
 	ChatMessage = 4,
 	SpectatorJoin = 5,
 	SpectatorLeave = 6,
 	StatusChanged = 7,
 	PlayerMoveRejected = 8,
-	Error = 9
+	PlayerAbandoned = 9,
+	Error = 10
 }
 
 const gameCallbacks = [
@@ -51,43 +52,47 @@ export function onMessageReceive(data: RawData, conn: GameConnection) {
 		pregameCallbacks[typeId](reader, conn);
 }
 
-export function onPlayerAbandon(conn: GameConnection, game: GameSession) {
-	for (let i = game.spectators.length - 1; i >= 0; i--) {
-		if (game.spectators[i].id == conn.id) {
-			const spec = game.spectators[i];
-			game.spectators.splice(i, 1);
+function abandon(conn: GameConnection, game: GameSession) {
+	if (game.state.status !== "FINISHED") {
+		abandonGame(game.state, conn.id);
+		if (game.blackPlayer.id === conn.id)
+			send(game.whitePlayer, buildOpponentAbandon())
+		else if (game.whitePlayer.id === conn.id)
+			send(game.blackPlayer, buildOpponentAbandon())
+	}
+}
 
+export function onPlayerAbandon(conn: GameConnection, game: GameSession) {
+	// Remove spectator
+	for (const spec of game.spectators) {
+		if (spec.id === conn.id && spec.conn.has(conn)) {
 			broadcastToGame(game, buildSpectatorLeave(spec.id));
+			game.spectators.delete(spec);
 			return;
 		}
 	}
 
-	try {
-		abandonGame(game.state, conn.id);
-	} catch (e) {
-		console.log("Failed to abandon game: " + e);
-	}
+	abandon(conn, game);
+	if (quickplay && quickplay.id === conn.id)
+		unsetQuickplay();
 }
 
 export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
 	// Remove spectator
-	for (let i = game.spectators.length - 1; i >= 0; --i) {
-		if (game.spectators[i].id === conn.id) {
-			for (let j = game.spectators[i].conn.length - 1; j >= 0; --j)
-			game.spectators[i].conn.splice(j, 1);
-
-			if (game.spectators[i].conn.length === 0) {
-				const spec = game.spectators[i];
-				game.spectators.splice(i, 1);
+	for (const spec of game.spectators) {
+		if (spec.id === conn.id && spec.conn.has(conn)) {
+			if (spec.conn.size === 1) {
 				broadcastToGame(game, buildSpectatorLeave(spec.id));
+				game.spectators.delete(spec);
 			}
+			spec.conn.delete(conn);
+			return;
 		}
 	}
 
-	try {
-		abandonGame(game.state, conn.id);
-	} catch (e) {
-		console.log("Failed to abandon game: " + e);
-	}
-
+	let player = game.blackPlayer.id === conn.id ? game.blackPlayer : game.whitePlayer.id === conn.id ? game.whitePlayer : null;
+	if (player && player.conn.delete(conn) && player.conn.size === 0)
+		abandon(conn, game);
+	if (quickplay && quickplay.id === conn.id)
+		unsetQuickplay();
 }

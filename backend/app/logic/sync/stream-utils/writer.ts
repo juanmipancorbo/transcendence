@@ -1,3 +1,5 @@
+import { Board } from "../../game";
+
 export class ByteWriter {
 	private buf: Buffer;
 	private offset = 0;
@@ -41,6 +43,25 @@ export class ByteWriter {
 		this.buf.writeUint32BE(s.length, this.offset);
 		this.offset += 4;
 		this.offset += this.buf.write(s, this.offset, "utf8");
+		return this;
+	}
+
+	writeBoard(board: Board): ByteWriter {
+		if (board.length < 1 || board[0].length < 1) {
+			this.writeUint32(0);
+			this.writeUint32(0);
+			return this;
+		}
+
+		const height = board.length;
+		const width = board[0].length;
+		this.writeUint32(height);
+		this.writeUint32(width);
+
+		for (let i = 0; i < height; ++i)
+			for (let j = 0; j < width; ++j)
+				this.writeUint8(board[i][j]);
+
 		return this;
 	}
 

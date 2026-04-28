@@ -30,6 +30,10 @@ export function buildMatchFound(gameId: UUID, color: number, opponent: UUID): Bu
 
 // In-Game
 
+export function buildOpponentAbandon() {
+	return build(Protocol.OpponentAbandon).freeze();
+}
+
 export function buildSpectatorLeave(specId: UUID): BufferSource {
 	return build(Protocol.SpectatorLeave)
 		.writePrefixedUTF(specId)

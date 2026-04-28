@@ -14,7 +14,7 @@ export type GameConnection = WebSocket & {
 }
 
 export type SessionPlayer = /*Identity &?*/ {
-	conn: GameConnection[],
+	conn: Set<GameConnection>,
 	game?: GameSession,
 	ready: boolean,
 	id: UUID,
@@ -35,7 +35,7 @@ export type GameSession = {
 	state: GameState,
 	blackPlayer: SessionPlayer,
 	whitePlayer: SessionPlayer,
-	spectators: SessionPlayer[],
+	spectators: Set<SessionPlayer>,
 	allowSpectators: boolean,
 	timeLimit: number, // In seconds, -1 for unlimited
 	moves: PlayerMove[],
@@ -48,6 +48,10 @@ export function broadcastToGame(game: GameSession, buf: BufferSource) {
 	game.spectators.forEach(spec => spec.conn.forEach(conn => conn.send(buf)));
 }
 
+export function send(player: SessionPlayer, buf: BufferSource) {
+	player.conn.forEach(c => c.send(buf));
+}
+
 /**
 * Create a game session and store it in SESSIONS
 * timeLimit set to -1 for unlimited time.
@@ -58,8 +62,8 @@ export function createGameSession(
 	allowSpectators: boolean,
 	timeLimit: number
 ): GameSession {
-	const blackPlayer: SessionPlayer = { conn: [ black ], id: black.id, ready: false };
-	const whitePlayer: SessionPlayer = { conn: [ white ], id: white.id, ready: false };
+	const blackPlayer: SessionPlayer = { conn: new Set([ black ]), id: black.id, ready: false };
+	const whitePlayer: SessionPlayer = { conn: new Set([ white ]), id: white.id, ready: false };
 	black.player = blackPlayer;
 	white.player = whitePlayer;
 	const game: GameSession = {
@@ -67,7 +71,7 @@ export function createGameSession(
 		state: createInitialGameState(),
 		blackPlayer: blackPlayer,
 		whitePlayer: whitePlayer,
-		spectators: [],
+		spectators: new Set(),
 		allowSpectators, timeLimit,
 		moves: [],
 		messages: []
@@ -86,10 +90,18 @@ export function isConnectionAlive(conn: GameConnection): boolean {
 }
 
 export function isPlayerAlive(p: SessionPlayer): boolean {
-	return p.conn.some(isConnectionAlive);
+	for (const v of p.conn.values()) {
+		if (!isConnectionAlive(v))
+			return false;
+	}
+	return true;
 }
 
 export function resetTimeout(conn: GameConnection) {
 	clearTimeout(conn.pollTimeout);
-	conn.pollTimeout = setTimeout(() => onPlayerDisconnect(conn));
+	conn.pollTimeout = setTimeout(() => {
+		if (conn.player && conn.player.game)
+			onPlayerDisconnect(conn, conn.player.game);
+		conn.close();
+	}, 20000);
 }
