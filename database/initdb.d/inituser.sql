@@ -4,7 +4,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     avatar_url TEXT DEFAULT NULL,
-    current_game UNIQUE DEFAULT NULL,
+    current_game UUID UNIQUE DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
