@@ -1,11 +1,10 @@
 import { randomUUID, UUID } from "crypto";
-import { createInitialGameState, GameState, Player, Position } from "../game";
+import { createInitialGameState, GameState, Player, Position, STATUS_WAITING } from "../game";
 import { WebSocket } from "ws";
 import { onPlayerDisconnect } from "./protocol";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
-// TODO: Chat
 export type GameConnection = WebSocket & {
 	lastKeepAlive: number,
 	pollTimeout?: NodeJS.Timeout,
@@ -79,8 +78,10 @@ export function createGameSession(
 
 	blackPlayer.game = game;
 	whitePlayer.game = game;
+	game.state.status = STATUS_WAITING;
 
 	SESSIONS.set(game.id, game);
+	// TODO: updateUserGame
 
 	return game;
 }

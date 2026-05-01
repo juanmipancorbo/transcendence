@@ -2,9 +2,9 @@ import { RawData } from "ws";
 import { ByteReader } from "./stream-utils/reader";
 import { broadcastToGame, GameConnection, GameSession, send } from "./session";
 import { UUID } from "crypto";
-import { buildOpponentAbandon, buildSpectatorLeave } from "./protocol-utils";
-import { abandonGame } from "../game";
-import { onPlayerMove } from "./game-callbacks";
+import { build, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
+import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
+import { onPlayerMove, onReady } from "./game-callbacks";
 import { onKeepAlive } from "./callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
 
@@ -24,30 +24,39 @@ const pregameCallbacks = [
 ]
 
 export enum Protocol {
-	PlayerMoved = 0,
+	ConsumeTurn = 0,
 	//PlayerDisconnected = 2,
 	Ready = 3,
 	ChatMessage = 4,
 	SpectatorJoin = 5,
 	SpectatorLeave = 6,
-	StatusChanged = 7,
-	PlayerMoveRejected = 8,
-	PlayerAbandon = 9,
-	OpponentAbandon = 10,
-	Error = 11
+	YourTurn = 7,
+	OpponentTurn = 8,
+	YouWin = 9,
+	YouLose = 10,
+	NoMoves = 11,
+	PlayerAbandon = 12,
+	OpponentAbandon = 13,
+	Board = 14,
+	MoveUpdate = 15,
+	GameStart = 16,
+	Error = 17
 }
 
 const gameCallbacks = [
 	onPlayerMove,
+	null,
+	null,
+	onReady
 ];
 
 export function onMessageReceive(data: RawData, conn: GameConnection) {
 	const reader = new ByteReader(data);
 	const typeId = reader.readUint8();
 
-	if (conn.player && conn.player.game && typeId < Protocol.Error)
+	if (conn.player && conn.player.game && gameCallbacks[typeId])
 		gameCallbacks[typeId](reader, conn.player.game, conn.player);
-	else if (typeId < PreGameProtocol.Error)
+	else if (pregameCallbacks[typeId])
 		pregameCallbacks[typeId](reader, conn);
 }
 
@@ -94,4 +103,17 @@ export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
 		abandon(conn, game);
 	if (quickplay && quickplay.id === conn.id)
 		unsetQuickplay();
+}
+
+export function nextTurn(game: GameSession) {
+	if (game.state.status === STATUS_FINISHED || game.state.status === STATUS_ABANDONED) {
+		send(game.state.winner === BLACK ? game.blackPlayer : game.whitePlayer, build(Protocol.YouWin).freeze());
+		send(game.state.winner === BLACK ? game.whitePlayer : game.blackPlayer, build(Protocol.YouLose).freeze());
+	} else if (game.state.currentTurn === BLACK) {
+		send(game.blackPlayer, buildYourTurn(getValidMoves(game.state.board, BLACK)));
+		send(game.whitePlayer, buildOpponentTurn());
+	} else if (game.state.currentTurn === WHITE) {
+		send(game.whitePlayer, buildYourTurn(getValidMoves(game.state.board, WHITE)));
+		send(game.blackPlayer, buildOpponentTurn());
+	}
 }
