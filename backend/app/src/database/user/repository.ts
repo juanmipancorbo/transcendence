@@ -2,7 +2,7 @@ import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
 import { PublicUser, User } from "@endpoints/users-response" 
 
-// Testing Query DELETE in prod
+// TEST Query DELETE in prod
 export async function selectUser(username: string): Promise<User | null>{
   const res = await pool.query(sql`
     SELECT * FROM users
@@ -11,7 +11,7 @@ export async function selectUser(username: string): Promise<User | null>{
   return (res.rows[0] ?? null)
 }
 
-// Testing Query DELETE in prod
+// TEST Query DELETE in prod
 export async function selectUserTable(): Promise< User[] | null >{
   const res = await pool.query(sql`
     SELECT * FROM users`);

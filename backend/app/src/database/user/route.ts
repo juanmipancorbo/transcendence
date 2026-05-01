@@ -5,9 +5,9 @@ import { validateParams } from "@utils/validation-middelwares";
 
 const router = Router();
 
-// Testing Route DELETE in prod
+// TEST Route DELETE in prod
 router.get("/admin/all", getAllUsers)
-// Testing Route DELETE in prod
+// TEST Route DELETE in prod
 router.get("/admin/:username", validateParams(EPSchema.FullUserReqSchema), getFullUser)
 
 export { router };

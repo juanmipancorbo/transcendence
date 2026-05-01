@@ -10,6 +10,8 @@ export interface PublicUser {
   id: string,
   username: string,
   email: string,
+  avatar_url: string,
+  current_game: string,
 };
 
 export interface User {
@@ -22,3 +24,11 @@ export interface User {
   created_at: Date,
   updated_at: Date,
 };
+
+export interface AuthUser {
+  id: string,
+  username: string,
+  email: string,
+  password_hash?: string,
+  // REMARK ?? token: string,
+}

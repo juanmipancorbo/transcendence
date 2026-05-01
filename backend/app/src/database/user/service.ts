@@ -1,6 +1,6 @@
 import * as Repo from "./repository"
 
-// Testing Service DELETE in prod
+// TEST Service DELETE in prod
 export async function readUserData(username: string) {
   const user = await Repo.selectUser(username);
   if (!user)
@@ -8,7 +8,7 @@ export async function readUserData(username: string) {
   return (user);
 }
 
-// Testing Service DELETE in prod
+// TEST Service DELETE in prod
 export async function readUserTable() {
   const table = await Repo.selectUserTable();
   if (!table)

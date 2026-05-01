@@ -1,5 +1,6 @@
 import express from "express";
 import { router as routerUser } from "./src/database/user/route";
+import { router as routerAuth } from "./src/database/auth/route";
 
 const app: express.Application = express();
 
@@ -15,3 +16,4 @@ app.listen(port, _ => {
 });
 
 app.use("/users", routerUser)
+app.use("/auth", routerAuth)
