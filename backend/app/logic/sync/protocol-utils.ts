@@ -1,7 +1,8 @@
 import { UUID } from "crypto";
 import { PreGameProtocol, Protocol } from "./protocol";
 import { ByteWriter } from "./stream-utils/writer";
-import { Board, Position, PublicGameState } from "../game";
+import { Board, Player, Position } from "../game";
+import { GameSession, PositionUpdate } from "./session";
 
 export function build(typeId: number): ByteWriter {
 	return new ByteWriter().writeUint8(typeId);
@@ -53,8 +54,19 @@ export function buildBoard(board: Board) {
 		.freeze();
 }
 
-export function buildMoveUpdate(): BufferSource {
-	
+export function buildMoveUpdate(player: Player, move: Position, updates: PositionUpdate[]): BufferSource {
+	const writer = build(Protocol.MoveUpdate)
+		.writeUint8(player)
+		.writeUint8(move.row)
+		.writeUint8(move.col)
+		.writeUint32(updates.length);
+	updates.forEach(p => {
+		writer.writeUint8(p.content);
+		writer.writeUint8(p.pos.row);
+		writer.writeUint8(p.pos.col);
+	});
+
+	return writer.freeze();
 }
 
 export function buildYourTurn(moves: Position[]): BufferSource {
@@ -70,4 +82,10 @@ export function buildYourTurn(moves: Position[]): BufferSource {
 
 export function buildOpponentTurn(): BufferSource {
 	return build(Protocol.OpponentTurn).freeze();
+}
+
+export function buildGameEnd(game: GameSession): BufferSource {
+	return build(Protocol.GameEnd)
+		.writeUint8(!game.state.winner || game.state.winner === "DRAW" ? 0 : game.state.winner)
+		.freeze();
 }

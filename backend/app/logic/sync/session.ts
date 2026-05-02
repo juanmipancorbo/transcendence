@@ -1,5 +1,5 @@
 import { randomUUID, UUID } from "crypto";
-import { createInitialGameState, GameState, Player, Position, STATUS_WAITING } from "../game";
+import { Cell, createInitialGameState, GameState, Player, Position, STATUS_WAITING } from "../game";
 import { WebSocket } from "ws";
 import { onPlayerDisconnect } from "./protocol";
 
@@ -15,13 +15,20 @@ export type GameConnection = WebSocket & {
 export type SessionPlayer = /*Identity &?*/ {
 	conn: Set<GameConnection>,
 	game?: GameSession,
+	player?: Player,
 	ready: boolean,
 	id: UUID,
 }
 
+export type PositionUpdate = {
+	content: Cell,
+	pos: Position
+}
+
 export type PlayerMove = {
 	player: Player,
-	pos: Position
+	pos: Position,
+	updates: PositionUpdate[]
 }
 
 export type Message = {
@@ -84,6 +91,13 @@ export function createGameSession(
 	// TODO: updateUserGame
 
 	return game;
+}
+
+export function closeSession(game: GameSession) {
+	SESSIONS.delete(game.id);
+	game.blackPlayer.conn.forEach(c => c.close());
+	game.whitePlayer.conn.forEach(c => c.close());
+	game.spectators.forEach(s => s.conn.forEach(c => c.close()));
 }
 
 export function isConnectionAlive(conn: GameConnection): boolean {

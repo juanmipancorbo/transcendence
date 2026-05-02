@@ -4,7 +4,7 @@ import { broadcastToGame, GameConnection, GameSession, send } from "./session";
 import { UUID } from "crypto";
 import { build, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
-import { onPlayerMove, onReady } from "./game-callbacks";
+import { onConsumeTurn, onReady } from "./game-callbacks";
 import { onKeepAlive } from "./callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
 
@@ -35,16 +35,18 @@ export enum Protocol {
 	YouWin = 9,
 	YouLose = 10,
 	NoMoves = 11,
-	PlayerAbandon = 12,
-	OpponentAbandon = 13,
-	Board = 14,
-	MoveUpdate = 15,
-	GameStart = 16,
-	Error = 17
+	OpponentNoMoves = 12,
+	PlayerAbandon = 13,
+	OpponentAbandon = 14,
+	Board = 15,
+	MoveUpdate = 16,
+	GameStart = 17,
+	GameEnd = 18,
+	Error = 19
 }
 
 const gameCallbacks = [
-	onPlayerMove,
+	onConsumeTurn,
 	null,
 	null,
 	onReady
