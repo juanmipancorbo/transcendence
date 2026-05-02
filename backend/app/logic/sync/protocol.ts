@@ -1,10 +1,10 @@
 import { RawData } from "ws";
 import { ByteReader } from "./stream-utils/reader";
-import { broadcastToGame, GameConnection, GameSession, send } from "./session";
+import { broadcastToGame, closeSession, GameConnection, GameSession, send } from "./session";
 import { UUID } from "crypto";
-import { build, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
+import { buildGameEnd, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
-import { onConsumeTurn, onReady } from "./game-callbacks";
+import { onChat, onConsumeTurn, onReady } from "./game-callbacks";
 import { onKeepAlive } from "./callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
 
@@ -25,31 +25,29 @@ const pregameCallbacks = [
 
 export enum Protocol {
 	ConsumeTurn = 0,
-	//PlayerDisconnected = 2,
 	Ready = 3,
 	ChatMessage = 4,
 	SpectatorJoin = 5,
 	SpectatorLeave = 6,
 	YourTurn = 7,
 	OpponentTurn = 8,
-	YouWin = 9,
-	YouLose = 10,
-	NoMoves = 11,
-	OpponentNoMoves = 12,
-	PlayerAbandon = 13,
-	OpponentAbandon = 14,
-	Board = 15,
-	MoveUpdate = 16,
-	GameStart = 17,
-	GameEnd = 18,
-	Error = 19
+	NoMoves = 9,
+	OpponentNoMoves = 10,
+	PlayerAbandon = 11,
+	OpponentAbandon = 12,
+	Board = 13,
+	MoveUpdate = 14,
+	GameStart = 15,
+	GameEnd = 16,
+	Error = 17
 }
 
 const gameCallbacks = [
 	onConsumeTurn,
 	null,
 	null,
-	onReady
+	onReady,
+	onChat
 ];
 
 export function onMessageReceive(data: RawData, conn: GameConnection) {
@@ -107,15 +105,47 @@ export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
 		unsetQuickplay();
 }
 
+// Determines the winner, if no winner is set it stops the game with a draw
+export function reportFinishedGame(game: GameSession) {
+	broadcastToGame(game, buildGameEnd(game));
+	// TODO: If leaderboard or exp systems, add something here
+	closeSession(game);
+}
+
 export function nextTurn(game: GameSession) {
-	if (game.state.status === STATUS_FINISHED || game.state.status === STATUS_ABANDONED) {
-		send(game.state.winner === BLACK ? game.blackPlayer : game.whitePlayer, build(Protocol.YouWin).freeze());
-		send(game.state.winner === BLACK ? game.whitePlayer : game.blackPlayer, build(Protocol.YouLose).freeze());
-	} else if (game.state.currentTurn === BLACK) {
-		send(game.blackPlayer, buildYourTurn(getValidMoves(game.state.board, BLACK)));
+	if (game.state.status === STATUS_FINISHED || game.state.status === STATUS_ABANDONED)
+		reportFinishedGame(game);
+	else if (game.state.currentTurn === BLACK) {
+		let timeToLose;
 		send(game.whitePlayer, buildOpponentTurn());
+
+		if (game.timeLimit !== -1) {
+			timeToLose = game.blackPlayer.timeLeft;
+			game.blackPlayer.timer = Date.now();
+			game.blackPlayer.timeout = setTimeout(() => {
+				game.state.winner = WHITE;
+				game.state.status = STATUS_FINISHED;
+
+				reportFinishedGame(game);
+			}, game.blackPlayer.timeLeft);
+		} else timeToLose = -1;
+
+		send(game.blackPlayer, buildYourTurn(getValidMoves(game.state.board, BLACK), timeToLose));
 	} else if (game.state.currentTurn === WHITE) {
-		send(game.whitePlayer, buildYourTurn(getValidMoves(game.state.board, WHITE)));
+		let timeToLose;
 		send(game.blackPlayer, buildOpponentTurn());
+
+		if (game.timeLimit !== -1) {
+			timeToLose = game.whitePlayer.timeLeft;
+			game.whitePlayer.timer = Date.now();
+			game.whitePlayer.timeout = setTimeout(() => {
+				game.state.winner = BLACK;
+				game.state.status = STATUS_FINISHED;
+
+				reportFinishedGame(game);
+			}, game.whitePlayer.timeLeft);
+		} else timeToLose = -1;
+
+		send(game.whitePlayer, buildYourTurn(getValidMoves(game.state.board, WHITE), timeToLose));
 	}
 }

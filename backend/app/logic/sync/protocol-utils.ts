@@ -69,8 +69,9 @@ export function buildMoveUpdate(player: Player, move: Position, updates: Positio
 	return writer.freeze();
 }
 
-export function buildYourTurn(moves: Position[]): BufferSource {
+export function buildYourTurn(moves: Position[], timeToLose: number): BufferSource {
 	const writer = build(Protocol.YourTurn)
+		.writeUint32(timeToLose)
 		.writeUint32(moves.length);
 	moves.forEach(m => {
 		writer.writeUint8(m.row);
@@ -87,5 +88,12 @@ export function buildOpponentTurn(): BufferSource {
 export function buildGameEnd(game: GameSession): BufferSource {
 	return build(Protocol.GameEnd)
 		.writeUint8(!game.state.winner || game.state.winner === "DRAW" ? 0 : game.state.winner)
+		.freeze();
+}
+
+export function buildChatMessage(senderId: UUID, message: string): BufferSource {
+	return build(Protocol.ChatMessage)
+		.writePrefixedUTF(senderId)
+		.writePrefixedUTF(message)
 		.freeze();
 }

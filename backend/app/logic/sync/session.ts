@@ -1,5 +1,5 @@
 import { randomUUID, UUID } from "crypto";
-import { Cell, createInitialGameState, GameState, Player, Position, STATUS_WAITING } from "../game";
+import { BLACK, Cell, createInitialGameState, GameState, Player, Position, STATUS_WAITING, WHITE } from "../game";
 import { WebSocket } from "ws";
 import { onPlayerDisconnect } from "./protocol";
 
@@ -17,6 +17,9 @@ export type SessionPlayer = /*Identity &?*/ {
 	game?: GameSession,
 	player?: Player,
 	ready: boolean,
+	timeLeft: number,
+	timer?: number | null,
+	timeout?: NodeJS.Timeout | null,
 	id: UUID,
 }
 
@@ -68,8 +71,8 @@ export function createGameSession(
 	allowSpectators: boolean,
 	timeLimit: number
 ): GameSession {
-	const blackPlayer: SessionPlayer = { conn: new Set([ black ]), id: black.id, ready: false };
-	const whitePlayer: SessionPlayer = { conn: new Set([ white ]), id: white.id, ready: false };
+	const blackPlayer: SessionPlayer = { conn: new Set([ black ]), id: black.id, ready: false, timeLeft: timeLimit * 1000 };
+	const whitePlayer: SessionPlayer = { conn: new Set([ white ]), id: white.id, ready: false, timeLeft: timeLimit * 1000 };
 	black.player = blackPlayer;
 	white.player = whitePlayer;
 	const game: GameSession = {
@@ -85,6 +88,8 @@ export function createGameSession(
 
 	blackPlayer.game = game;
 	whitePlayer.game = game;
+	blackPlayer.player = BLACK;
+	whitePlayer.player = WHITE;
 	game.state.status = STATUS_WAITING;
 
 	SESSIONS.set(game.id, game);

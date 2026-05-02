@@ -1,7 +1,7 @@
 import { applyPlayerMove, BLACK, getValidMoves, Position, STATUS_ACTIVE, STATUS_FINISHED } from "../game";
-import { nextTurn, Protocol } from "./protocol";
-import { build, buildGameEnd, buildGameError, buildMoveUpdate, buildOpponentTurn, buildYourTurn } from "./protocol-utils";
-import { broadcastToGame, closeSession, GameSession, PositionUpdate, send, SessionPlayer } from "./session";
+import { nextTurn, Protocol, reportFinishedGame } from "./protocol";
+import { build, buildChatMessage, buildGameError, buildMoveUpdate, buildOpponentTurn, buildYourTurn } from "./protocol-utils";
+import { broadcastToGame, GameSession, PositionUpdate, send, SessionPlayer } from "./session";
 import { ByteReader } from "./stream-utils/reader";
 
 export function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
@@ -14,6 +14,10 @@ export function onConsumeTurn(reader: ByteReader, game: GameSession, conn: Sessi
 
 	const pos: Position = { row: reader.readUint8(), col: reader.readUint8() };
 	const previousBoard = game.state.board;
+	if (game.timeLimit !== -1 && conn.timeout && conn.timer) {
+		clearTimeout(conn.timeout);
+		conn.timeLeft -= Date.now() - conn.timer;
+	}
 	game.state = applyPlayerMove(game.state, conn.id, pos.row, pos.col);
 
 	const updates: PositionUpdate[] = [];
@@ -29,22 +33,11 @@ export function onConsumeTurn(reader: ByteReader, game: GameSession, conn: Sessi
 	// Send state updates to whole game
 	broadcastToGame(game, buildMoveUpdate(conn.player, pos, updates));
 
-	if (game.state.status === STATUS_FINISHED) {
-		broadcastToGame(game, buildGameEnd(game));
-		// TODO: If leaderboard or exp systems, add something here
-		closeSession(game);
-		return;
-	}
-
 	const opponent = conn.player === BLACK ? game.whitePlayer : game.blackPlayer;
-	if (game.state.currentTurn === conn.player) {
-		send(conn, buildYourTurn(getValidMoves(game.state.board, conn.player)));
-		send(conn, build(Protocol.OpponentNoMoves).freeze());
-		send(opponent, build(Protocol.NoMoves).freeze());
-	} else if (opponent.player) {
-		send(opponent, buildYourTurn(getValidMoves(game.state.board, opponent.player)));
-		send(conn, buildOpponentTurn());
-	}
+	send(conn, build(Protocol.OpponentNoMoves).freeze());
+	send(opponent, build(Protocol.NoMoves).freeze());
+
+	nextTurn(game);
 }
 
 export function onReady(_: ByteReader, game: GameSession, conn: SessionPlayer) {
@@ -58,7 +51,16 @@ export function onReady(_: ByteReader, game: GameSession, conn: SessionPlayer) {
 	}
 }
 
-export function a(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
+export function onChat(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
+	const message = reader.readPrefixedUTF();
+	const output = buildChatMessage(conn.id, message);
+	game.spectators.forEach(s => send(s, output));
+
+	if (!game.spectators.has(conn)) {
+		send(game.whitePlayer, output);
+		send(game.blackPlayer, output);
+	}
+}
 export function b(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
 export function c(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
 export function d(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
