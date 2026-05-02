@@ -1,6 +1,6 @@
-import { applyPlayerMove, BLACK, getValidMoves, Position, STATUS_ACTIVE, STATUS_FINISHED } from "../game";
-import { nextTurn, Protocol, reportFinishedGame } from "./protocol";
-import { build, buildChatMessage, buildGameError, buildMoveUpdate, buildOpponentTurn, buildYourTurn } from "./protocol-utils";
+import { applyPlayerMove, BLACK, Position, STATUS_ACTIVE } from "../game";
+import { nextTurn, Protocol } from "./protocol";
+import { build, buildChatMessage, buildGameError, buildMoveUpdate } from "./protocol-utils";
 import { broadcastToGame, GameSession, PositionUpdate, send, SessionPlayer } from "./session";
 import { ByteReader } from "./stream-utils/reader";
 

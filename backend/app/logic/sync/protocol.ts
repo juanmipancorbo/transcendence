@@ -1,16 +1,11 @@
 import { RawData } from "ws";
 import { ByteReader } from "./stream-utils/reader";
 import { broadcastToGame, closeSession, GameConnection, GameSession, send } from "./session";
-import { UUID } from "crypto";
 import { buildGameEnd, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
 import { onChat, onConsumeTurn, onReady } from "./game-callbacks";
 import { onKeepAlive } from "./callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
-
-function isUUID(s: string): s is UUID {
-	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-}
 
 export enum PreGameProtocol {
 	KeepAlive = 0,
