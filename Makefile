@@ -9,10 +9,10 @@ up:
 			-out nginx/certs/cert.pem \
 			-subj "/CN=localhost"; \
 	fi
-	docker compose up --build
+	docker compose -f 'compose.yaml' up -d --build
 
 down:
-	docker compose down
+	docker compose -f 'compose.yaml' down
 
 clean:
 	docker compose down -v
