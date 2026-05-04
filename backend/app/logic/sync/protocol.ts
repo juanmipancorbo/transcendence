@@ -4,38 +4,33 @@ import { broadcastToGame, closeSession, GameConnection, GameSession, send } from
 import { buildGameEnd, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
 import { onChat, onConsumeTurn, onReady } from "./game-callbacks";
-import { onKeepAlive } from "./callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
+import { onKeepAlive } from "./callbacks";
 
 export enum PreGameProtocol {
-	KeepAlive = 0,
-	Error = 1,
-	MatchFound = 2,
-	MatchmakeError = 3
+	Error = 0,
+	MatchFound = 1,
+	MatchmakeError = 2
 }
-
-const pregameCallbacks = [
-	onKeepAlive
-]
 
 export enum Protocol {
 	ConsumeTurn = 0,
-	Ready = 3,
-	ChatMessage = 4,
-	SpectatorJoin = 5,
-	SpectatorLeave = 6,
-	YourTurn = 7,
-	OpponentTurn = 8,
-	NoMoves = 9,
-	OpponentNoMoves = 10,
-	PlayerAbandon = 11,
-	OpponentAbandon = 12,
-	Board = 13,
-	MoveUpdate = 14,
-	GameStart = 15,
-	GameEnd = 16,
-	Error = 17
-}
+	Ready = 1,
+	ChatMessage = 2,
+	SpectatorJoin = 3,
+	SpectatorLeave = 4,
+	YourTurn = 5,
+	OpponentTurn = 6,
+	NoMoves = 7,
+	OpponentNoMoves = 8,
+	PlayerAbandon = 9,
+	OpponentAbandon = 10,
+	Board = 11,
+	MoveUpdate = 12,
+	GameStart = 13,
+	GameEnd = 14,
+	Error = 15
+};
 
 const gameCallbacks = [
 	onConsumeTurn,
@@ -49,10 +44,10 @@ export function onMessageReceive(data: RawData, conn: GameConnection) {
 	const reader = new ByteReader(data);
 	const typeId = reader.readUint8();
 
-	if (conn.player && conn.player.game && gameCallbacks[typeId])
+	if (typeId === 0)
+		onKeepAlive(conn);
+	else if (conn.player && conn.player.game && gameCallbacks[typeId])
 		gameCallbacks[typeId](reader, conn.player.game, conn.player);
-	else if (pregameCallbacks[typeId])
-		pregameCallbacks[typeId](reader, conn);
 }
 
 function abandon(conn: GameConnection, game: GameSession) {
@@ -102,8 +97,9 @@ export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
 
 // Determines the winner, if no winner is set it stops the game with a draw
 export function reportFinishedGame(game: GameSession) {
+	game.finishedAt = Date.now();
 	broadcastToGame(game, buildGameEnd(game));
-	// TODO: If leaderboard or exp systems, add something here
+	// TODO: Save and if leaderboard or exp systems, add something here
 	closeSession(game);
 }
 

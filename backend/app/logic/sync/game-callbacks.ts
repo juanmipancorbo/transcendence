@@ -46,6 +46,7 @@ export function onReady(_: ByteReader, game: GameSession, conn: SessionPlayer) {
 		if (game.blackPlayer.ready && game.whitePlayer.ready) {
 			game.state.status = STATUS_ACTIVE;
 			broadcastToGame(game, build(Protocol.GameStart).freeze());
+			game.startedAt = Date.now();
 			nextTurn(game);
 		}
 	}

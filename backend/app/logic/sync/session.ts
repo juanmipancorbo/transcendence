@@ -48,7 +48,9 @@ export type GameSession = {
 	allowSpectators: boolean,
 	timeLimit: number, // In seconds, -1 for unlimited
 	moves: PlayerMove[],
-	messages: Message[]
+	messages: Message[],
+	startedAt?: number,
+	finishedAt?: number
 }
 
 export function broadcastToGame(game: GameSession, buf: BufferSource) {
