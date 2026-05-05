@@ -3,6 +3,7 @@ import { ByteReader } from "./stream-utils";
 export class GameSocket {
 	private ws: WebSocket;
 	private handlers: ((p: ByteReader) => void)[] = [];
+	ondisconnect?: (e?: Error) => void;
 
 	constructor(url: string, onConnect: (e?: Error) => void) {
 		this.ws = new WebSocket(url);
@@ -13,7 +14,10 @@ export class GameSocket {
 	private setup(onConnect: (e?: Error) => void) {
 		this.ws.onerror = e => onConnect(new Error(`${e}`));
 		this.ws.onopen = _ => {
-			this.ws.onerror = (_) => {}
+			this.ws.onerror = e => {
+				if (this.ondisconnect)
+					this.ondisconnect(new Error(`${e}`));
+			};
 			onConnect();
 		}
 		this.ws.onmessage = e => {
@@ -25,7 +29,9 @@ export class GameSocket {
 	}
 
 	disconnect(code: number): void {
-		// TODO
+		this.ws.close(code);
+		if (this.ondisconnect)
+			this.ondisconnect();
 	}
 
 	send(payload: Uint8Array): void {
