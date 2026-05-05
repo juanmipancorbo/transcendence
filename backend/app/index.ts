@@ -6,6 +6,8 @@ const app: express.Application = express();
 
 const port = Number(process.env.PORT ?? "3000");
 
+app.use(express.json());
+
 app.get('/', (_req, _res) => {
 	_res.send("TypeScript With Express");
 });
