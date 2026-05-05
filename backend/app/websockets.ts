@@ -35,7 +35,6 @@ function setupGameConnection(client: WebSocket, id: UUID): GameConnection {
 				onPlayerAbandon(res, res.player.game);
 			else onPlayerDisconnect(res, res.player.game);
 		}
-
 	});
 	res.on("error", async (err) => {
 		console.error("Client was disconnected with an error: " + err.message);
@@ -60,8 +59,8 @@ router.ws("/quickplay",/* TODO: Token validation and ID injection */ async (ws, 
 		quickplay = client;
 	else {
 		const game = createGameSession(quickplay, client, false /* TODO: Maybe take into account user settings */, 100);
-		quickplay.send(buildMatchFound(game.id, WHITE, client.id));
-		client.send(buildMatchFound(game.id, BLACK, quickplay.id));
+		quickplay.send(buildMatchFound(game, WHITE, client.id));
+		client.send(buildMatchFound(game, BLACK, quickplay.id));
 		quickplay = null;
 	}
 });

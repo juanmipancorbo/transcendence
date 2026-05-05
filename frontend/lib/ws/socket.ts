@@ -3,11 +3,13 @@ import { ByteReader } from "./stream-utils";
 export class GameSocket {
 	private ws: WebSocket;
 	private handlers: ((p: ByteReader) => void)[] = [];
+	url: string;
 	ondisconnect?: (e?: Error) => void;
 
 	constructor(url: string, onConnect: (e?: Error) => void) {
 		this.ws = new WebSocket(url);
 		this.ws.binaryType = "arraybuffer";
+		this.url = url;
 		this.setup(onConnect);
 	}
 
@@ -15,9 +17,14 @@ export class GameSocket {
 		this.ws.onerror = e => onConnect(new Error(`${e}`));
 		this.ws.onopen = _ => {
 			this.ws.onerror = e => {
+				this.ws.onclose = () => {}; // Avoid ondisconnect being called twice
 				if (this.ondisconnect)
 					this.ondisconnect(new Error(`${e}`));
 			};
+			this.ws.onclose = () => {
+				if (this.ondisconnect)
+					this.ondisconnect();
+			}
 			onConnect();
 		}
 		this.ws.onmessage = e => {
@@ -29,6 +36,7 @@ export class GameSocket {
 	}
 
 	disconnect(code: number): void {
+		this.ws.onclose = () => {}; // Avoid ondisconnect being called twice just in case
 		this.ws.close(code);
 		if (this.ondisconnect)
 			this.ondisconnect();

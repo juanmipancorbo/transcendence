@@ -22,11 +22,13 @@ export function buildPreGameError(message: string): BufferSource {
 		.freeze();
 }
 
-export function buildMatchFound(gameId: UUID, color: number, opponent: UUID): BufferSource {
+export function buildMatchFound(game: GameSession, color: number, opponent: UUID): BufferSource {
 	return build(PreGameProtocol.MatchFound)
-		.writePrefixedUTF(gameId)
+		.writeBoard(game.state.board)
+		.writeUint32(game.timeLimit)
 		.writeUint8(color)
 		.writePrefixedUTF(opponent)
+		.writeBool(game.allowSpectators)
 		.freeze();
 }
 
