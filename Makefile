@@ -24,19 +24,13 @@ up:
 			-out nginx/certs/cert.pem \
 			-subj "/CN=localhost"; \
 	fi
-	docker compose -f 'compose.yaml' up -d --build
-
-#up:
-#	${COMPOSE} -f ${COMPOSE_FILE} up
+	${COMPOSE} -f ${COMPOSE_FILE} up -d --build
 
 #rebuild:
 #	${COMPOSE} -f ${COMPOSE_FILE} up --build
 
 down:
-	docker compose -f 'compose.yaml' down
-
-#down:
-#	${COMPOSE} -f ${COMPOSE_FILE} down
+	${COMPOSE} -f ${COMPOSE_FILE} down
 
 init-db:
 	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run init-db
