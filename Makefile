@@ -14,13 +14,29 @@ setup:
 	@echo seting up stuff
 
 up:
-	${COMPOSE} -f ${COMPOSE_FILE} up
+	@echo "Starting project..."
+	@if [ ! -f nginx/certs/cert.pem ]; then \
+		echo "Generating SSL certificates..."; \
+		mkdir -p nginx/certs; \
+		openssl req -x509 -nodes -days 365 \
+			-newkey rsa:2048 \
+			-keyout nginx/certs/key.pem \
+			-out nginx/certs/cert.pem \
+			-subj "/CN=localhost"; \
+	fi
+	docker compose -f 'compose.yaml' up -d --build
 
-rebuild:
-	${COMPOSE} -f ${COMPOSE_FILE} up --build
+#up:
+#	${COMPOSE} -f ${COMPOSE_FILE} up
+
+#rebuild:
+#	${COMPOSE} -f ${COMPOSE_FILE} up --build
 
 down:
-	${COMPOSE} -f ${COMPOSE_FILE} down
+	docker compose -f 'compose.yaml' down
+
+#down:
+#	${COMPOSE} -f ${COMPOSE_FILE} down
 
 init-db:
 	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run init-db
@@ -30,3 +46,8 @@ reset-db:
 
 seed-db:
 	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run seed-db
+
+clean:
+	docker compose down -v
+
+re: clean up

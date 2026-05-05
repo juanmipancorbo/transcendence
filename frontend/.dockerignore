@@ -1,0 +1,25 @@
+# Build artifacts
+.next
+out
+dist
+
+# Dependencies (re-installed inside Docker)
+node_modules
+
+# Local env files (never bake secrets into image)
+.env.local
+.env.*.local
+
+# Dev/editor noise
+.DS_Store
+*.pem
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# Docs / misc
+README.md
+*.md

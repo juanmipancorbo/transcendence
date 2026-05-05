@@ -1,4 +1,5 @@
 import { RawData } from "ws";
+import { Board, Cell } from "../../game";
 
 function toBuffer(data: RawData): Buffer {
 	if (Buffer.isBuffer(data)) return data;
@@ -10,7 +11,7 @@ export class ByteReader {
 	private buf: Buffer;
 	private offset = 0;
 
-	constructor(data: RawData) {
+	constructor(data: RawData | Buffer) {
 		this.buf = toBuffer(data);
 	}
 
@@ -43,5 +44,19 @@ export class ByteReader {
 		const bytes = this.buf.subarray(this.offset, this.offset + length);
 
 		return bytes.toString("utf8");
+	}
+
+	readBoard(): Board {
+		const board: Board = [];
+		const height = this.readUint32();
+		const width = this.readUint32();
+
+		for (let i = 0; i < height; ++i) {
+			board.push([]);
+			for (let j = 0; j < width; ++j)
+				board[i].push(this.readUint8() as Cell);	
+		}
+
+		return board;
 	}
 }

@@ -1,4 +1,3 @@
-backend/node_modules/
 *.env
-backend/package-lock.json
-.env
+*node_modules/
+*package-lock.json

@@ -1,9 +1,10 @@
 import { randomUUID, UUID } from "crypto";
-import { createInitialGameState, GameState, Player, Position } from "../game";
+import { BLACK, Cell, createInitialGameState, GameState, Player, Position, STATUS_WAITING, WHITE } from "../game";
+import { WebSocket } from "ws";
+import { onPlayerDisconnect } from "./protocol";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
-// TODO: Chat
 export type GameConnection = WebSocket & {
 	lastKeepAlive: number,
 	pollTimeout?: NodeJS.Timeout,
@@ -12,14 +13,30 @@ export type GameConnection = WebSocket & {
 }
 
 export type SessionPlayer = /*Identity &?*/ {
-	conn: GameConnection[],
+	conn: Set<GameConnection>,
 	game?: GameSession,
+	player?: Player,
+	ready: boolean,
+	timeLeft: number,
+	timer?: number | null,
+	timeout?: NodeJS.Timeout | null,
 	id: UUID,
+}
+
+export type PositionUpdate = {
+	content: Cell,
+	pos: Position
 }
 
 export type PlayerMove = {
 	player: Player,
-	pos: Position
+	pos: Position,
+	updates: PositionUpdate[]
+}
+
+export type Message = {
+	source: UUID,
+	content: string
 }
 
 export type GameSession = {
@@ -27,10 +44,21 @@ export type GameSession = {
 	state: GameState,
 	blackPlayer: SessionPlayer,
 	whitePlayer: SessionPlayer,
-	spectators: SessionPlayer[],
+	spectators: Set<SessionPlayer>,
 	allowSpectators: boolean,
 	timeLimit: number, // In seconds, -1 for unlimited
-	moves: PlayerMove[]
+	moves: PlayerMove[],
+	messages: Message[]
+}
+
+export function broadcastToGame(game: GameSession, buf: BufferSource) {
+	game.blackPlayer.conn.forEach(b => b.send(buf));
+	game.whitePlayer.conn.forEach(w => w.send(buf));
+	game.spectators.forEach(spec => spec.conn.forEach(conn => conn.send(buf)));
+}
+
+export function send(player: SessionPlayer, buf: BufferSource) {
+	player.conn.forEach(c => c.send(buf));
 }
 
 /**
@@ -43,8 +71,8 @@ export function createGameSession(
 	allowSpectators: boolean,
 	timeLimit: number
 ): GameSession {
-	const blackPlayer: SessionPlayer = { conn: [ black ], id: black.id };
-	const whitePlayer: SessionPlayer = { conn: [ white ], id: white.id };
+	const blackPlayer: SessionPlayer = { conn: new Set([ black ]), id: black.id, ready: false, timeLeft: timeLimit * 1000 };
+	const whitePlayer: SessionPlayer = { conn: new Set([ white ]), id: white.id, ready: false, timeLeft: timeLimit * 1000 };
 	black.player = blackPlayer;
 	white.player = whitePlayer;
 	const game: GameSession = {
@@ -52,17 +80,29 @@ export function createGameSession(
 		state: createInitialGameState(),
 		blackPlayer: blackPlayer,
 		whitePlayer: whitePlayer,
-		spectators: [],
+		spectators: new Set(),
 		allowSpectators, timeLimit,
-		moves: []
+		moves: [],
+		messages: []
 	};
 
 	blackPlayer.game = game;
 	whitePlayer.game = game;
+	blackPlayer.player = BLACK;
+	whitePlayer.player = WHITE;
+	game.state.status = STATUS_WAITING;
 
 	SESSIONS.set(game.id, game);
+	// TODO: updateUserGame
 
 	return game;
+}
+
+export function closeSession(game: GameSession) {
+	SESSIONS.delete(game.id);
+	game.blackPlayer.conn.forEach(c => c.close());
+	game.whitePlayer.conn.forEach(c => c.close());
+	game.spectators.forEach(s => s.conn.forEach(c => c.close()));
 }
 
 export function isConnectionAlive(conn: GameConnection): boolean {
@@ -70,14 +110,18 @@ export function isConnectionAlive(conn: GameConnection): boolean {
 }
 
 export function isPlayerAlive(p: SessionPlayer): boolean {
-	return p.conn.some(isConnectionAlive);
-}
-
-export function onConnectionCut(conn: GameConnection) {
-	// TODO
+	for (const v of p.conn.values()) {
+		if (!isConnectionAlive(v))
+			return false;
+	}
+	return true;
 }
 
 export function resetTimeout(conn: GameConnection) {
 	clearTimeout(conn.pollTimeout);
-	conn.pollTimeout = setTimeout(() => onConnectionCut(conn));
+	conn.pollTimeout = setTimeout(() => {
+		if (conn.player && conn.player.game)
+			onPlayerDisconnect(conn, conn.player.game);
+		conn.close();
+	}, 20000);
 }
