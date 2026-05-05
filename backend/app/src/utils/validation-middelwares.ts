@@ -1,5 +1,5 @@
 import { type Response, type Request, type NextFunction } from "express";
-import z, { ZodError, type ZodObject } from "zod";
+import { ZodError, type ZodObject } from "zod";
 
 export function validateBody(bodyValidator: ZodObject) {
   return (
