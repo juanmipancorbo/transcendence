@@ -10,7 +10,7 @@ FROM base AS development
 RUN npm install || true
 COPY ./container/.bashrc /root/.bashrc
 COPY ./app ./
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "dev"]
 
 # --- Builder ---
 FROM base AS builder

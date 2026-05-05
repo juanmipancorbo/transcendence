@@ -1,3 +1,18 @@
+#<-------------------------------|VARIABLES|---------------------------------->#
+
+COMPOSE = docker compose
+
+#<---------------------------------|FILES|------------------------------------>#
+
+COMPOSE_FILE = ./compose.yaml
+
+#<---------------------------------|RULES|------------------------------------>#
+
+all: setup up
+
+setup:
+	@echo seting up stuff
+
 up:
 	@echo "Starting project..."
 	@if [ ! -f nginx/certs/cert.pem ]; then \
@@ -9,12 +24,24 @@ up:
 			-out nginx/certs/cert.pem \
 			-subj "/CN=localhost"; \
 	fi
-	docker compose -f 'compose.yaml' up -d --build
+	${COMPOSE} -f ${COMPOSE_FILE} up -d --build
+
+#rebuild:
+#	${COMPOSE} -f ${COMPOSE_FILE} up --build
 
 down:
-	docker compose -f 'compose.yaml' down
+	${COMPOSE} -f ${COMPOSE_FILE} down
+
+init-db:
+	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run init-db
+
+reset-db:
+	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run reset-db
+
+seed-db:
+	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run seed-db
 
 clean:
-	docker compose down -v
+	${COMPOSE} down -v
 
 re: clean up
