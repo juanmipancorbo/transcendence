@@ -42,6 +42,6 @@ seed-db:
 	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run seed-db
 
 clean:
-	docker compose down -v
+	${COMPOSE} down -v
 
 re: clean up
