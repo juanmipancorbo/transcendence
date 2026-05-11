@@ -7,12 +7,15 @@ END $$;
 
 CREATE TABLE IF NOT EXISTS games (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    white_player_id UUID NOT NULL,
-    black_player_id UUID NOT NULL,
-    board_state TEXT DEFAULT NULL,
-    current_turn VARCHAR(10) NOT NULL,
-    game_state game_status DEFAULT 'waiting',
-    winner_id UUID DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    white_player_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    black_player_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    winner_id UUID DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_stats (
+    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    current_game UUID DEFAULT NULL REFERENCES games(id) ON DELETE SET NULL,
+    games_played INTEGER DEFAULT 0,
+    games_won INTEGER DEFAULT 0,
+    games_lost INTEGER DEFAULT 0
 );

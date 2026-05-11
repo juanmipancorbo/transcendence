@@ -19,8 +19,6 @@ export interface User {
   username: string,
   email: string,
   password_hash: string,
-  avatar_url: string,
-  current_game: string,
   created_at: Date,
   updated_at: Date,
 };
