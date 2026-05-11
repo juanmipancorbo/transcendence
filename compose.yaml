@@ -23,34 +23,34 @@ services:
       - ./database/initdb.d:/app/initdb.d/
       - ./shared-data/backend-endpoints/:/app/src/endpoints-data/
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: ./Dockerfile
-  #     target: development
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3001:3000"
-  #   env_file: "./frontend/.env"
-  #   volumes:
-  #     - ./frontend:/app
-  #     - frontend_node_modules:/app/node_modules
-  #   environment:
-  #   - NODE_ENV=development
-  #   - WATCHPACK_POLLING=true
-  #   depends_on:
-  #     - backend
-  # nginx:
-  #   image: nginx:alpine
-  #   restart: unless-stopped
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-  #     - ./nginx/certs:/etc/nginx/certs
-  #   depends_on:
-  #     - frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+      target: development
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file: "./frontend/.env"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+    - NODE_ENV=development
+    - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/nginx/certs
+    depends_on:
+      - frontend
 volumes:
   postgres_data:
   backend_node_modules:
