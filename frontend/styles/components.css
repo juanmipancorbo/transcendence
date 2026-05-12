@@ -1,0 +1,401 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Reusable component classes ─────────────────────────────────────────── */
+@layer components {
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+
+  /* Full-screen dark page wrapper (login, register) */
+  .page-root {
+    @apply overflow-hidden min-h-screen;
+
+    background-color: var(--surface);
+    color: var(--on-surface);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Background ambient glow blobs (login, register) */
+  .page-glow-layer {
+    @apply fixed inset-0 z-0 overflow-hidden pointer-events-none;
+  }
+  .page-glow-tr {
+    @apply absolute -top-[10%] -right-[10%] w-[60%] h-[80%] blur-[120px];
+    background: radial-gradient(ellipse, color-mix(in srgb, var(--secondary-container) 20%, transparent), transparent);
+  }
+  .page-glow-bl {
+    @apply absolute -bottom-[20%] -left-[10%] w-[50%] h-[70%] blur-[100px];
+    background: radial-gradient(ellipse, color-mix(in srgb, var(--primary) 10%, transparent), transparent);
+  }
+
+  /* Top bar for auth pages (login, register) */
+  .auth-topbar {
+    @apply w-full top-0 sticky z-50 bg-transparent backdrop-blur-xl;
+  }
+  .auth-topbar-inner {
+    @apply flex justify-between items-center px-8 py-6 w-full max-w-screen-2xl mx-auto;
+  }
+
+  /* Wordmark — shared across all pages */
+  .wordmark {
+    @apply text-2xl font-black italic tracking-widest uppercase;
+    color: var(--brand);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Icon row in topbar */
+  .topbar-icon {
+    @apply cursor-pointer transition-colors duration-300;
+    color: #64748b; /* slate-500 */
+  }
+  .topbar-icon:hover { color: var(--brand-light); }
+
+  /* ── Glass card (login, register form panel) ───────────────────────────── */
+  .glass-panel {
+    background: rgba(37, 37, 44, 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  /* ── Form elements ─────────────────────────────────────────────────────── */
+
+  /* Wraps label + input + animated underline */
+  .field-group {
+    @apply space-y-2;
+  }
+
+  .field-label {
+    @apply block text-[10px] font-bold tracking-[0.2em] uppercase pl-1;
+    color: var(--on-surface-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Wrapper that holds input + the sliding underline */
+  .field-wrap {
+    @apply relative;
+  }
+
+  .field-input {
+    @apply w-full text-sm p-4 outline-none;
+    background-color: var(--surface-container-low);
+    color: var(--on-surface);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .field-input::placeholder { color: var(--outline-variant); }
+
+  /* Animated scan-line underline — shown on parent .field-group:focus-within */
+  .field-underline {
+    @apply absolute bottom-0 left-0 w-0 h-[1px] transition-all duration-500;
+    background-color: var(--primary);
+  }
+  .field-group:focus-within .field-underline {
+    @apply w-full;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────────────── */
+
+  /* Primary CTA — cyan gradient */
+  .btn-primary {
+    @apply w-full py-4 font-bold tracking-[0.3em] rounded-lg transition-all active:scale-[0.98] uppercase;
+    background: linear-gradient(to right, var(--primary), var(--primary-container));
+    color: var(--on-primary-fixed);
+    font-family: 'Space Grotesk', sans-serif;
+    box-shadow: 0 0 20px rgba(0, 238, 252, 0.3);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 35px rgba(0, 238, 252, 0.5);
+  }
+
+  /* Ghost button — dark fill, outline border */
+  .btn-ghost {
+    @apply px-6 py-3 font-bold text-xs tracking-widest uppercase flex items-center gap-2 transition-all;
+    background-color: var(--surface-container-high);
+    color: var(--on-surface-variant);
+    border: 1px solid var(--outline-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .btn-ghost:hover { color: var(--primary); border-color: var(--primary); }
+  .btn-ghost.danger:hover { color: var(--error); border-color: var(--error); }
+
+  /* ── Micro text — small uppercase label used everywhere ─────────────────── */
+  .label-micro {
+    @apply text-[10px] font-bold tracking-widest uppercase;
+    color: var(--on-surface-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .label-micro.accent { color: var(--primary); }
+
+  /* ── Live badge (lobby header, leaderboard) ──────────────────────────────── */
+  .live-badge {
+    @apply flex items-center gap-2 px-4 py-2 rounded;
+    background-color: var(--surface-container-high);
+  }
+  .live-dot {
+    @apply w-2 h-2 rounded-full animate-pulse;
+    background-color: var(--primary);
+  }
+
+  /* ── Stat card (lobby, profile) ──────────────────────────────────────────── */
+  .stat-card {
+    @apply p-6;
+    background-color: var(--surface-container-low);
+  }
+  .stat-card-value {
+    @apply text-4xl font-black tracking-tighter;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .stat-card-label {
+    @apply text-[10px] font-bold tracking-widest uppercase mt-1;
+    color: var(--on-surface-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* ── XP / progress bar ───────────────────────────────────────────────────── */
+  .xp-bar-track {
+    @apply h-2 w-full overflow-hidden rounded-full;
+    background-color: var(--surface-container-highest);
+  }
+  .xp-bar-fill {
+    @apply h-full transition-all duration-700;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    box-shadow: 0 0 8px var(--primary);
+  }
+
+  /* ── Hero section (lobby) ────────────────────────────────────────────────── */
+  .hero-section {
+    @apply relative w-full h-[400px] overflow-hidden rounded;
+    background-color: var(--surface-container-low);
+  }
+  .hero-gradient-overlay {
+    @apply absolute inset-0 z-10;
+    background: linear-gradient(to top, var(--surface), transparent);
+  }
+  .hero-content {
+    @apply absolute bottom-10 left-10 right-10 flex flex-col items-start gap-4 z-20;
+  }
+  .hero-title {
+    @apply font-black tracking-tighter uppercase text-white leading-none;
+    font-size: 4.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* ── Queue / find-match button ───────────────────────────────────────────── */
+  .btn-find-match {
+    @apply px-10 py-5 font-black text-lg tracking-tighter flex items-center gap-4 transition-all active:scale-95;
+    background: linear-gradient(to right, var(--primary), var(--primary-container));
+    color: var(--on-primary-fixed);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .btn-find-match:hover { box-shadow: 0 0 30px rgba(0, 238, 252, 0.4); }
+  .btn-find-match:disabled { opacity: 0.5; }
+
+  .btn-cancel-queue {
+    @apply px-10 py-5 font-black text-lg tracking-tighter flex items-center gap-4 transition-all active:scale-95;
+    background: rgba(255, 110, 132, 0.2);
+    color: var(--error);
+    border: 1px solid rgba(255, 110, 132, 0.4);
+  }
+  .btn-cancel-queue:hover { background: rgba(255, 110, 132, 0.3); }
+
+  /* Queue timer display */
+  .queue-timer {
+    @apply px-6 py-5 flex flex-col justify-center backdrop-blur-md;
+    background: rgba(31, 31, 38, 0.6);
+  }
+
+  /* ── Mode / info card (lobby) ────────────────────────────────────────────── */
+  .mode-card {
+    @apply p-8 relative overflow-hidden cursor-pointer transition-colors;
+    background-color: var(--surface-container-low);
+  }
+  .mode-card:hover { background-color: var(--surface-container-high); }
+  .mode-card-label {
+    @apply text-[10px] font-bold tracking-[0.4em] mb-2 uppercase;
+    color: var(--primary);
+  }
+  .mode-card-title {
+    @apply text-4xl font-bold uppercase mb-4;
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* ── Leaderboard table ───────────────────────────────────────────────────── */
+  .lb-header-row {
+    @apply grid grid-cols-12 px-8 py-4 font-black tracking-widest uppercase mb-4;
+    background-color: var(--surface-container-low);
+    color: var(--on-surface-variant);
+    font-size: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .lb-row {
+    @apply grid grid-cols-12 px-8 py-6 items-center transition-all relative;
+  }
+  .lb-row-even     { background-color: var(--surface-container); }
+  .lb-row-odd      { background-color: var(--surface-container-low); }
+  .lb-row-odd:hover { background-color: var(--surface-container-high); }
+  .lb-row-me {
+    background: rgba(143, 245, 255, 0.07);
+    outline: 1px solid rgba(143, 245, 255, 0.2);
+    outline-offset: -1px;
+  }
+  .lb-row-me-accent {
+    @apply absolute left-0 top-0 bottom-0 w-1;
+    background-color: var(--primary);
+  }
+
+  .lb-rank {
+    @apply col-span-1 text-2xl font-bold;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .lb-avatar {
+    @apply w-12 h-12 rounded-lg flex items-center justify-center font-black text-lg flex-shrink-0;
+    background-color: var(--surface-variant);
+    color: var(--on-surface-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .lb-win-bar-track {
+    @apply w-full h-1 mb-1;
+    background-color: var(--surface-container-low);
+  }
+  .lb-win-bar-fill {
+    @apply h-full;
+    background-color: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
+  }
+
+  /* ── Game board ──────────────────────────────────────────────────────────── */
+  .board-wrapper {
+    @apply relative;
+  }
+  .board-glow {
+    @apply absolute -inset-4 rounded-full pointer-events-none blur-3xl;
+    background: rgba(143, 245, 255, 0.05);
+  }
+  .board-container {
+    @apply relative p-4 rounded-xl shadow-2xl;
+    background-color: var(--surface-container-high);
+  }
+  .board-grid {
+    @apply grid grid-cols-8;
+    gap: 2px;
+    padding: 2px;
+    background-color: var(--surface-container-highest);
+  }
+  .board-cell {
+    @apply w-12 h-12 md:w-14 md:h-14 flex items-center justify-center transition-all;
+    background-color: var(--surface-container-low);
+  }
+  .board-cell-valid {
+    @apply cursor-pointer;
+  }
+  .board-cell-valid:hover { background-color: var(--surface-container-high); }
+
+  .piece-black {
+    @apply w-3/4 h-3/4 rounded-full;
+    background-color: var(--on-surface);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+  }
+  .piece-white {
+    @apply w-3/4 h-3/4 rounded-full;
+    background-color: var(--primary-container);
+    box-shadow: 0 0 10px rgba(0, 238, 252, 0.4);
+  }
+  .piece-hint {
+    @apply w-1/3 h-1/3 rounded-full;
+    background: rgba(143, 245, 255, 0.3);
+    border: 1px solid rgba(143, 245, 255, 0.4);
+  }
+
+  /* Turn indicator pill */
+  .turn-pill {
+    @apply px-6 py-2 rounded-full flex items-center gap-3;
+    background: rgba(143, 245, 255, 0.1);
+    border: 1px solid rgba(143, 245, 255, 0.2);
+  }
+  .turn-dot {
+    @apply w-3 h-3 rounded-full animate-pulse;
+    background-color: var(--primary);
+  }
+  .turn-label {
+    @apply font-bold tracking-tighter text-sm;
+    color: var(--primary);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Player panel (game page sidebar) */
+  .player-panel {
+    @apply p-6 rounded-lg flex flex-col items-center gap-4 border-l-4;
+    background-color: var(--surface-container-low);
+  }
+  .player-score-value {
+    @apply font-black text-5xl tracking-tighter;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .player-score-label {
+    @apply text-[10px] font-bold tracking-widest uppercase;
+    color: var(--on-surface-variant);
+  }
+  .player-bar-track {
+    @apply w-full h-1 rounded-full overflow-hidden;
+    background-color: var(--surface-container-high);
+  }
+  .player-active-badge {
+    @apply px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-full flex items-center gap-2;
+  }
+
+  /* Match log box */
+  .match-log {
+    @apply p-6 rounded-lg;
+    background-color: var(--surface-container-low);
+  }
+  .match-log-title {
+    @apply text-[10px] font-black tracking-widest uppercase mb-4;
+    color: var(--on-surface-variant);
+  }
+
+  /* ── Ambient background glow (game, leaderboard, terms) ─────────────────── */
+  .ambient-layer {
+    @apply fixed inset-0 pointer-events-none -z-10 overflow-hidden;
+  }
+  .ambient-blob {
+    @apply absolute rounded-full;
+  }
+
+  /* ── Terms page ──────────────────────────────────────────────────────────── */
+  .terms-protocol-card {
+    @apply p-8 block cursor-pointer transition-colors;
+    background-color: var(--surface-container-low);
+  }
+  .terms-section-number {
+    @apply text-4xl font-black italic;
+    color: var(--outline-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .terms-info-box {
+    @apply p-8 rounded-lg;
+    background-color: var(--surface-container);
+  }
+  .terms-warning-box {
+    @apply p-10 flex gap-8 items-start border-l-4;
+    background-color: var(--surface-container-high);
+    border-color: var(--error);
+  }
+
+  /* ── Mobile bottom nav (lobby) ───────────────────────────────────────────── */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 w-full backdrop-blur-xl md:hidden flex justify-around items-center py-4 z-50;
+    background: rgba(14, 14, 19, 0.8);
+  }
+  .mobile-nav-item {
+    @apply flex flex-col items-center gap-1;
+    color: #64748b;
+  }
+  .mobile-nav-item.active { color: var(--brand-light); }
+  .mobile-nav-fab {
+    @apply w-12 h-12 -mt-8 rounded-full flex items-center justify-center;
+    background-color: var(--primary);
+    box-shadow: 0 0 20px rgba(0, 238, 252, 0.5);
+  }
+}

@@ -16,21 +16,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="dark bg-surface font-body text-on-surface overflow-hidden min-h-screen">
+    <div className="page-root">
 
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -right-[10%] w-[60%] h-[80%] bg-gradient-to-bl from-secondary-container/20 to-transparent blur-[120px]" />
-        <div className="absolute -bottom-[20%] -left-[10%] w-[50%] h-[70%] bg-gradient-to-tr from-primary/10 to-transparent blur-[100px]" />
+      <div className="page-glow-layer">
+        <div className="page-glow-tr" />
+        <div className="page-glow-bl" />
       </div>
 
-      <header className="w-full top-0 sticky z-50 bg-transparent backdrop-blur-xl">
-        <div className="flex justify-between items-center px-8 py-6 w-full max-w-screen-2xl mx-auto">
-          <div className="text-2xl font-black italic tracking-widest text-violet-500 font-headline uppercase">
-            FT_TRANSCENDANCE
-          </div>
+      <header className="auth-topbar">
+        <div className="auth-topbar-inner">
+          <div className="wordmark">FT_TRANSCENDANCE</div>
           <div className="flex items-center gap-6">
-            <span className="material-symbols-outlined text-slate-500">notifications</span>
-            <span className="material-symbols-outlined text-slate-500">settings</span>
+            <span className="topbar-icon material-symbols-outlined topbar-icon">notifications</span>
+            <span className="topbar-icon material-symbols-outlined topbar-icon">settings</span>
           </div>
         </div>
       </header>
@@ -41,10 +39,10 @@ export default function LoginPage() {
           {/* Left: hero */}
           <div className="hidden lg:flex flex-col lg:col-span-7 space-y-8">
             <div className="space-y-2">
-              <span className="text-primary font-headline text-sm font-bold tracking-[0.4em] uppercase">
+              <span className="label-micro accent tracking-[0.4em]">
                 System_Status: Online
               </span>
-              <h1 className="text-7xl font-headline font-bold text-on-surface tracking-tighter leading-[0.9]">
+              <h1 className="hero-title" style={{ fontSize: "4.5rem", lineHeight: 0.9 }}>
                 ENTER THE <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">
                   VOID_PROTOCOL
@@ -54,11 +52,11 @@ export default function LoginPage() {
             <div className="flex gap-12 items-start mt-8">
               <div className="space-y-1">
                 <div className="text-4xl font-headline font-bold text-primary-fixed">14.2k</div>
-                <div className="text-xs font-label text-on-surface-variant tracking-widest uppercase">Active_Pilots</div>
+                <div className="label-micro">Active_Pilots</div>
               </div>
               <div className="space-y-1 border-l border-outline-variant/30 pl-12">
                 <div className="text-4xl font-headline font-bold text-secondary">0.03s</div>
-                <div className="text-xs font-label text-on-surface-variant tracking-widest uppercase">Match_Latency</div>
+                <div className="label-micro">Match_Latency</div>
               </div>
             </div>
           </div>
@@ -67,47 +65,41 @@ export default function LoginPage() {
           <div className="lg:col-span-5 w-full">
             <div className="glass-panel p-10 rounded-lg border border-outline-variant/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
               <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="space-y-2 group">
-                  <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-[0.2em] uppercase pl-1">
-                    Pilot_Identity
-                  </label>
-                  <div className="relative">
+
+                <div className="field-group">
+                  <label className="field-label">Pilot_Identity</label>
+                  <div className="field-wrap">
                     <input
-                      className="w-full bg-surface-container-low text-on-surface font-label text-sm p-4 placeholder:text-outline-variant outline-none"
+                      className="field-input"
                       placeholder="USERNAME OR EMAIL"
                       type="text"
                       value={username}
                       onChange={e => setUsername(e.target.value)}
                     />
-                    <div className="absolute bottom-0 left-0 w-0 h-[1px] bg-primary group-focus-within:w-full transition-all duration-500" />
+                    <div className="field-underline" />
                   </div>
                 </div>
 
-                <div className="space-y-2 group">
-                  <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-[0.2em] uppercase pl-1">
-                    Access_Code
-                  </label>
-                  <div className="relative">
+                <div className="field-group">
+                  <label className="field-label">Access_Code</label>
+                  <div className="field-wrap">
                     <input
-                      className="w-full bg-surface-container-low text-on-surface font-label text-sm p-4 placeholder:text-outline-variant outline-none"
+                      className="field-input"
                       placeholder="PASSWORD"
                       type="password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                     />
-                    <div className="absolute bottom-0 left-0 w-0 h-[1px] bg-primary group-focus-within:w-full transition-all duration-500" />
+                    <div className="field-underline" />
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-headline font-bold tracking-[0.3em] rounded-lg shadow-[0_0_20px_rgba(0,238,252,0.3)] hover:shadow-[0_0_35px_rgba(0,238,252,0.5)] transition-all active:scale-[0.98] uppercase mt-8"
-                >
+                <button type="submit" className="btn-primary mt-8">
                   Initialize_Login
                 </button>
               </form>
 
-              <p className="text-center mt-8 text-[10px] font-label text-on-surface-variant tracking-wider">
+              <p className="text-center mt-8 label-micro tracking-wider">
                 No account?{" "}
                 <Link href="/register" className="text-on-surface underline underline-offset-4">
                   Register_Now
@@ -119,6 +111,7 @@ export default function LoginPage() {
               </p>
             </div>
           </div>
+
         </div>
       </main>
     </div>
