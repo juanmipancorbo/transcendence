@@ -398,4 +398,126 @@
     background-color: var(--primary);
     box-shadow: 0 0 20px rgba(0, 238, 252, 0.5);
   }
+
+
+  /* ── Profile page ────────────────────────────────────────────────────────── */
+
+  .profile-card {
+    @apply flex flex-col md:flex-row items-center gap-10 p-10 rounded-xl shadow-2xl;
+    background-color: var(--surface-container);
+    border: 1px solid rgba(72, 71, 77, 0.3);
+  }
+
+  .profile-avatar-frame {
+    @apply relative flex-shrink-0 w-40 h-40 rounded-xl overflow-hidden;
+    border: 2px solid var(--primary);
+    background-color: var(--surface);
+    box-shadow: 0 0 30px rgba(0, 238, 252, 0.1);
+  }
+
+  .profile-avatar-badge {
+    @apply absolute -bottom-2 -right-2 p-2 rounded;
+    background-color: var(--secondary);
+    border: 2px solid var(--surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .profile-username {
+    @apply text-5xl font-black tracking-tight uppercase italic;
+    color: var(--on-surface);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .profile-bio {
+    @apply text-base max-w-xl mb-8 leading-relaxed;
+    color: var(--on-surface-variant);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .profile-edit-btn {
+    @apply px-8 py-3 font-bold text-[11px] tracking-[0.2em] rounded uppercase transition-all;
+    background-color: var(--surface-container-high);
+    color: var(--on-surface);
+    border: 1px solid var(--outline-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .profile-edit-btn:hover {
+    background-color: var(--surface-container-highest);
+    border-color: rgba(172, 138, 255, 0.5);
+  }
+
+  .profile-stat-card {
+    @apply p-8 rounded-xl transition-all;
+    background-color: var(--surface-container);
+    border: 1px solid rgba(72, 71, 77, 0.3);
+  }
+  .profile-stat-card:hover { border-color: rgba(143, 245, 255, 0.4); }
+  .profile-stat-card.secondary:hover { border-color: rgba(172, 138, 255, 0.4); }
+
+  .profile-stat-value {
+    @apply text-4xl font-black italic mb-2 transition-transform origin-left;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .profile-stat-card:hover .profile-stat-value { transform: scale(1.05); }
+
+  .profile-stat-label {
+    @apply text-[10px] tracking-[0.4em] uppercase font-bold;
+    color: var(--on-surface-variant);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .friends-bar {
+    @apply flex flex-col sm:flex-row items-center justify-between gap-8 pt-12;
+    border-top: 1px solid rgba(72, 71, 77, 0.2);
+  }
+
+  .friend-entry {
+    @apply flex items-center gap-4 cursor-pointer;
+  }
+
+  .friend-avatar {
+    @apply relative w-12 h-12 rounded-full overflow-hidden;
+    border: 1px solid rgba(72, 71, 77, 0.4);
+    background-color: var(--surface);
+  }
+
+  .friend-status-dot {
+    @apply absolute bottom-0 right-0 w-3 h-3 rounded-full;
+    border: 2px solid var(--surface);
+  }
+  .friend-status-dot.online  { background-color: var(--primary); }
+  .friend-status-dot.offline { background-color: var(--outline-variant); }
+
+  .friend-name {
+    @apply hidden sm:block text-xs font-bold uppercase transition-colors;
+    color: var(--on-surface);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .friend-entry:hover .friend-name { color: var(--primary); }
+
+  .friend-status-label {
+    @apply text-[9px] tracking-widest font-bold uppercase;
+    color: var(--primary);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .btn-view-friends {
+    @apply px-8 py-3 text-[10px] font-bold tracking-[0.2em] uppercase rounded transition-all;
+    color: var(--on-surface-variant);
+    border: 1px solid var(--outline-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .btn-view-friends:hover {
+    color: var(--on-surface);
+    border-color: rgba(248, 245, 253, 0.3);
+  }
+
+  .profile-edit-input {
+    @apply text-5xl font-black tracking-tight uppercase italic p-2 outline-none;
+    background-color: var(--surface-container-low);
+    color: var(--on-surface);
+    border-bottom: 2px solid var(--primary);
+    font-family: 'Space Grotesk', sans-serif;
+    width: 100%;
+  }
 }
