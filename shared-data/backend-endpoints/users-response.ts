@@ -30,3 +30,10 @@ export interface AuthUser {
   password_hash?: string,
   // REMARK ?? token: string,
 }
+
+export interface GameData {
+  id: string,
+  white_player_id: string,
+  black_player_id: string,
+  winner_id: string | null,
+}

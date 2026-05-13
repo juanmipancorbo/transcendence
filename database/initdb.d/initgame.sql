@@ -6,7 +6,7 @@ EXCEPTION
 END $$;
 
 CREATE TABLE IF NOT EXISTS games (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY NOT NULL,
     white_player_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     black_player_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     winner_id UUID DEFAULT NULL
