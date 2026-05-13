@@ -1,29 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+@import "./components.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CSS custom properties ──────────────────────────────────────────────── */
 :root {
-  --brand: #8B5CF6;
-  --brand-light: #A78BFA;
-  --brand-dark: #7C3AED;
-  --bg-deep: #0e0e13;
-  --bg-surface: #1a1a24;
-  --border: #2d2d3d;
+  --brand:              #8B5CF6;
+  --brand-light:        #A78BFA;
+  --brand-dark:         #7C3AED;
+  --bg-deep:            #0e0e13;
+  --bg-surface:         #1a1a24;
+  --border:             #2d2d3d;
+
+  /* Velocity Noir palette */
+  --primary:            #8ff5ff;
+  --primary-container:  #00eefc;
+  --primary-dim:        #00deec;
+  --secondary:          #ac8aff;
+  --tertiary:           #d575ff;
+  --error:              #ff6e84;
+  --surface:            #0e0e13;
+  --surface-container-low:     #131318;
+  --surface-container:         #19191f;
+  --surface-container-high:    #1f1f26;
+  --surface-container-highest: #25252c;
+  --surface-variant:           #25252c;
+  --secondary-container:       #5516be;
+  --on-surface:         #f8f5fd;
+  --on-surface-variant: #acaab1;
+  --on-primary-fixed:   #003f43;
+  --outline-variant:    #48474d;
 }
 
+/* ─── Base ───────────────────────────────────────────────────────────────── */
 @layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
   body {
     background-color: var(--bg-deep);
-    color: #e2e8f0; /* slate-200 */
+    color: var(--on-surface);
     font-family: 'Space Grotesk', sans-serif;
     margin: 0;
+    -webkit-font-smoothing: antialiased;
   }
-}
 
-/* Custom utility classes if Tailwind tokens aren't loading */
-.bg-brand { background-color: var(--brand); }
-.text-brand { color: var(--brand); }
-.bg-surface-800 { background-color: var(--bg-surface); }
-.border-surface-700 { border-color: var(--border); }
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--surface-container-low); }
+  ::-webkit-scrollbar-thumb { background: var(--surface-container-highest); border-radius: 2px; }
+}

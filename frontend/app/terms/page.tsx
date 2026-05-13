@@ -6,75 +6,71 @@ export default function TermsPage() {
       <main className="p-12 min-h-screen">
         <div className="max-w-4xl mx-auto">
 
-          {/* ── Hero header ────────────────────────────────────────────── */}
+          {/* Hero header */}
           <section className="mb-20">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full mb-6">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">
-                Updated: Jan 2025
-              </span>
+              <div className="live-dot" />
+              <span className="label-micro">Updated: Jan 2025</span>
             </div>
             <h1 className="text-6xl md:text-8xl font-black tracking-tighter font-headline text-primary-fixed mb-4">
               LEGAL_CORE
             </h1>
-            <p className="text-on-surface-variant font-body text-lg max-w-2xl border-l-4 border-tertiary pl-6 py-2">
+            <p className="text-on-surface-variant text-lg max-w-2xl border-l-4 border-tertiary pl-6 py-2">
               Governing the velocity, privacy, and conduct standards within the FT_TRANSCENDANCE ecosystem.
               Please review these protocols before proceeding.
             </p>
           </section>
 
-          {/* ── Protocol nav cards ────────────────────────────────────── */}
+          {/* Protocol nav cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
             <a
               href="#privacy-policy"
-              className="p-8 bg-surface-container-low border-b-2 border-primary-dim/20 hover:border-primary-dim transition-colors group cursor-pointer block"
+              className="terms-protocol-card border-b-2 border-primary-dim/20 hover:border-primary-dim group"
             >
               <div className="flex justify-between items-start mb-4">
                 <span className="material-symbols-outlined text-primary text-3xl">security</span>
-                <span className="text-[10px] font-bold tracking-widest text-on-surface-variant">01_PROTOCOL</span>
+                <span className="label-micro">01_PROTOCOL</span>
               </div>
               <h3 className="text-xl font-headline font-bold text-white group-hover:text-primary-fixed transition-colors">
                 Privacy Protocol
               </h3>
-              <p className="text-sm text-on-surface-variant mt-2 font-body">
+              <p className="text-sm text-on-surface-variant mt-2">
                 Data encryption, collection standards, and user telemetry management.
               </p>
             </a>
 
             <a
               href="#terms-service"
-              className="p-8 bg-surface-container-low border-b-2 border-tertiary/20 hover:border-tertiary transition-colors group cursor-pointer block"
+              className="terms-protocol-card border-b-2 border-tertiary/20 hover:border-tertiary group"
             >
               <div className="flex justify-between items-start mb-4">
                 <span className="material-symbols-outlined text-tertiary text-3xl">description</span>
-                <span className="text-[10px] font-bold tracking-widest text-on-surface-variant">02_PROTOCOL</span>
+                <span className="label-micro">02_PROTOCOL</span>
               </div>
               <h3 className="text-xl font-headline font-bold text-white group-hover:text-tertiary transition-colors">
                 Terms of Service
               </h3>
-              <p className="text-sm text-on-surface-variant mt-2 font-body">
+              <p className="text-sm text-on-surface-variant mt-2">
                 Licensing, user conduct, and tournament regulation frameworks.
               </p>
             </a>
           </div>
 
-          {/* ── Article ──────────────────────────────────────────────── */}
+          {/* Article */}
           <article className="space-y-24">
 
             {/* Section 01 */}
             <section id="privacy-policy">
               <div className="flex items-center gap-6 mb-8">
-                <span className="text-4xl font-headline font-black text-outline-variant italic">01</span>
+                <span className="terms-section-number">01</span>
                 <h2 className="text-3xl font-headline font-bold tracking-tight text-on-surface">
                   Data Telemetry &amp; Privacy
                 </h2>
               </div>
 
-              <div className="space-y-8 font-body leading-relaxed text-on-surface-variant">
-                <div className="bg-surface-container p-8 rounded-lg">
-                  <h4 className="text-primary font-headline font-bold text-xs tracking-[0.2em] mb-4 uppercase">
-                    Identity Encryption
-                  </h4>
+              <div className="space-y-8 leading-relaxed text-on-surface-variant">
+                <div className="terms-info-box">
+                  <h4 className="label-micro accent tracking-[0.2em] mb-4">Identity Encryption</h4>
                   <p>
                     All player data within FT_TRANSCENDANCE is subjected to high-level asymmetric encryption.
                     We collect telemetry including match performance, ping cycles, and system specifications
@@ -114,19 +110,18 @@ export default function TermsPage() {
             {/* Section 02 */}
             <section id="terms-service">
               <div className="flex items-center gap-6 mb-8">
-                <span className="text-4xl font-headline font-black text-outline-variant italic">02</span>
+                <span className="terms-section-number">02</span>
                 <h2 className="text-3xl font-headline font-bold tracking-tight text-on-surface">
                   Universal Service Framework
                 </h2>
               </div>
 
-              <div className="space-y-12 font-body leading-relaxed text-on-surface-variant">
+              <div className="space-y-12 leading-relaxed text-on-surface-variant">
                 <p>
                   By accessing the FT_TRANSCENDANCE neural link, you agree to abide by the following conduct
                   codes. Failure to comply results in immediate de-platforming.
                 </p>
 
-                {/* Asymmetric alternating layout */}
                 <div className="relative mt-12">
                   <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-tertiary via-transparent to-transparent" />
                   <div className="space-y-12 pl-8">
@@ -157,14 +152,13 @@ export default function TermsPage() {
                   </div>
                 </div>
 
-                {/* Warning box */}
-                <div className="bg-surface-container-high border-l-4 border-error p-10 flex gap-8 items-start">
+                <div className="terms-warning-box">
                   <span className="material-symbols-outlined text-error text-4xl flex-shrink-0">warning</span>
                   <div>
                     <h3 className="text-white font-headline font-bold text-lg mb-2 uppercase">
                       Account Termination Warning
                     </h3>
-                    <p className="text-sm font-body">
+                    <p className="text-sm">
                       Accounts flagged for critical breaches (Cheating/Fraud) are subject to permanent HWID bans.
                       There is no appeals process for tier-one violations. Your rank and digital assets will be
                       forfeited immediately.
@@ -174,7 +168,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Acceptance footer */}
+            {/* Acceptance */}
             <section className="py-20 border-t border-outline-variant/20">
               <h2 className="text-xl font-headline font-bold text-white mb-4">ACCEPTANCE</h2>
               <p className="text-on-surface-variant text-sm mb-6">
@@ -185,21 +179,20 @@ export default function TermsPage() {
             </section>
           </article>
 
-          {/* Footer brand anchor */}
+          {/* Footer */}
           <footer className="mt-20 py-10 flex justify-between items-center opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-700">
             <div className="text-xs font-black tracking-widest font-headline uppercase">
               FT_TRANSCENDANCE // LEGAL
             </div>
-            <div className="text-[10px] font-bold tracking-widest uppercase">
-              Noir Velocity Engine © 2025
-            </div>
+            <div className="label-micro">Noir Velocity Engine © 2025</div>
           </footer>
         </div>
       </main>
 
-      {/* Ambient glow */}
-      <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed bottom-[-20%] left-[-10%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[150px] pointer-events-none z-0" />
+      <div className="ambient-layer">
+        <div className="ambient-blob -top-[10%] -right-[5%] w-[600px] h-[600px] bg-violet-600/5 blur-[120px]" />
+        <div className="ambient-blob -bottom-[20%] -left-[10%] w-[800px] h-[800px] bg-primary/5 blur-[150px]" />
+      </div>
     </ProtectedLayout>
   );
 }
