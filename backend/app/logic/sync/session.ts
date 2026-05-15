@@ -2,6 +2,7 @@ import { randomUUID, UUID } from "crypto";
 import { BLACK, Cell, createInitialGameState, GameState, Player, Position, STATUS_WAITING, WHITE } from "../game";
 import { WebSocket } from "ws";
 import { onPlayerDisconnect } from "./protocol";
+import { buildGameState } from "./protocol-utils";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
@@ -68,15 +69,13 @@ export function send(player: SessionPlayer, buf: BufferSource) {
 * timeLimit set to -1 for unlimited time.
 */
 export function createGameSession(
-	white: GameConnection,
-	black: GameConnection,
+	white: UUID,
+	black: UUID,
 	allowSpectators: boolean,
 	timeLimit: number
 ): GameSession {
-	const blackPlayer: SessionPlayer = { conn: new Set([ black ]), id: black.id, ready: false, timeLeft: timeLimit * 1000 };
-	const whitePlayer: SessionPlayer = { conn: new Set([ white ]), id: white.id, ready: false, timeLeft: timeLimit * 1000 };
-	black.player = blackPlayer;
-	white.player = whitePlayer;
+	const blackPlayer: SessionPlayer = { conn: new Set(), id: black, ready: false, timeLeft: timeLimit * 1000 };
+	const whitePlayer: SessionPlayer = { conn: new Set(), id: white, ready: false, timeLeft: timeLimit * 1000 };
 	const game: GameSession = {
 		id: randomUUID(),
 		state: createInitialGameState(),
@@ -98,6 +97,32 @@ export function createGameSession(
 	// TODO: updateUserGame
 
 	return game;
+}
+
+function joinGameAsSpec(conn: GameConnection, session: GameSession) {
+	for (const s of session.spectators) {
+		if (s.id === conn.id) {
+			s.conn.add(conn);
+			conn.player = s;
+			return;
+		}
+	}
+	const player: SessionPlayer = { timeLeft: -1, conn: new Set([ conn ]), id: conn.id, ready: false };
+	conn.player = player;
+	session.spectators.add(player);
+}
+
+export function joinGame(conn: GameConnection, session: GameSession): void | Error {
+	if (session.whitePlayer.id === conn.id) {
+		session.whitePlayer.conn.add(conn);
+		conn.player = session.whitePlayer;
+	} else if (session.blackPlayer.id === conn.id) {
+		session.blackPlayer.conn.add(conn);
+		conn.player = session.blackPlayer;
+	} else if (session.allowSpectators) {
+		joinGameAsSpec(conn, session);
+	} else return new Error("This game doesn't allow spectators");
+	conn.send(buildGameState(session, (conn.player as SessionPlayer).player as Player))
 }
 
 export function closeSession(game: GameSession) {

@@ -1,70 +1,131 @@
 "use client";
 
-/**
- * Returns a static mid-game board state so the game page renders.
- * TODO :
- *   - Connect GameSocket to the real server
- *   - Replace mockGameState with live state
- *   - joinQueue / leaveQueue / makeMove to socket.send()
- */
+import { useEffect, useState } from "react";
+import { type GameState, type GameMode, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board } from "@/types";
+import { GameSocket } from "@/lib/ws/socket";
+import { WS_URL } from "@/lib/config";
 
-import { useState } from "react";
-import type { GameState, GameMode } from "@/types";
-import { MOCK_USER } from "@/lib/api";
 
-const MOCK_OPPONENT = { id: "2", username: "v_specter", avatarUrl: undefined };
+export function useQueue() {
+	const [inQueue, setInQueue] = useState(false);
+	const [socket, setSocket] = useState<GameSocket | null>(null);
 
-const EMPTY_BOARD = Array(8).fill(null).map(() => Array(8).fill("empty")) as GameState["board"];
+	function joinQueue(callback: (foundGame: string | Error) => void) {
+		const socket = new GameSocket(WS_URL + "/matches/quickplay", (e) => {
+			if (e) {
+				callback(e);
+				return;
+			}
+			socket.ondisconnect = _ => { setSocket(null); setInQueue(false); }
+			socket.on(PreGameProtocol.MatchFound, r => {
+				const id = r.readPrefixedUTF();
 
-const MOCK_BOARD: GameState["board"] = EMPTY_BOARD.map((row, r) =>
-  row.map((_, c) => {
-    if ((r === 3 && c === 3) || (r === 4 && c === 4)) return "white";
-    if ((r === 3 && c === 4) || (r === 4 && c === 3)) return "black";
-    return "empty";
-  })
-);
+				setSocket(null);
+				callback(id);
+			})
+		});
+		setSocket(socket);
+		setInQueue(true);
+	}
+	const leaveQueue = () => {
+		if (socket && inQueue) {
+			setInQueue(false);
+			socket.disconnect(0);
+		}
+	}
 
-const MOCK_GAME_STATE: GameState = {
-  id:          "mock-game-1",
-  board:       MOCK_BOARD,
-  currentTurn: "black",
-  status:      "in-progress",
-  scores:      { black: 2, white: 2 },
-  validMoves:  [[2,3],[3,2],[4,5],[5,4]],
-  players: {
-    black: { id: MOCK_USER.id, username: MOCK_USER.username, avatarUrl: undefined },
-    white: MOCK_OPPONENT,
-  },
-};
+	return {
+		joinQueue,
+		leaveQueue,
+		socket,
+		inQueue
+	}
+}
 
-export function useGame() {
-  const [inQueue,    setInQueue]    = useState(false);
-  const [gameState,  setGameState]  = useState<GameState | null>(null);
+function getScores(board: Board) {
+	const scores = [0, 0];
+	for (const row of board) {
+		for (const cell of row) {
+			if (cell === BLACK)
+				++scores[0];
+			else if (cell === WHITE)
+				++scores[1];
+		}
+	}
 
-  // TODO: replace with real socket events
-  const joinQueue = (_mode: GameMode) => {
-    setInQueue(true);
-    // Simulate finding a match after 2s for demo purposes
-    setTimeout(() => {
-      setInQueue(false);
-      setGameState(MOCK_GAME_STATE);
-    }, 2000);
-  };
+	return scores;
+}
 
-  const leaveQueue = () => setInQueue(false);
+export function useGame(id: string, onJoin: (session: GameState | Error) => void) {
+	const [socket, setSocket] = useState<GameSocket | null>(null);
+	const [state, setState] = useState<GameState | null>(null);
+	const [yourTurn, setYourTurn] = useState<boolean>(false);
+	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
 
-  const makeMove = (row: number, col: number) => {
-    // TODO: socket.send("make_move", { row, col })
-    console.log("[useGame] move stub →", row, col);
-  };
+	useEffect(() => {
+		const socket = new GameSocket(WS_URL + `/matches/join?gameId=${id}`, (e) => {
+			if (e) {
+				onJoin(e);
+				return;
+			}
 
-  return {
-    status:     "connected" as const,  // always "connected" in mock
-    gameState,
-    matchFound: null,
-    inQueue,
-    joinQueue,
-    leaveQueue,
-    makeMove,
-  };
+			setSocket(socket);
+		});
+		socket.on(Protocol.State, payload => {
+			const id = payload.readPrefixedUTF();
+			const board = payload.readBoard();
+			const as = payload.readUint8();
+			const white = payload.readPrefixedUTF();
+			const black = payload.readPrefixedUTF();
+			const timeLimit = payload.readInt32();
+			const status = payload.readPrefixedUTF() as GameStatus;
+			const allowSpectators = payload.readBool();
+
+			let currentTurn: number | undefined;
+			let startedAt: number | undefined;
+			let validMoves: Array<[number, number]> = [];
+
+			if (status === "ACTIVE") {
+				currentTurn = payload.readUint8();
+				startedAt = payload.readUint32();
+				if (as === BLACK || as === WHITE) {
+					const yourTurn = currentTurn === as;
+					setYourTurn(yourTurn);
+					setOpponentTurn(!yourTurn);
+					if (yourTurn) {
+						const len = payload.readUint8();
+						for (let i = 0; i < len; ++i)
+							validMoves.push([payload.readUint8(), payload.readUint8()]);
+					}
+				}
+			}
+
+			const scores = getScores(board);
+			setState({
+				id,
+				currentTurn: currentTurn ? currentTurn as PlayerColor : null,
+				status, board,
+				players: { black, white },
+				scores: { black: scores[0], white: scores[1] },
+				validMoves,
+				startedAt,
+				allowSpectators,
+				timeLimit
+			});
+		});
+
+	}, []);
+
+	const makeMove = (row: number, col: number) => {
+		// TODO: socket.send("make_move", { row, col })
+		console.log("[useGame] move stub →", row, col);
+	};
+
+	return {
+		socket,
+		state,
+		yourTurn,
+		opponentTurn,
+		makeMove,
+	};
 }

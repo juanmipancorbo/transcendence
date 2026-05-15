@@ -70,14 +70,16 @@ export type Board = CellState[][];  // 8×8
 export interface GameState {
   id: string;
   board: Board;
-  currentTurn: PlayerColor;
+  currentTurn: PlayerColor | null;
   status: GameStatus;
   scores: { black: number; white: number };
   validMoves: Array<[number, number]>;
   players: {
-    black: Pick<User, "id" | "username" | "avatarUrl">;
-    white: Pick<User, "id" | "username" | "avatarUrl">;
+    black: string;
+    white: string;
   };
+  allowSpectators: boolean;
+  timeLimit: number;
   winner?: PlayerColor | "draw";
   startedAt?: number;
   endedAt?: number;
@@ -119,8 +121,9 @@ export enum Protocol {
 	PlayerAbandon = 9,
 	OpponentAbandon = 10,
 	Board = 11,
-	MoveUpdate = 12,
-	GameStart = 13,
-	GameEnd = 14,
-	Error = 15
+	State = 12,
+	MoveUpdate = 13,
+	GameStart = 14,
+	GameEnd = 15,
+	Error = 16
 };

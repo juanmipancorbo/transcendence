@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { PreGameProtocol, Protocol } from "./protocol";
 import { ByteWriter } from "./stream-utils/writer";
-import { Board, Player, Position } from "../game";
+import { Board, getValidMoves, Player, Position, STATUS_ACTIVE } from "../game";
 import { GameSession, PositionUpdate } from "./session";
 
 export function build(typeId: number): ByteWriter {
@@ -24,15 +24,40 @@ export function buildPreGameError(message: string): BufferSource {
 
 export function buildMatchFound(game: GameSession, color: number, opponent: UUID): BufferSource {
 	return build(PreGameProtocol.MatchFound)
-		.writeBoard(game.state.board)
-		.writeUint32(game.timeLimit)
-		.writeUint8(color)
-		.writePrefixedUTF(opponent)
-		.writeBool(game.allowSpectators)
+		.writePrefixedUTF(game.id)
 		.freeze();
 }
 
 // In-Game
+
+/**
+* @param as: BLACK | WHITE, anything else means its as spectator
+*/
+export function buildGameState(game: GameSession, as: number): BufferSource {
+	const w = build(Protocol.State)
+		.writePrefixedUTF(game.id)
+		.writeBoard(game.state.board)
+		.writeUint8(as)
+		.writePrefixedUTF(game.whitePlayer.id)
+		.writePrefixedUTF(game.blackPlayer.id)
+		.writeInt32(game.timeLimit)
+		.writePrefixedUTF(game.state.status)
+		.writeBool(game.allowSpectators);
+	if (game.state.status === STATUS_ACTIVE) {
+		w.writeUint8(game.state.currentTurn);
+		w.writeUint32(game.startedAt as number);
+		if (game.state.currentTurn === as) {
+			const validMoves = getValidMoves(game.state.board, as);
+			w.writeUint8(validMoves.length);
+			for (const move of validMoves) {
+				w.writeUint8(move.row);
+				w.writeUint8(move.col);
+			}
+		}
+
+	}
+	return w.freeze();
+}
 
 export function buildOpponentAbandon() {
 	return build(Protocol.OpponentAbandon).freeze();

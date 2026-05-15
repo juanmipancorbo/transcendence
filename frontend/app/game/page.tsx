@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { MOCK_USER } from "@/lib/api";
 import type { GameState, PlayerColor } from "@/types";
+import { GameSession } from "@/lib/game-session";
+import { useGame } from "@/hooks/useGame";
 
 //    Static mock game state (start of a game)                               
 const EMPTY: GameState["board"][0][0] = "empty";
@@ -28,11 +30,12 @@ const MOCK_OPPONENT = { id: "2", username: "FakeDude", avatarUrl: undefined };
 
 export default function GamePage() {
   const router = useRouter();
-  const myColor: PlayerColor = "black";
 
-  const [board, setBoard]   = useState<GameState["board"]>(INITIAL_BOARD);
-  const [scores, setScores] = useState({ black: 2, white: 2 });
-  const [turn, setTurn]     = useState<PlayerColor>("black");
+  const game = useGame();
+
+  if (!game.session) {
+	  game.joinQueue();
+  }
   const [validMoves, setValidMoves] = useState<Array<[number,number]>>(INITIAL_VALID);
   const [finished, setFinished]     = useState(false);
 

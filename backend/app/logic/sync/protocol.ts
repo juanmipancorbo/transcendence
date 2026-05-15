@@ -26,10 +26,11 @@ export enum Protocol {
 	PlayerAbandon = 9,
 	OpponentAbandon = 10,
 	Board = 11,
-	MoveUpdate = 12,
-	GameStart = 13,
-	GameEnd = 14,
-	Error = 15
+	State = 12,
+	MoveUpdate = 13,
+	GameStart = 14,
+	GameEnd = 15,
+	Error = 16
 };
 
 const gameCallbacks = [
@@ -100,6 +101,7 @@ export function reportFinishedGame(game: GameSession) {
 	game.finishedAt = Date.now();
 	broadcastToGame(game, buildGameEnd(game));
 	// TODO: Save and if leaderboard or exp systems, add something here
+	// TODO: Remove game state from players
 	closeSession(game);
 }
 
