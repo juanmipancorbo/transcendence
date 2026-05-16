@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import * as Service from "./service";
 import { LoginReq, RegisterReq } from "@endpoints/users-request";
 

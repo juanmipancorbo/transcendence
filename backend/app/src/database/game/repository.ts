@@ -2,12 +2,13 @@ import { GameData } from "@endpoints/users-response";
 import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
 
+const NEW_GAME_DATA = "id, white_player_id, black_player_id";
 const GAME_DATA = "id, white_player_id, black_player_id, winner_id";
 
 export async function insertGame(gameId: string, whiteId: string, blackId: string):
     Promise<void> {
   await pool.query(sql`
-    INSERT INTO games (${GAME_DATA})
+    INSERT INTO games (${NEW_GAME_DATA})
       VALUES ($1, $2, $3)
   `, [gameId, whiteId, blackId]);
 }
@@ -18,6 +19,13 @@ export async function selectGame(gameId: string): Promise<GameData | null> {
       WHERE id = $1
   `, [gameId]);
   return (ret.rows[0] ?? null);
+}
+
+// TEST Query DELETE in prod
+export async function selectGameTable(): Promise<GameData[] | null> {
+  const ret = await pool.query<GameData>(sql`
+    SELECT ${GAME_DATA} FROM games `);
+  return (ret.rows ?? null);
 }
 
 export async function updateWinner(gameId: string, winnerId: string):

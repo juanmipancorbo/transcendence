@@ -1,6 +1,7 @@
 import express from "express";
-import { router as routerUser } from "./src/database/user/route";
-import { router as routerAuth } from "./src/database/auth/route";
+import { router as routerUser } from "./src/database/user/router";
+import { router as routerAuth } from "./src/database/auth/router";
+import { router as routerGame } from "./src/database/game/router";
 import routerWs from "./websockets";
 
 const app: express.Application = express();
@@ -21,3 +22,4 @@ app.listen(port, _ => {
 
 app.use("/users", routerUser)
 app.use("/auth", routerAuth)
+app.use("/game", routerGame)

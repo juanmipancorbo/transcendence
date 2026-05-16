@@ -9,7 +9,16 @@ export async function readGame(gameId: string) {
   return (game);
 }
 
-export async function createGame(gameId: string, whiteId: string, blackId: string) {
+// TEST Service DELETE in prod
+export async function readAllGame() {
+  const game = await Repo.selectGameTable();
+  if (!game)
+    throw ("INVALID_CREDENTIAL");
+  return (game);
+}
+
+export async function createGame(
+    { gameId, whiteId, blackId }: {gameId: string, whiteId: string, blackId: string}) {
   const [whiteUser, blackUser] = await Promise.all([
     UserRepo.selectPublicUser(whiteId),
     UserRepo.selectPublicUser(blackId)]);
@@ -23,12 +32,15 @@ export async function createGame(gameId: string, whiteId: string, blackId: strin
   }
 }
 
-export async function setWinner(gameId: string, winnerId: string) {
+export async function setWinner(
+    {gameId, winnerId}: {gameId: string, winnerId: string}) {
   let game = await Repo.selectGame(gameId);
   if (!game)
     throw ("INVALID_CREDENTIAL");
+  if (game.winner_id)
+    throw ("MATCH_ALREADY_WON");
   if (game.black_player_id != winnerId && game.white_player_id != winnerId)
-    throw ("INVALID_CREDENTIAL");
+    throw ("PLAYER_NOT_IN_GAME");
   game = await Repo.updateWinner(gameId, winnerId);
   return (game);
 }
