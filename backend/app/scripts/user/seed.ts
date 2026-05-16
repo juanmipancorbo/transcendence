@@ -9,7 +9,7 @@ export async function seed(){
   const pool = new Pool();
 
   const count = 10;
-  const password = argon2.hash("42Barcelona");
+  const password = await argon2.hash("42_Barcelona");
 
   try {
     for (let i = 0; i < count; i++) {
@@ -17,11 +17,10 @@ export async function seed(){
         faker.internet.username(),
         faker.internet.email(),
         password,
-        faker.image.avatar(),
       ];
       await pool.query(sql`
-      INSERT INTO users (username, email, password_hash, avatar_url)
-        VALUES ($1, $2, $3, $4)
+      INSERT INTO users (username, email, password_hash)
+        VALUES ($1, $2, $3)
       `, values);
     }
   } catch (err) {

@@ -2,6 +2,7 @@
 	"name": "Backend",
 	"dockerComposeFile": "../compose.yaml",
 	"service": "backend",
+	"runServices": ["database"],
 	"workspaceFolder": "/app",
   "shutdownAction": "stopCompose",
 	"customizations": {

@@ -1,10 +1,13 @@
 import { Pool } from "pg";
-import { init } from "./init"
 
 const sql = String.raw;
 
-export async function reset(){
+export async function ft_delete(){
   const pool = new Pool();
+
+  await pool.query(sql`
+    DROP TABLE IF EXISTS user_stats;
+  `);
 
   await pool.query(sql`
     DROP TABLE IF EXISTS games;
@@ -16,6 +19,5 @@ export async function reset(){
 
   await pool.end();
 
-  await init();
-  console.log("Games reseted")
+  console.log("Games deleted")
 }

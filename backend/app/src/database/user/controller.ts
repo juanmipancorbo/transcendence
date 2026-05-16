@@ -1,6 +1,6 @@
 import { type Response, type Request } from "express";
 import * as Service from "./service"
-import { FullUserReq } from "@endpoints/users-request";
+import type { FullUserReq } from "@endpoints/users-request";
 
 // TEST Controller DELETE in prod
 export async function getFullUser(req: Request<FullUserReq>, res: Response){
