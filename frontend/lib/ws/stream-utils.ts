@@ -1,4 +1,4 @@
-import { Board, CellState } from "@/types";
+import { Board, CellState, Protocol } from "@/types";
 
 export class ByteWriter {
 	private dv: DataView;
@@ -109,4 +109,12 @@ export class ByteReader {
         }
         return board;
     }
+}
+
+export function build(id: number): ByteWriter {
+	return new ByteWriter().writeUint8(id);
+}
+
+export function buildReadyToGame(): Uint8Array {
+	return build(Protocol.Ready).freeze();
 }

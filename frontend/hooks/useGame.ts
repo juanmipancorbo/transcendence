@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type GameState, type GameMode, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board } from "@/types";
+import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
-
+import { buildReadyToGame } from "@/lib/ws/stream-utils";
+import api from "@/lib/api";
 
 export function useQueue() {
 	const [inQueue, setInQueue] = useState(false);
@@ -61,6 +62,8 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 	const [state, setState] = useState<GameState | null>(null);
 	const [yourTurn, setYourTurn] = useState<boolean>(false);
 	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
+	const [spectators, setSpectators] = useState<string[]>([]);
+	const [profiles, setProfiles] = useState(new Map<string, Pick<User, "xp" | "rank" | "wins" | "username" | "avatarUrl" | "displayName">>());
 
 	useEffect(() => {
 		const socket = new GameSocket(WS_URL + `/matches/join?gameId=${id}`, (e) => {
@@ -112,9 +115,37 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 				allowSpectators,
 				timeLimit
 			});
+			socket.send(buildReadyToGame()); // Notify the backend this player is ready
 		});
 
 	}, []);
+
+	useEffect(() => {
+		const promises = [];
+		const newProfiles = new Map();
+		if (state) {
+			const white = profiles.get(state.players.white);
+			const black = profiles.get(state.players.black);
+
+			if (white) newProfiles.set(state.players.white, white);
+			else promises.push(api.user.getProfile(state.players.white));
+			if (black) newProfiles.set(state.players.black, black);
+			else promises.push(api.user.getProfile(state.players.black));
+		}
+
+		for (const spec of spectators) {
+			const profile = profiles.get(spec);
+			if (profile) newProfiles.set(spec, profile);
+			else promises.push(api.user.getProfile(spec));
+		}
+
+		Promise.all(promises).then(u => {
+			for (const user of u)
+				newProfiles.set(user.id, user);
+
+			setProfiles(newProfiles);
+		});
+	}, [spectators, state]);
 
 	const makeMove = (row: number, col: number) => {
 		// TODO: socket.send("make_move", { row, col })
