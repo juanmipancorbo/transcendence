@@ -64,6 +64,7 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
 	const [spectators, setSpectators] = useState<string[]>([]);
 	const [profiles, setProfiles] = useState(new Map<string, Pick<User, "xp" | "rank" | "wins" | "username" | "avatarUrl" | "displayName">>());
+	const [gameMessage, setGameMessage] = useState({ msg: "", show: false });
 
 	useEffect(() => {
 		const socket = new GameSocket(WS_URL + `/matches/join?gameId=${id}`, (e) => {
@@ -77,7 +78,7 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 		socket.on(Protocol.State, payload => {
 			const id = payload.readPrefixedUTF();
 			const board = payload.readBoard();
-			const as = payload.readUint8();
+const as = payload.readUint8();
 			const white = payload.readPrefixedUTF();
 			const black = payload.readPrefixedUTF();
 			const timeLimit = payload.readInt32();
@@ -115,6 +116,23 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 				allowSpectators,
 				timeLimit
 			});
+
+			// Game socket setup start
+			socket.on(Protocol.OpponentAbandon, p => {});
+			socket.on(Protocol.SpectatorJoin, p => {});
+			socket.on(Protocol.SpectatorLeave, p => {});
+			socket.on(Protocol.Error, p => {});
+			socket.on(Protocol.Board, p => {});
+			socket.on(Protocol.MoveUpdate, p => {});
+			socket.on(Protocol.YourTurn, p => {});
+			socket.on(Protocol.OpponentTurn, p => {});
+			socket.on(Protocol.GameStart, p => {});
+			socket.on(Protocol.GameEnd, p => {});
+			socket.on(Protocol.ChatMessage, p => {});
+			socket.on(Protocol.NoMoves, p => {});
+			socket.on(Protocol.OpponentNoMoves, p => {});
+			// Game socket setup end
+
 			socket.send(buildReadyToGame()); // Notify the backend this player is ready
 		});
 
@@ -147,6 +165,11 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 		});
 	}, [spectators, state]);
 
+	useEffect(() => {
+		if (!gameMessage.show) return;
+		setTimeout(() => setGameMessage({...gameMessage, show: false}), 2000);
+	}, [gameMessage]);
+
 	const makeMove = (row: number, col: number) => {
 		// TODO: socket.send("make_move", { row, col })
 		console.log("[useGame] move stub →", row, col);
@@ -156,6 +179,7 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 		socket,
 		state,
 		yourTurn,
+		gameMessage,
 		opponentTurn,
 		makeMove,
 	};
