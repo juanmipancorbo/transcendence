@@ -6,6 +6,8 @@ import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, W
 import { onChat, onConsumeTurn, onReady } from "./game-callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
 import { onKeepAlive } from "./callbacks";
+import { updateUserGameNull } from "../../src/database/user/service";
+import { updateWinner } from "../../src/database/game/repository";
 
 export enum PreGameProtocol {
 	Error = 0,
@@ -100,8 +102,14 @@ export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
 export function reportFinishedGame(game: GameSession) {
 	game.finishedAt = Date.now();
 	broadcastToGame(game, buildGameEnd(game));
+
 	// TODO: Save and if leaderboard or exp systems, add something here
-	// TODO: Remove game state from players
+	if (game.state.winner === BLACK)
+		updateWinner(game.id, game.blackPlayer.id).catch(e => console.error(e));
+	else if (game.state.winner === WHITE)
+		updateWinner(game.id, game.whitePlayer.id).catch(e => console.error(e));
+	updateUserGameNull(game.whitePlayer.id).catch(e => console.error(e));
+	updateUserGameNull(game.blackPlayer.id).catch(e => console.error(e));
 	closeSession(game);
 }
 

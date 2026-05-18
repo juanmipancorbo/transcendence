@@ -3,6 +3,8 @@ import { BLACK, Cell, createInitialGameState, GameState, Player, Position, STATU
 import { WebSocket } from "ws";
 import { onPlayerDisconnect } from "./protocol";
 import { buildGameState, buildSpectatorJoin } from "./protocol-utils";
+import { updateUserGame } from "../../src/database/user/repository";
+import { createGame } from "../../src/database/game/service";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
@@ -86,6 +88,7 @@ export function createGameSession(
 		moves: [],
 		messages: []
 	};
+	createGame({ gameId: game.id, whiteId: white, blackId: black }).catch(e => console.error(e));
 
 	blackPlayer.game = game;
 	whitePlayer.game = game;
@@ -94,7 +97,8 @@ export function createGameSession(
 	game.state.status = STATUS_WAITING;
 
 	SESSIONS.set(game.id, game);
-	// TODO: updateUserGame
+	updateUserGame(white, game.id).catch(e => console.error(e));
+	updateUserGame(black, game.id).catch(e => console.error(e));
 
 	return game;
 }
