@@ -63,6 +63,12 @@ export function buildOpponentAbandon() {
 	return build(Protocol.OpponentAbandon).freeze();
 }
 
+export function buildSpectatorJoin(specId: UUID): BufferSource {
+	return build(Protocol.SpectatorJoin)
+		.writePrefixedUTF(specId)
+		.freeze();
+}
+
 export function buildSpectatorLeave(specId: UUID): BufferSource {
 	return build(Protocol.SpectatorLeave)
 		.writePrefixedUTF(specId)
@@ -81,11 +87,8 @@ export function buildBoard(board: Board) {
 		.freeze();
 }
 
-export function buildMoveUpdate(player: Player, move: Position, updates: PositionUpdate[]): BufferSource {
+export function buildMoveUpdate(/*player: Player, move: Position, */updates: PositionUpdate[]): BufferSource {
 	const writer = build(Protocol.MoveUpdate)
-		.writeUint8(player)
-		.writeUint8(move.row)
-		.writeUint8(move.col)
 		.writeUint32(updates.length);
 	updates.forEach(p => {
 		writer.writeUint8(p.content);
@@ -98,7 +101,7 @@ export function buildMoveUpdate(player: Player, move: Position, updates: Positio
 
 export function buildYourTurn(moves: Position[], timeToLose: number): BufferSource {
 	const writer = build(Protocol.YourTurn)
-		.writeUint32(timeToLose)
+		.writeInt32(timeToLose)
 		.writeUint32(moves.length);
 	moves.forEach(m => {
 		writer.writeUint8(m.row);
@@ -108,8 +111,10 @@ export function buildYourTurn(moves: Position[], timeToLose: number): BufferSour
 	return writer.freeze();
 }
 
-export function buildOpponentTurn(): BufferSource {
-	return build(Protocol.OpponentTurn).freeze();
+export function buildOpponentTurn(opponentTimeToLose: number): BufferSource {
+	return build(Protocol.OpponentTurn)
+		.writeInt32(opponentTimeToLose)
+		.freeze()
 }
 
 export function buildGameEnd(game: GameSession): BufferSource {

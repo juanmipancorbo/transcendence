@@ -80,7 +80,7 @@ export interface GameState {
   };
   allowSpectators: boolean;
   timeLimit: number;
-  winner?: PlayerColor | "draw";
+  winner?: PlayerColor | 0; // 0 = draw
   startedAt?: number;
   endedAt?: number;
 }

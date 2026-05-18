@@ -2,7 +2,7 @@ import { randomUUID, UUID } from "crypto";
 import { BLACK, Cell, createInitialGameState, GameState, Player, Position, STATUS_WAITING, WHITE } from "../game";
 import { WebSocket } from "ws";
 import { onPlayerDisconnect } from "./protocol";
-import { buildGameState } from "./protocol-utils";
+import { buildGameState, buildSpectatorJoin } from "./protocol-utils";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
@@ -107,6 +107,7 @@ function joinGameAsSpec(conn: GameConnection, session: GameSession) {
 			return;
 		}
 	}
+	broadcastToGame(session, buildSpectatorJoin(conn.id));
 	const player: SessionPlayer = { timeLeft: -1, conn: new Set([ conn ]), id: conn.id, ready: false };
 	conn.player = player;
 	session.spectators.add(player);
