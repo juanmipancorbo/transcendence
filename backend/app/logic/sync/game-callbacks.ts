@@ -31,7 +31,7 @@ export function onConsumeTurn(reader: ByteReader, game: GameSession, conn: Sessi
 	game.moves.push({ player: conn.player, pos, updates });
 
 	// Send state updates to whole game
-	broadcastToGame(game, buildMoveUpdate(conn.player, pos, updates));
+	broadcastToGame(game, buildMoveUpdate(updates));
 
 	const opponent = conn.player === BLACK ? game.whitePlayer : game.blackPlayer;
 	send(conn, build(Protocol.OpponentNoMoves).freeze());
@@ -46,6 +46,7 @@ export function onReady(_: ByteReader, game: GameSession, conn: SessionPlayer) {
 		if (game.blackPlayer.ready && game.whitePlayer.ready) {
 			game.state.status = STATUS_ACTIVE;
 			broadcastToGame(game, build(Protocol.GameStart).freeze());
+			game.startedAt = Date.now();
 			nextTurn(game);
 		}
 	}
@@ -61,8 +62,3 @@ export function onChat(reader: ByteReader, game: GameSession, conn: SessionPlaye
 		send(game.blackPlayer, output);
 	}
 }
-export function b(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
-export function c(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
-export function d(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
-export function e(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}
-export function f(reader: ByteReader, game: GameSession, conn: SessionPlayer) {}

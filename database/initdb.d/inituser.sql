@@ -1,10 +1,9 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     avatar_url TEXT DEFAULT NULL,
-    current_game UUID DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -12,5 +11,4 @@ CREATE TABLE IF NOT EXISTS users (
 -- Seeded users
 INSERT INTO users (username, email, password_hash) VALUES 
 ('admin', 'admin@fakemail.com', 'fakeword'),
-('ziermax', 'ziermax@fakemail.com', 'thisword')
-ON CONFLICT DO NOTHING;
+('ziermax', 'ziermax@fakemail.com', 'thisword');

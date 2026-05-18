@@ -4,38 +4,34 @@ import { broadcastToGame, closeSession, GameConnection, GameSession, send } from
 import { buildGameEnd, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
 import { onChat, onConsumeTurn, onReady } from "./game-callbacks";
-import { onKeepAlive } from "./callbacks";
 import { quickplay, unsetQuickplay } from "../../websockets";
+import { onKeepAlive } from "./callbacks";
 
 export enum PreGameProtocol {
-	KeepAlive = 0,
-	Error = 1,
-	MatchFound = 2,
-	MatchmakeError = 3
+	Error = 0,
+	MatchFound = 1,
+	MatchmakeError = 2
 }
-
-const pregameCallbacks = [
-	onKeepAlive
-]
 
 export enum Protocol {
 	ConsumeTurn = 0,
-	Ready = 3,
-	ChatMessage = 4,
-	SpectatorJoin = 5,
-	SpectatorLeave = 6,
-	YourTurn = 7,
-	OpponentTurn = 8,
-	NoMoves = 9,
-	OpponentNoMoves = 10,
-	PlayerAbandon = 11,
-	OpponentAbandon = 12,
-	Board = 13,
-	MoveUpdate = 14,
-	GameStart = 15,
-	GameEnd = 16,
-	Error = 17
-}
+	Ready = 1,
+	ChatMessage = 2,
+	SpectatorJoin = 3,
+	SpectatorLeave = 4,
+	YourTurn = 5,
+	OpponentTurn = 6,
+	NoMoves = 7,
+	OpponentNoMoves = 8,
+	PlayerAbandon = 9,
+	OpponentAbandon = 10,
+	Board = 11,
+	State = 12,
+	MoveUpdate = 13,
+	GameStart = 14,
+	GameEnd = 15,
+	Error = 16
+};
 
 const gameCallbacks = [
 	onConsumeTurn,
@@ -49,10 +45,10 @@ export function onMessageReceive(data: RawData, conn: GameConnection) {
 	const reader = new ByteReader(data);
 	const typeId = reader.readUint8();
 
-	if (conn.player && conn.player.game && gameCallbacks[typeId])
+	if (typeId === 0)
+		onKeepAlive(conn);
+	else if (conn.player && conn.player.game && gameCallbacks[typeId])
 		gameCallbacks[typeId](reader, conn.player.game, conn.player);
-	else if (pregameCallbacks[typeId])
-		pregameCallbacks[typeId](reader, conn);
 }
 
 function abandon(conn: GameConnection, game: GameSession) {
@@ -102,8 +98,10 @@ export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
 
 // Determines the winner, if no winner is set it stops the game with a draw
 export function reportFinishedGame(game: GameSession) {
+	game.finishedAt = Date.now();
 	broadcastToGame(game, buildGameEnd(game));
-	// TODO: If leaderboard or exp systems, add something here
+	// TODO: Save and if leaderboard or exp systems, add something here
+	// TODO: Remove game state from players
 	closeSession(game);
 }
 
@@ -111,8 +109,8 @@ export function nextTurn(game: GameSession) {
 	if (game.state.status === STATUS_FINISHED || game.state.status === STATUS_ABANDONED)
 		reportFinishedGame(game);
 	else if (game.state.currentTurn === BLACK) {
-		let timeToLose;
-		send(game.whitePlayer, buildOpponentTurn());
+		let timeToLose = -1;
+		send(game.whitePlayer, buildOpponentTurn(game.whitePlayer.timeLeft));
 
 		if (game.timeLimit !== -1) {
 			timeToLose = game.blackPlayer.timeLeft;
@@ -123,12 +121,12 @@ export function nextTurn(game: GameSession) {
 
 				reportFinishedGame(game);
 			}, game.blackPlayer.timeLeft);
-		} else timeToLose = -1;
+		}
 
 		send(game.blackPlayer, buildYourTurn(getValidMoves(game.state.board, BLACK), timeToLose));
 	} else if (game.state.currentTurn === WHITE) {
 		let timeToLose;
-		send(game.blackPlayer, buildOpponentTurn());
+		send(game.blackPlayer, buildOpponentTurn(game.blackPlayer.timeLeft));
 
 		if (game.timeLimit !== -1) {
 			timeToLose = game.whitePlayer.timeLeft;

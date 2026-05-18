@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { useGame } from "@/hooks/useGame";
-import type { GameMode } from "@/types";
+import { useQueue } from "@/hooks/useGame";
 
 export default function LobbyPage() {
   const { user } = useAuth();
-  const { status, inQueue, matchFound, joinQueue, leaveQueue } = useGame();
+  const { inQueue, joinQueue, leaveQueue } = useQueue();
   const [elapsed, setElapsed] = useState(0);
   const router = useRouter();
 
@@ -18,10 +17,6 @@ export default function LobbyPage() {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
   }, [inQueue]);
-
-  useEffect(() => {
-    if (matchFound) router.push(`/game?id=${matchFound.gameId}`);
-  }, [matchFound, router]);
 
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
@@ -51,7 +46,7 @@ export default function LobbyPage() {
               <div className="mt-8 flex gap-4 w-full md:w-auto">
                 {!inQueue ? (
                   <button
-                    onClick={() => joinQueue("ranked" as GameMode)}
+                    onClick={() => joinQueue(foundGame => router.push(`/game?id=${foundGame}`))}
                     disabled={status !== "connected"}
                     className="px-10 py-5 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-black text-lg tracking-tighter font-headline flex items-center gap-4 transition-all hover:shadow-[0_0_30px_rgba(0,238,252,0.4)] active:scale-95 disabled:opacity-50"
                   >
