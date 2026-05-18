@@ -109,8 +109,8 @@ export function nextTurn(game: GameSession) {
 	if (game.state.status === STATUS_FINISHED || game.state.status === STATUS_ABANDONED)
 		reportFinishedGame(game);
 	else if (game.state.currentTurn === BLACK) {
-		let timeToLose;
-		send(game.whitePlayer, buildOpponentTurn());
+		let timeToLose = -1;
+		send(game.whitePlayer, buildOpponentTurn(game.whitePlayer.timeLeft));
 
 		if (game.timeLimit !== -1) {
 			timeToLose = game.blackPlayer.timeLeft;
@@ -121,12 +121,12 @@ export function nextTurn(game: GameSession) {
 
 				reportFinishedGame(game);
 			}, game.blackPlayer.timeLeft);
-		} else timeToLose = -1;
+		}
 
 		send(game.blackPlayer, buildYourTurn(getValidMoves(game.state.board, BLACK), timeToLose));
 	} else if (game.state.currentTurn === WHITE) {
 		let timeToLose;
-		send(game.blackPlayer, buildOpponentTurn());
+		send(game.blackPlayer, buildOpponentTurn(game.blackPlayer.timeLeft));
 
 		if (game.timeLimit !== -1) {
 			timeToLose = game.whitePlayer.timeLeft;

@@ -118,3 +118,16 @@ export function build(id: number): ByteWriter {
 export function buildReadyToGame(): Uint8Array {
 	return build(Protocol.Ready).freeze();
 }
+
+export function buildConsumeTurn(row: number, col: number): Uint8Array {
+	return build(Protocol.ConsumeTurn)
+		.writeUint8(row)
+		.writeUint8(col)
+		.freeze();
+}
+
+export function buildChat(message: string) {
+	return build(Protocol.ChatMessage)
+		.writePrefixedUTF(message)
+		.freeze();
+}

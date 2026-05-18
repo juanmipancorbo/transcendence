@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
-import { buildReadyToGame } from "@/lib/ws/stream-utils";
+import { buildChat, buildConsumeTurn, buildReadyToGame } from "@/lib/ws/stream-utils";
 import api from "@/lib/api";
 
 export function useQueue() {
@@ -64,7 +64,7 @@ function formatMs(ms: number) {
 	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export function useGame(id: string, onJoin: (session: GameState | Error) => void) {
+export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const [socket, setSocket] = useState<GameSocket | null>(null);
 	const [state, setState] = useState<GameState | null>(null);
 	const [yourTurn, setYourTurn] = useState<boolean>(false);
@@ -75,6 +75,8 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 	const [timeLeftFormat, setTimeLeftFormat] = useState("");
 	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");
 	const [messages, setMessages] = useState<Array<{ sender: string, message: string }>>([]);
+	const [myColor, setMyColor] = useState<PlayerColor | 0>(0);
+	const validSet  = new Set(state ? state.validMoves.map(([r, c]) => `${r},${c}`) : null);
 
 	let timer: number | undefined;
 	let opponentTimer: number | undefined;
@@ -87,11 +89,12 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 			}
 
 			setSocket(socket);
+			onJoin();
 		});
 		socket.on(Protocol.State, payload => {
 			const id = payload.readPrefixedUTF();
 			const board = payload.readBoard();
-			const as = payload.readUint8();
+			const as = payload.readUint8() as PlayerColor | 0;
 			const white = payload.readPrefixedUTF();
 			const black = payload.readPrefixedUTF();
 			const timeLimit = payload.readInt32();
@@ -129,6 +132,7 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 				allowSpectators,
 				timeLimit
 			});
+			setMyColor(as);
 			if (timeLimit !== -1) {
 				const format = formatMs(timeLimit);
 				setTimeLeftFormat(format);
@@ -195,6 +199,8 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 		socket.on(Protocol.GameStart, _ => { setGameMessage({ msg: "The game has started", isError: false, show: true }) });
 		socket.on(Protocol.GameEnd, p => {
 			const result = p.readUint8() as PlayerColor | 0;
+			setYourTurn(false);
+			setOpponentTurn(false);
 			setState({ ...state as GameState, status: "FINISHED", winner: result });
 		});
 		socket.on(Protocol.ChatMessage, p => {
@@ -241,8 +247,13 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 	}, [gameMessage]);
 
 	const makeMove = (row: number, col: number) => {
-		// TODO: socket.send("make_move", { row, col })
-		console.log("[useGame] move stub →", row, col);
+		if (!state || !validSet.has(`${row},${col}`) || !yourTurn || state.status !== "ACTIVE") return;
+
+		socket?.send(buildConsumeTurn(row, col));
+	};
+
+	const chat = (message: string) => {
+		socket?.send(buildChat(message));
 	};
 
 	return {
@@ -253,6 +264,10 @@ export function useGame(id: string, onJoin: (session: GameState | Error) => void
 		opponentTurn,
 		timeLeftFormat,
 		opponentTimeLeftFormat,
+		myColor,
+		profiles,
+		validSet,
 		makeMove,
+		chat
 	};
 }
