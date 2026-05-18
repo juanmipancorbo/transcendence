@@ -39,9 +39,8 @@ export class ByteWriter {
 	}
 
 	writePrefixedUTF(s: string): ByteWriter {
-		const byteLength = Buffer.byteLength(s, "utf8");
-		this.ensureCapacity(4 + byteLength);
-		this.buf.writeUint32BE(byteLength, this.offset);
+		this.ensureCapacity(4 + Buffer.byteLength(s, "utf8"));
+		this.buf.writeUint32BE(s.length, this.offset);
 		this.offset += 4;
 		this.offset += this.buf.write(s, this.offset, "utf8");
 		return this;

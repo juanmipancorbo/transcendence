@@ -1,10 +1,13 @@
 import express from "express";
+import { router as routerUser } from "./src/database/user/route";
+import { router as routerAuth } from "./src/database/auth/route";
 import routerWs from "./websockets";
 
 const app: express.Application = express();
 
-const host = process.env.HOST ?? "localhost";
 const port = Number(process.env.PORT ?? "3000");
+
+app.use(express.json());
 
 app.use("/matches", routerWs);
 app.get('/', (_req, _res) => {
@@ -12,6 +15,9 @@ app.get('/', (_req, _res) => {
 });
 
 // Server start
-app.listen(port, host, _ => {
-	console.log("Listening on http://" + host + ":" + port);
+app.listen(port, _ => {
+	console.log("Listening on http://" + ":" + port);
 });
+
+app.use("/users", routerUser)
+app.use("/auth", routerAuth)

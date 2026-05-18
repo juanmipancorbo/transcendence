@@ -1,6 +1,11 @@
-CREATE TYPE game_status AS ENUM ('waiting', 'finished', 'active', 'abandoned');
+--- CREATE TYPE WRAPPER - EXCEPTION HANDLER
+DO $$ BEGIN
+    CREATE TYPE game_status AS ENUM ('waiting', 'finished', 'active', 'abandoned');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TABLE games (
+CREATE TABLE IF NOT EXISTS games (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     white_player_id UUID NOT NULL,
     black_player_id UUID NOT NULL,

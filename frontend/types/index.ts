@@ -46,18 +46,14 @@ export interface LeaderboardEntry {
 
 // ─── Game ────────────────────────────────────────────────────────────────────
 
-export const EMPTY = 0;
-export const BLACK = 1;
-export const WHITE = 2;
-
-export type CellState = 0 | 1 | 2;
-export type PlayerColor = 1 | 2;
+export type CellState = "empty" | "black" | "white";
+export type PlayerColor = "black" | "white";
 
 export type GameStatus =
-	| 'WAITING'
-	| 'ACTIVE'
-	| 'FINISHED'
-	| 'ABANDONED';
+  | "waiting"
+  | "in-progress"
+  | "finished"
+  | "abandoned";
 
 export interface GameCell {
   row: number;
@@ -70,19 +66,17 @@ export type Board = CellState[][];  // 8×8
 export interface GameState {
   id: string;
   board: Board;
-  currentTurn: PlayerColor | null;
+  currentTurn: PlayerColor;
   status: GameStatus;
   scores: { black: number; white: number };
   validMoves: Array<[number, number]>;
   players: {
-    black: string;
-    white: string;
+    black: Pick<User, "id" | "username" | "avatarUrl">;
+    white: Pick<User, "id" | "username" | "avatarUrl">;
   };
-  allowSpectators: boolean;
-  timeLimit: number;
-  winner?: PlayerColor | 0; // 0 = draw
-  startedAt?: number;
-  endedAt?: number;
+  winner?: PlayerColor | "draw";
+  startedAt?: string;
+  endedAt?: string;
 }
 
 // ─── Lobby / Matchmaking ─────────────────────────────────────────────────────
@@ -102,28 +96,21 @@ export interface MatchFoundPayload {
 }
 
 // ─── WebSocket protocol (mirrors backend protocol.ts) ────────────────────────
-export enum PreGameProtocol {
-	Error = 0,
-	MatchFound = 1,
-	MatchmakeError = 2
-}
 
-export enum Protocol {
-	ConsumeTurn = 0,
-	Ready = 1,
-	ChatMessage = 2,
-	SpectatorJoin = 3,
-	SpectatorLeave = 4,
-	YourTurn = 5,
-	OpponentTurn = 6,
-	NoMoves = 7,
-	OpponentNoMoves = 8,
-	PlayerAbandon = 9,
-	OpponentAbandon = 10,
-	Board = 11,
-	State = 12,
-	MoveUpdate = 13,
-	GameStart = 14,
-	GameEnd = 15,
-	Error = 16
-};
+export type WSMessageType =
+  | "join_queue"
+  | "leave_queue"
+  | "match_found"
+  | "game_start"
+  | "make_move"
+  | "move_result"
+  | "game_over"
+  | "opponent_disconnected"
+  | "ping"
+  | "pong";
+
+export interface WSMessage<T = unknown> {
+  type: WSMessageType;
+  payload?: T;
+  timestamp: number;
+}
