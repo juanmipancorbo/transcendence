@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { PreGameProtocol, Protocol } from "./protocol";
 import { ByteWriter } from "./stream-utils/writer";
-import { Board, Player, Position } from "../game";
+import { Board, getValidMoves, Player, Position, STATUS_ACTIVE } from "../game";
 import { GameSession, PositionUpdate } from "./session";
 
 export function build(typeId: number): ByteWriter {
@@ -22,18 +22,51 @@ export function buildPreGameError(message: string): BufferSource {
 		.freeze();
 }
 
-export function buildMatchFound(gameId: UUID, color: number, opponent: UUID): BufferSource {
+export function buildMatchFound(game: GameSession, color: number, opponent: UUID): BufferSource {
 	return build(PreGameProtocol.MatchFound)
-		.writePrefixedUTF(gameId)
-		.writeUint8(color)
-		.writePrefixedUTF(opponent)
+		.writePrefixedUTF(game.id)
 		.freeze();
 }
 
 // In-Game
 
+/**
+* @param as: BLACK | WHITE, anything else means its as spectator
+*/
+export function buildGameState(game: GameSession, as: number): BufferSource {
+	const w = build(Protocol.State)
+		.writePrefixedUTF(game.id)
+		.writeBoard(game.state.board)
+		.writeUint8(as)
+		.writePrefixedUTF(game.whitePlayer.id)
+		.writePrefixedUTF(game.blackPlayer.id)
+		.writeInt32(game.timeLimit)
+		.writePrefixedUTF(game.state.status)
+		.writeBool(game.allowSpectators);
+	if (game.state.status === STATUS_ACTIVE) {
+		w.writeUint8(game.state.currentTurn);
+		w.writeUint32(game.startedAt as number);
+		if (game.state.currentTurn === as) {
+			const validMoves = getValidMoves(game.state.board, as);
+			w.writeUint8(validMoves.length);
+			for (const move of validMoves) {
+				w.writeUint8(move.row);
+				w.writeUint8(move.col);
+			}
+		}
+
+	}
+	return w.freeze();
+}
+
 export function buildOpponentAbandon() {
 	return build(Protocol.OpponentAbandon).freeze();
+}
+
+export function buildSpectatorJoin(specId: UUID): BufferSource {
+	return build(Protocol.SpectatorJoin)
+		.writePrefixedUTF(specId)
+		.freeze();
 }
 
 export function buildSpectatorLeave(specId: UUID): BufferSource {
@@ -54,11 +87,8 @@ export function buildBoard(board: Board) {
 		.freeze();
 }
 
-export function buildMoveUpdate(player: Player, move: Position, updates: PositionUpdate[]): BufferSource {
+export function buildMoveUpdate(/*player: Player, move: Position, */updates: PositionUpdate[]): BufferSource {
 	const writer = build(Protocol.MoveUpdate)
-		.writeUint8(player)
-		.writeUint8(move.row)
-		.writeUint8(move.col)
 		.writeUint32(updates.length);
 	updates.forEach(p => {
 		writer.writeUint8(p.content);
@@ -71,7 +101,7 @@ export function buildMoveUpdate(player: Player, move: Position, updates: Positio
 
 export function buildYourTurn(moves: Position[], timeToLose: number): BufferSource {
 	const writer = build(Protocol.YourTurn)
-		.writeUint32(timeToLose)
+		.writeInt32(timeToLose)
 		.writeUint32(moves.length);
 	moves.forEach(m => {
 		writer.writeUint8(m.row);
@@ -81,8 +111,10 @@ export function buildYourTurn(moves: Position[], timeToLose: number): BufferSour
 	return writer.freeze();
 }
 
-export function buildOpponentTurn(): BufferSource {
-	return build(Protocol.OpponentTurn).freeze();
+export function buildOpponentTurn(opponentTimeToLose: number): BufferSource {
+	return build(Protocol.OpponentTurn)
+		.writeInt32(opponentTimeToLose)
+		.freeze()
 }
 
 export function buildGameEnd(game: GameSession): BufferSource {

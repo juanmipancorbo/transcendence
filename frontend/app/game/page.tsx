@@ -1,57 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { MOCK_USER } from "@/lib/api";
-import type { GameState, PlayerColor } from "@/types";
-
-const EMPTY: GameState["board"][0][0] = "empty";
-const B: GameState["board"][0][0]     = "black";
-const W: GameState["board"][0][0]     = "white";
-
-const INITIAL_BOARD: GameState["board"] = [
-  [EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,W,    B,    EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,B,    W,    EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY],
-  [EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY],
-];
-
-const INITIAL_VALID: Array<[number, number]> = [[2,3],[3,2],[4,5],[5,4]];
-
-const MOCK_OPPONENT = { id: "2", username: "FakeDude", avatarUrl: undefined };
+import { useGame } from "@/hooks/useGame";
+import { BLACK, GameState, PlayerColor, WHITE } from "@/types";
+import { useEffect } from "react";
 
 export default function GamePage() {
   const router = useRouter();
-  const myColor: PlayerColor = "black";
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+  const game = useGame(id ?? "", e => {
+    if (e) {
+      console.error(e.message);
+      // TODO: Do something on error?
+    }
+  });
 
-  const [board,      setBoard]      = useState<GameState["board"]>(INITIAL_BOARD);
-  const [scores,     setScores]     = useState({ black: 2, white: 2 });
-  const [turn,       setTurn]       = useState<PlayerColor>("black");
-  const [validMoves, setValidMoves] = useState<Array<[number, number]>>(INITIAL_VALID);
-  const [finished,   setFinished]   = useState(false);
+  useEffect(() => {
+    if (!id)
+      router.push("/"); // TODO: or something else?
+  }, []);
 
-  const validSet = new Set(validMoves.map(([r, c]) => `${r},${c}`));
-  const isMyTurn = turn === myColor;
-
-  function handleMove(r: number, c: number) {
-    if (!validSet.has(`${r},${c}`) || !isMyTurn || finished) return;
-    // TODO: replace with real game logic or backend response
-    const next = board.map(row => [...row]) as GameState["board"];
-    next[r][c] = myColor;
-    setBoard(next);
-    setScores(s => ({ ...s, [myColor]: s[myColor] + 1 }));
-    setValidMoves([]);
-    setTurn("white");
-    setTimeout(() => {
-      setTurn("black");
-      setValidMoves(INITIAL_VALID);
-    }, 1000);
+  let username;
+  let username1;
+  let score;
+  let score1;
+  if (game.myColor === WHITE) {
+    username = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
+    username1 = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
+	score = game.state?.scores.white ?? 0;
+	score1 = game.state?.scores.black ?? 0;
+  } else {
+    username = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
+    username1 = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
+	score = game.state?.scores.black ?? 0;
+	score1 = game.state?.scores.white ?? 0;
   }
+
 
   return (
     <ProtectedLayout activeRoute="/game">
@@ -60,14 +46,14 @@ export default function GamePage() {
         {/* My panel */}
         <aside className="w-full md:w-72 flex flex-col gap-6 order-2 md:order-1">
           <PlayerPanel
-            name={MOCK_USER.username}
+            name={username}
             label="PLAYER_01"
-            score={scores[myColor]}
+            score={score}
             total={64}
             accentClass="border-primary"
             scoreColorClass="text-primary"
             glowColor="#8ff5ff"
-            isMyTurn={isMyTurn && !finished}
+            isMyTurn={game.yourTurn}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -77,34 +63,38 @@ export default function GamePage() {
 
         {/* Board */}
         <section className="flex-1 flex flex-col items-center justify-center gap-8 order-1 md:order-2">
-          <div className="turn-pill">
-            <div className="turn-dot" />
-            <span className="turn-label">
-              {finished
-                ? "GAME OVER"
-                : isMyTurn
-                ? "YOUR_TURN"
-                : `${MOCK_OPPONENT.username.toUpperCase()}_MOVING…`}
+          {/* Turn banner */}
+          <div className="px-6 py-2 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+            <span className="font-headline font-bold text-primary tracking-tighter text-sm">
+              {game.state?.status === "FINISHED" ? "GAME OVER" : game.yourTurn ? "YOUR_TURN" : `${username1.toUpperCase()}_MOVING…`}
             </span>
           </div>
 
-          <div className="board-wrapper">
-            <div className="board-glow" />
-            <div className="board-container">
-              <div className="board-grid">
-                {board.map((row, r) =>
+          {/* Grid */}
+          <div className="relative">
+            <div className="absolute -inset-4 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
+            <div className="relative bg-surface-container-high p-4 rounded-xl shadow-2xl">
+              <div className="grid grid-cols-8 gap-[2px] bg-surface-container-highest p-[2px]">
+                {game.state && game.state.board.map((row, r) =>
                   row.map((cell, c) => {
                     const key     = `${r},${c}`;
-                    const isValid = validSet.has(key) && isMyTurn && !finished;
+                    const isValid = game.validSet.has(key) && game.yourTurn && (game.state as GameState).status !== "FINISHED";
                     return (
                       <div
                         key={key}
-                        onClick={() => handleMove(r, c)}
-                        className={`board-cell ${isValid ? "board-cell-valid" : ""}`}
+                        onClick={() => game.makeMove(r, c)}
+                        className={`w-12 h-12 md:w-14 md:h-14 bg-surface-container-low flex items-center justify-center transition-all ${isValid ? "cursor-pointer hover:bg-surface-container-high" : ""}`}
                       >
-                        {cell === "black" && <div className="piece-black" />}
-                        {cell === "white" && <div className="piece-white" />}
-                        {cell === "empty" && isValid && <div className="piece-hint" />}
+                        {cell === BLACK && (
+                          <div className="w-3/4 h-3/4 rounded-full bg-on-surface shadow-[0_0_10px_rgba(255,255,255,0.15)]" />
+                        )}
+                        {cell === WHITE && (
+                          <div className="w-3/4 h-3/4 rounded-full bg-primary-container shadow-[0_0_10px_rgba(0,238,252,0.4)]" />
+                        )}
+                        {cell === 0 && isValid && (
+                          <div className="w-1/3 h-1/3 rounded-full bg-primary/30 border border-primary/40" />
+                        )}
                       </div>
                     );
                   })
@@ -116,9 +106,12 @@ export default function GamePage() {
           <div className="flex gap-4">
             <button onClick={() => router.push("/lobby")} className="btn-ghost danger">
               <span className="material-symbols-outlined text-sm">close</span>
-              {finished ? "Back to Lobby" : "Resign"}
+              {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
             </button>
-            <button onClick={() => setFinished(true)} className="btn-ghost">
+            <button
+              onClick={() => {/*setFinished(true)*/}}
+              className="px-6 py-3 bg-surface-container-high border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary transition-all font-headline text-xs font-bold tracking-widest uppercase flex items-center gap-2"
+            >
               <span className="material-symbols-outlined text-sm">flag</span>
               End (Demo)
             </button>
@@ -128,14 +121,14 @@ export default function GamePage() {
         {/* Opponent panel */}
         <aside className="w-full md:w-72 flex flex-col gap-6 order-3">
           <PlayerPanel
-            name={MOCK_OPPONENT.username}
+            name={username1}
             label="PLAYER_02"
-            score={scores["white"]}
+            score={score1}
             total={64}
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
             glowColor="#d575ff"
-            isMyTurn={!isMyTurn && !finished}
+            isMyTurn={game.opponentTurn}
           />
         </aside>
       </main>

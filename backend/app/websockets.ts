@@ -1,11 +1,17 @@
 import { Router } from "express";
 import expressWs from "express-ws";
-import { createGameSession, GameConnection, resetTimeout } from "./logic/sync/session";
+import { createGameSession, GameConnection, GameSession, joinGame, resetTimeout, SESSIONS } from "./logic/sync/session";
 import { onMessageReceive, onPlayerAbandon, onPlayerDisconnect, Protocol } from "./logic/sync/protocol";
 import { WebSocket } from "ws";
 import { UUID } from "node:crypto";
 import { BLACK, WHITE } from "./logic/game";
 import { buildMatchFound } from "./logic/sync/protocol-utils";
+
+function isUUID(value: string): boolean {
+	const uuidRegex =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+	return uuidRegex.test(value);
+}
 
 const router = Router();
 
@@ -35,7 +41,6 @@ function setupGameConnection(client: WebSocket, id: UUID): GameConnection {
 				onPlayerAbandon(res, res.player.game);
 			else onPlayerDisconnect(res, res.player.game);
 		}
-
 	});
 	res.on("error", async (err) => {
 		console.error("Client was disconnected with an error: " + err.message);
@@ -54,16 +59,35 @@ router.use("/quickplay", (req, res, next) => {
 	next();
 });
 
-router.ws("/quickplay",/* TODO: Token validation and ID injection */ async (ws, req, _) => {
+router.ws("/quickplay", async (ws, req, _) => {
 	const client = setupGameConnection(ws, req.userId);
 	if (!quickplay)
 		quickplay = client;
 	else {
-		const game = createGameSession(quickplay, client, false /* TODO: Maybe take into account user settings */, 100);
-		quickplay.send(buildMatchFound(game.id, WHITE, client.id));
-		client.send(buildMatchFound(game.id, BLACK, quickplay.id));
+		const game = createGameSession(quickplay.id, client.id, false /* TODO: Maybe take into account user settings */, 100);
+		quickplay.send(buildMatchFound(game, WHITE, client.id));
+		client.send(buildMatchFound(game, BLACK, quickplay.id));
 		quickplay = null;
 	}
+});
+
+router.use("/join", (req, res, next) => {
+	if (!req.query.gameId || !isUUID(req.query.gameId as string))
+		return res.status(400).json({ success: false, data: "gameId query is required as uuid" });
+	const gameId = req.query.id as string;
+	const game = SESSIONS.get(gameId as UUID);
+	if (!game)
+		res.status(404).json({ success: false, data: "This game does not exist" });
+	(req as any).game = game;
+	next();
+});
+
+router.ws("/join",/* TODO: Token validation and ID injection */ async (ws, req, _) => {
+	const client = setupGameConnection(ws, req.userId);
+	const game: GameSession = (req as any).game;
+	const res = joinGame(client, game);
+	if (res instanceof Error)
+		client.close(Protocol.Error, res.message);
 });
 
 export default router;
