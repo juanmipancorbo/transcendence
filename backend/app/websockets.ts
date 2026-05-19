@@ -73,10 +73,10 @@ router.ws("/quickplay", async (ws, req, _) => {
 router.use("/join", (req, res, next) => {
 	if (!req.query.gameId || !isUUID(req.query.gameId as string))
 		return res.status(400).json({ success: false, data: "gameId query is required as uuid" });
-	const gameId = req.query.id as string;
+	const gameId = req.query.gameId as string;
 	const game = SESSIONS.get(gameId as UUID);
 	if (!game)
-		res.status(404).json({ success: false, data: "This game does not exist" });
+		return res.status(404).json({ success: false, data: "This game does not exist" });
 	(req as any).game = game;
 	next();
 });
