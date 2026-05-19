@@ -1,4 +1,5 @@
-import { ByteReader } from "./stream-utils";
+import { Protocol } from "@/types";
+import { build, ByteReader } from "./stream-utils";
 
 export class GameSocket {
 	private ws: WebSocket;
@@ -26,6 +27,15 @@ export class GameSocket {
 					this.ondisconnect();
 			}
 			onConnect();
+
+			// Keep alive
+			const interval = window.setInterval(() => {
+				if (!this.isConnected) {
+					window.clearInterval(interval);
+					return;
+				}
+				this.send(build(Protocol.KeepAlive).freeze());
+			}, 10000);
 		}
 		this.ws.onmessage = e => {
 			const reader = new ByteReader(e.data);

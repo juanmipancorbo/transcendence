@@ -1,13 +1,8 @@
 import { RawData } from "ws";
 import { ByteReader } from "./stream-utils/reader";
-import { broadcastToGame, closeSession, GameConnection, GameSession, send } from "./session";
-import { buildGameEnd, buildOpponentAbandon, buildOpponentTurn, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
-import { abandonGame, BLACK, getValidMoves, STATUS_ABANDONED, STATUS_FINISHED, WHITE } from "../game";
+import { GameConnection, type SessionPlayer } from "./session";
 import { onChat, onConsumeTurn, onReady } from "./game-callbacks";
-import { quickplay, unsetQuickplay } from "../../websockets";
 import { onKeepAlive } from "./callbacks";
-import { updateUserGameNull } from "../../src/database/user/service";
-import { updateWinner } from "../../src/database/game/repository";
 
 export enum PreGameProtocol {
 	Error = 0,
@@ -16,23 +11,24 @@ export enum PreGameProtocol {
 }
 
 export enum Protocol {
-	ConsumeTurn = 0,
-	Ready = 1,
-	ChatMessage = 2,
-	SpectatorJoin = 3,
-	SpectatorLeave = 4,
-	YourTurn = 5,
-	OpponentTurn = 6,
-	NoMoves = 7,
-	OpponentNoMoves = 8,
-	PlayerAbandon = 9,
-	OpponentAbandon = 10,
-	Board = 11,
-	State = 12,
-	MoveUpdate = 13,
-	GameStart = 14,
-	GameEnd = 15,
-	Error = 16
+	KeepAlive = 0,
+	ConsumeTurn = 1,
+	Ready = 2,
+	ChatMessage = 3,
+	SpectatorJoin = 4,
+	SpectatorLeave = 5,
+	YourTurn = 6,
+	OpponentTurn = 7,
+	NoMoves = 8,
+	OpponentNoMoves = 9,
+	PlayerAbandon = 10,
+	OpponentAbandon = 11,
+	Board = 12,
+	State = 13,
+	MoveUpdate = 14,
+	GameStart = 15,
+	GameEnd = 16,
+	Error = 17
 };
 
 const gameCallbacks = [
@@ -43,110 +39,16 @@ const gameCallbacks = [
 	onChat
 ];
 
+export function send(player: SessionPlayer, buf: BufferSource) {
+	player.conn.forEach(c => c.send(buf));
+}
+
 export function onMessageReceive(data: RawData, conn: GameConnection) {
 	const reader = new ByteReader(data);
 	const typeId = reader.readUint8();
 
-	if (typeId === 0)
+	if (typeId === Protocol.KeepAlive)
 		onKeepAlive(conn);
 	else if (conn.player && conn.player.game && gameCallbacks[typeId])
 		gameCallbacks[typeId](reader, conn.player.game, conn.player);
-}
-
-function abandon(conn: GameConnection, game: GameSession) {
-	if (game.state.status !== "FINISHED") {
-		abandonGame(game.state, conn.id);
-		if (game.blackPlayer.id === conn.id)
-			send(game.whitePlayer, buildOpponentAbandon())
-		else if (game.whitePlayer.id === conn.id)
-			send(game.blackPlayer, buildOpponentAbandon())
-	}
-}
-
-export function onPlayerAbandon(conn: GameConnection, game: GameSession) {
-	// Remove spectator
-	for (const spec of game.spectators) {
-		if (spec.id === conn.id && spec.conn.has(conn)) {
-			broadcastToGame(game, buildSpectatorLeave(spec.id));
-			game.spectators.delete(spec);
-			return;
-		}
-	}
-
-	abandon(conn, game);
-	if (quickplay && quickplay.id === conn.id)
-		unsetQuickplay();
-}
-
-export function onPlayerDisconnect(conn: GameConnection, game: GameSession) {
-	// Remove spectator
-	for (const spec of game.spectators) {
-		if (spec.id === conn.id && spec.conn.has(conn)) {
-			if (spec.conn.size === 1) {
-				broadcastToGame(game, buildSpectatorLeave(spec.id));
-				game.spectators.delete(spec);
-			}
-			spec.conn.delete(conn);
-			return;
-		}
-	}
-
-	let player = game.blackPlayer.id === conn.id ? game.blackPlayer : game.whitePlayer.id === conn.id ? game.whitePlayer : null;
-	if (player && player.conn.delete(conn) && player.conn.size === 0)
-		abandon(conn, game);
-	if (quickplay && quickplay.id === conn.id)
-		unsetQuickplay();
-}
-
-// Determines the winner, if no winner is set it stops the game with a draw
-export function reportFinishedGame(game: GameSession) {
-	game.finishedAt = Date.now();
-	broadcastToGame(game, buildGameEnd(game));
-
-	// TODO: Save and if leaderboard or exp systems, add something here
-	if (game.state.winner === BLACK)
-		updateWinner(game.id, game.blackPlayer.id).catch(e => console.error(e));
-	else if (game.state.winner === WHITE)
-		updateWinner(game.id, game.whitePlayer.id).catch(e => console.error(e));
-	updateUserGameNull(game.whitePlayer.id).catch(e => console.error(e));
-	updateUserGameNull(game.blackPlayer.id).catch(e => console.error(e));
-	closeSession(game);
-}
-
-export function nextTurn(game: GameSession) {
-	if (game.state.status === STATUS_FINISHED || game.state.status === STATUS_ABANDONED)
-		reportFinishedGame(game);
-	else if (game.state.currentTurn === BLACK) {
-		let timeToLose = -1;
-		send(game.whitePlayer, buildOpponentTurn(game.whitePlayer.timeLeft));
-
-		if (game.timeLimit !== -1) {
-			timeToLose = game.blackPlayer.timeLeft;
-			game.blackPlayer.timer = Date.now();
-			game.blackPlayer.timeout = setTimeout(() => {
-				game.state.winner = WHITE;
-				game.state.status = STATUS_FINISHED;
-
-				reportFinishedGame(game);
-			}, game.blackPlayer.timeLeft);
-		}
-
-		send(game.blackPlayer, buildYourTurn(getValidMoves(game.state.board, BLACK), timeToLose));
-	} else if (game.state.currentTurn === WHITE) {
-		let timeToLose;
-		send(game.blackPlayer, buildOpponentTurn(game.blackPlayer.timeLeft));
-
-		if (game.timeLimit !== -1) {
-			timeToLose = game.whitePlayer.timeLeft;
-			game.whitePlayer.timer = Date.now();
-			game.whitePlayer.timeout = setTimeout(() => {
-				game.state.winner = BLACK;
-				game.state.status = STATUS_FINISHED;
-
-				reportFinishedGame(game);
-			}, game.whitePlayer.timeLeft);
-		} else timeToLose = -1;
-
-		send(game.whitePlayer, buildYourTurn(getValidMoves(game.state.board, WHITE), timeToLose));
-	}
 }

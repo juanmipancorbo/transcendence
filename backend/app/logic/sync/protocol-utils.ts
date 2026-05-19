@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { PreGameProtocol, Protocol } from "./protocol";
 import { ByteWriter } from "./stream-utils/writer";
-import { Board, getValidMoves, Player, Position, STATUS_ACTIVE } from "../game";
+import { Board, getValidMoves, Position, STATUS_ACTIVE } from "../game";
 import { GameSession, PositionUpdate } from "./session";
 
 export function build(typeId: number): ByteWriter {
@@ -22,9 +22,10 @@ export function buildPreGameError(message: string): BufferSource {
 		.freeze();
 }
 
-export function buildMatchFound(game: GameSession, color: number, opponent: UUID): BufferSource {
+export function buildMatchFound(game: GameSession, opponent: UUID): BufferSource {
 	return build(PreGameProtocol.MatchFound)
 		.writePrefixedUTF(game.id)
+		.writePrefixedUTF(opponent)
 		.freeze();
 }
 

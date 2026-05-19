@@ -1,3 +1,5 @@
+import { Position } from "../../../logic/game";
+import { PositionUpdate } from "../../../logic/sync/session";
 import * as UserRepo from "../user/repository"
 import * as Repo from "./repository"
 import { DatabaseError } from "pg";
@@ -17,8 +19,13 @@ export async function readAllGame() {
   return (game);
 }
 
-export async function createGame(
-    { gameId, whiteId, blackId }: {gameId: string, whiteId: string, blackId: string}) {
+export async function createGame({ gameId, whiteId, blackId, timeLimit, allowSpectators }: {
+    gameId: string,
+    whiteId: string,
+    blackId: string,
+    timeLimit: number, // TODO: set time limit
+    allowSpectators: boolean // TODO: set if it allows spectators or not, basically if the game is public and others can see it or not
+}) {
   const [whiteUser, blackUser] = await Promise.all([
     UserRepo.selectPublicUser(whiteId),
     UserRepo.selectPublicUser(blackId)]);
@@ -32,7 +39,7 @@ export async function createGame(
   }
 }
 
-export async function setWinner(
+export async function setWinner( // TODO: Also set game status to finished
     {gameId, winnerId}: {gameId: string, winnerId: string}) {
   let game = await Repo.selectGame(gameId);
   if (!game)
@@ -44,3 +51,13 @@ export async function setWinner(
   game = await Repo.updateWinner(gameId, winnerId);
   return (game);
 }
+
+// TODO: adds a move to the database for restore later, or for game review
+export async function addGameMovement(gameId: string, userId: string, pos: Position, updates: PositionUpdate[]) {
+
+}
+
+export async function setUserTimeLeft(gameId: string, userId: string, timeLeft: number) {
+
+}
+

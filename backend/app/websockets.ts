@@ -1,10 +1,9 @@
 import { Router } from "express";
 import expressWs from "express-ws";
-import { createGameSession, GameConnection, GameSession, joinGame, resetTimeout, SESSIONS } from "./logic/sync/session";
-import { onMessageReceive, onPlayerAbandon, onPlayerDisconnect, Protocol } from "./logic/sync/protocol";
+import { createGameSession, GameConnection, GameSession, resetTimeout, SESSIONS } from "./logic/sync/session";
+import { onMessageReceive, Protocol } from "./logic/sync/protocol";
 import { WebSocket } from "ws";
 import { UUID } from "node:crypto";
-import { BLACK, WHITE } from "./logic/game";
 import { buildMatchFound } from "./logic/sync/protocol-utils";
 
 function isUUID(value: string): boolean {
@@ -36,16 +35,16 @@ function setupGameConnection(client: WebSocket, id: UUID): GameConnection {
 		onMessageReceive(data, res);
 	});
 	res.on("close", async (code, _) => {
-		if (res.player && res.player.game) {
+		if (res.player) {
 			if (code === Protocol.PlayerAbandon)
-				onPlayerAbandon(res, res.player.game);
-			else onPlayerDisconnect(res, res.player.game);
+				res.player.game.playerAbandon(res);
+			else res.player.game.playerDisconnect(res);
 		}
 	});
 	res.on("error", async (err) => {
 		console.error("Client was disconnected with an error: " + err.message);
-		if (res.player && res.player.game)
-			onPlayerDisconnect(res, res.player.game);
+		if (res.player)
+			res.player.game.playerDisconnect(res);
 	})
 
 	return res;
@@ -65,8 +64,8 @@ router.ws("/quickplay", async (ws, req, _) => {
 		quickplay = client;
 	else {
 		const game = createGameSession(quickplay.id, client.id, false /* TODO: Maybe take into account user settings */, 100);
-		quickplay.send(buildMatchFound(game, WHITE, client.id));
-		client.send(buildMatchFound(game, BLACK, quickplay.id));
+		quickplay.send(buildMatchFound(game, client.id));
+		client.send(buildMatchFound(game, quickplay.id));
 		quickplay = null;
 	}
 });
@@ -85,7 +84,7 @@ router.use("/join", (req, res, next) => {
 router.ws("/join",/* TODO: Token validation and ID injection */ async (ws, req, _) => {
 	const client = setupGameConnection(ws, req.userId);
 	const game: GameSession = (req as any).game;
-	const res = joinGame(client, game);
+	const res = game.joinGame(client);
 	if (res instanceof Error)
 		client.close(Protocol.Error, res.message);
 });
