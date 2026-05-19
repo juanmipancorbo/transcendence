@@ -104,7 +104,11 @@ export default function GamePage() {
           </div>
 
           <div className="flex gap-4">
-            <button onClick={() => router.push("/lobby")} className="btn-ghost danger">
+            <button onClick={() => {
+				if (game.state?.status !== "FINISHED")
+					game.abandon();
+				router.push("/lobby");
+			}} className="btn-ghost danger">
               <span className="material-symbols-outlined text-sm">close</span>
               {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
             </button>

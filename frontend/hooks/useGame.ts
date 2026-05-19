@@ -256,6 +256,17 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket?.send(buildChat(message));
 	};
 
+	const abandon = () => {
+		setSocket(prev => {
+			prev?.disconnect(Protocol.PlayerAbandon);
+			return null;
+		});
+		window.clearInterval(timer);
+		window.clearInterval(opponentTimer);
+		setYourTurn(false);
+		setOpponentTurn(false);
+	};
+
 	return {
 		socket,
 		state,
@@ -268,6 +279,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		profiles,
 		validSet,
 		makeMove,
-		chat
+		chat,
+		abandon
 	};
 }
