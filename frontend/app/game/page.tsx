@@ -3,8 +3,16 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useGame } from "@/hooks/useGame";
-import { BLACK, GameState, PlayerColor, WHITE } from "@/types";
+import { BLACK, GameState, WHITE } from "@/types";
 import { useEffect } from "react";
+
+// TODO: Implement chat, read through game.messages, which contains messages and sender uuids
+// get profiles data through game.profiles map, if it returns undefined it means the profile is not loaded yet
+
+// TODO: Maybe visualize current spectators? listed in game.spectators, their profiles also in game.profiles
+
+// TODO: Render time left, just read game.timeLeftFormat and game.opponentTimeLeftFormat
+// its already formatted as minutes:seconds and its a react state that updates itself
 
 export default function GamePage() {
   const router = useRouter();
