@@ -39,7 +39,7 @@ export async function createGame({ gameId, whiteId, blackId, timeLimit, allowSpe
   }
 }
 
-export async function setWinner( // TODO: Also set game status to finished
+export async function setWinner(
     {gameId, winnerId}: {gameId: string, winnerId: string}) {
   let game = await Repo.selectGame(gameId);
   if (!game)
@@ -61,3 +61,6 @@ export async function setUserTimeLeft(gameId: string, userId: string, timeLeft: 
 
 }
 
+export async function setFinished(gameId: string) {
+	
+}

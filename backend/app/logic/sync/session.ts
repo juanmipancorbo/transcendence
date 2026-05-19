@@ -3,7 +3,7 @@ import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, Game
 import { WebSocket } from "ws";
 import { Protocol, send } from "./protocol";
 import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
-import { addGameMovement, createGame, setUserTimeLeft, setWinner } from "../../src/database/game/service";
+import { addGameMovement, createGame, setFinished, setUserTimeLeft, setWinner } from "../../src/database/game/service";
 import { updateUserGame, updateUserGameNull } from "../../src/database/user/service";
 import { quickplay, unsetQuickplay } from "../../websockets";
 
@@ -151,6 +151,7 @@ export class GameSession {
 			setWinner({ gameId: this.id, winnerId: this.blackPlayer.id }).catch(e => console.error(e));
 		else if (this.state.winner === WHITE)
 			setWinner({ gameId: this.id, winnerId: this.whitePlayer.id }).catch(e => console.error(e));
+		setFinished(this.id).catch(e => console.error(e));
 		updateUserGameNull(this.whitePlayer.id).catch(e => console.error(e));
 		updateUserGameNull(this.blackPlayer.id).catch(e => console.error(e));
 		this.closeSession();
