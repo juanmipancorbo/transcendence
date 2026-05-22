@@ -18,8 +18,6 @@ export default function TopBar({ withSidebar = false }: TopBarProps) {
           FT_TRANSCENDANCE
         </div>
         <div className="flex items-center gap-4">
-          <span className="material-symbols-outlined text-slate-500 cursor-pointer hover:text-violet-300 transition-colors">notifications</span>
-          <span className="material-symbols-outlined text-slate-500 cursor-pointer hover:text-violet-300 transition-colors">settings</span>
           <Link href="/profile" className="w-10 h-10 rounded-full border border-violet-500/30 bg-surface-container-highest flex items-center justify-center font-headline font-bold text-sm text-primary hover:border-violet-400 transition-colors">
             {user.username[0].toUpperCase()}
           </Link>

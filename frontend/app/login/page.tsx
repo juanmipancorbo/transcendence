@@ -27,8 +27,6 @@ export default function LoginPage() {
         <div className="auth-topbar-inner">
           <div className="wordmark">FT_TRANSCENDANCE</div>
           <div className="flex items-center gap-6">
-            <span className="topbar-icon material-symbols-outlined topbar-icon">notifications</span>
-            <span className="topbar-icon material-symbols-outlined topbar-icon">settings</span>
           </div>
         </div>
       </header>
@@ -48,16 +46,6 @@ export default function LoginPage() {
                   VOID_PROTOCOL
                 </span>
               </h1>
-            </div>
-            <div className="flex gap-12 items-start mt-8">
-              <div className="space-y-1">
-                <div className="text-4xl font-headline font-bold text-primary-fixed">14.2k</div>
-                <div className="label-micro">Active_Pilots</div>
-              </div>
-              <div className="space-y-1 border-l border-outline-variant/30 pl-12">
-                <div className="text-4xl font-headline font-bold text-secondary">0.03s</div>
-                <div className="label-micro">Match_Latency</div>
-              </div>
             </div>
           </div>
 
