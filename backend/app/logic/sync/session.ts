@@ -1,20 +1,13 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
-import { WebSocket } from "ws";
-import { Protocol, send } from "./protocol";
+import { Socket } from "./socket";
 import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { addGameMovement, createGame, setFinished, setUserTimeLeft, setWinner } from "../../src/database/game/service";
 import { updateUserGame, updateUserGameNull } from "../../src/database/user/service";
 import { quickplay, unsetQuickplay } from "../../websockets";
+import { Protocol as GameProtocol }  from "./handlers/game-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
-
-export type GameConnection = WebSocket & {
-	lastKeepAlive: number,
-	pollTimeout?: NodeJS.Timeout,
-	id: UUID,
-	player?: SessionPlayer
-}
 
 /**
 * @content the new content
@@ -42,7 +35,7 @@ export type Message = {
 }
 
 export class SessionPlayer {
-	conn: Set<GameConnection> = new Set();
+	conn: Set<Socket> = new Set();
 	game: GameSession;
 	player?: Player;
 	ready: boolean = false;
@@ -59,10 +52,14 @@ export class SessionPlayer {
 
 	isPlayerAlive(p: SessionPlayer): boolean {
 		for (const v of p.conn.values()) {
-			if (isConnectionAlive(v))
+			if (v.isConnectionAlive())
 				return true;
 		}
 		return false;
+	}
+
+	send(buf: BufferSource) {
+		this.conn.forEach(c => c.send(buf));
 	}
 }
 
@@ -101,7 +98,7 @@ export class GameSession {
 		this.state.status = STATUS_WAITING
 	}
 
-	private joinGameAsSpec(conn: GameConnection) {
+	private joinGameAsSpec(conn: Socket) {
 		for (const s of this.spectators) {
 			if (s.id === conn.id) {
 				s.conn.add(conn);
@@ -121,7 +118,7 @@ export class GameSession {
 		this.spectators.forEach(spec => spec.conn.forEach(conn => conn.send(buf)));
 	}
 
-	joinGame(conn: GameConnection): void | Error {
+	joinGame(conn: Socket): void | Error {
 		if (this.whitePlayer.id === conn.id) {
 			this.whitePlayer.conn.add(conn);
 			conn.player = this.whitePlayer;
@@ -162,7 +159,7 @@ export class GameSession {
 			conn.ready = true;
 			if (this.blackPlayer.ready && this.whitePlayer.ready) {
 				this.state.status = STATUS_ACTIVE;
-				this.broadcast(build(Protocol.GameStart).freeze());
+				this.broadcast(build(GameProtocol.GameStart).freeze());
 				this.startedAt = Date.now();
 				this.nextTurn();
 			}
@@ -171,17 +168,17 @@ export class GameSession {
 
 	chat(sender: SessionPlayer, msg: string) {
 		const output = buildChatMessage(sender.id, msg);
-		this.spectators.forEach(s => send(s, output));
+		this.spectators.forEach(s => s.send(output));
 
 		if (!this.spectators.has(sender)) {
-			send(this.whitePlayer, output);
-			send(this.blackPlayer, output);
+			this.whitePlayer.send(output);
+			this.blackPlayer.send(output);
 		}
 	}
 
 	consumeTurn(conn: SessionPlayer, pos: Position) {
 		if (this.state.currentTurn !== conn.player) {
-			send(conn, buildGameError("It's not your turn"));
+			conn.send(buildGameError("It's not your turn"));
 			return;
 		}
 
@@ -206,8 +203,8 @@ export class GameSession {
 		this.broadcast(buildMoveUpdate(updates));
 
 		const opponent = conn.player === BLACK ? this.whitePlayer : this.blackPlayer;
-		send(conn, build(Protocol.OpponentNoMoves).freeze());
-		send(opponent, build(Protocol.NoMoves).freeze());
+		conn.send(build(GameProtocol.OpponentNoMoves).freeze());
+		opponent.send(build(GameProtocol.NoMoves).freeze());
 		addGameMovement(this.id, conn.id, pos, updates).catch(e => console.error(e));
 		if (this.timeLimit !== -1)
 			setUserTimeLeft(this.id, conn.id, conn.timeLeft).catch(e => console.error(e));
@@ -220,7 +217,7 @@ export class GameSession {
 			this.reportFinished();
 		else if (this.state.currentTurn === BLACK) {
 			let timeToLose = -1;
-			send(this.whitePlayer, buildOpponentTurn(this.whitePlayer.timeLeft));
+			this.whitePlayer.send(buildOpponentTurn(this.whitePlayer.timeLeft));
 
 			if (this.timeLimit !== -1) {
 				timeToLose = this.blackPlayer.timeLeft;
@@ -233,10 +230,10 @@ export class GameSession {
 				}, this.blackPlayer.timeLeft);
 			}
 
-			send(this.blackPlayer, buildYourTurn(getValidMoves(this.state.board, BLACK), timeToLose));
+			this.blackPlayer.send(buildYourTurn(getValidMoves(this.state.board, BLACK), timeToLose));
 		} else if (this.state.currentTurn === WHITE) {
 			let timeToLose;
-			send(this.blackPlayer, buildOpponentTurn(this.blackPlayer.timeLeft));
+			this.blackPlayer.send(buildOpponentTurn(this.blackPlayer.timeLeft));
 
 			if (this.timeLimit !== -1) {
 				timeToLose = this.whitePlayer.timeLeft;
@@ -244,26 +241,25 @@ export class GameSession {
 				this.whitePlayer.timeout = setTimeout(() => {
 					this.state.winner = BLACK;
 					this.state.status = STATUS_FINISHED;
-
 					this.reportFinished();
 				}, this.whitePlayer.timeLeft);
 			} else timeToLose = -1;
 
-			send(this.whitePlayer, buildYourTurn(getValidMoves(this.state.board, WHITE), timeToLose));
+			this.whitePlayer.send(buildYourTurn(getValidMoves(this.state.board, WHITE), timeToLose));
 		}
 	}
 
-	private abandon(conn: GameConnection) {
+	private abandon(conn: Socket) {
 		if (this.state.status !== "FINISHED") {
 			abandonGame(this.state, conn.id);
 			if (this.blackPlayer.id === conn.id)
-				send(this.whitePlayer, buildOpponentAbandon())
+				this.whitePlayer.send(buildOpponentAbandon())
 			else if (this.whitePlayer.id === conn.id)
-				send(this.blackPlayer, buildOpponentAbandon())
+				this.blackPlayer.send(buildOpponentAbandon())
 		}
 	}
 
-	playerAbandon(conn: GameConnection) {
+	playerAbandon(conn: Socket) {
 		// Remove spectator
 		for (const spec of this.spectators) {
 			if (spec.id === conn.id && spec.conn.has(conn)) {
@@ -277,7 +273,7 @@ export class GameSession {
 			unsetQuickplay();
 	}
 
-	playerDisconnect(conn: GameConnection) {
+	playerDisconnect(conn: Socket) {
 		// Remove spectator
 		for (const spec of this.spectators) {
 			if (spec.id === conn.id && spec.conn.has(conn)) {
@@ -322,17 +318,4 @@ export function createGameSession(
 	updateUserGame(black, game.id, game.timeLimit).catch(e => console.error(e));
 
 	return game;
-}
-
-export function isConnectionAlive(conn: GameConnection): boolean {
-	return Date.now() - conn.lastKeepAlive < 20000; // Connection is considered dead after 20 seconds
-}
-
-export function resetTimeout(conn: GameConnection) {
-	clearTimeout(conn.pollTimeout);
-	conn.pollTimeout = setTimeout(() => {
-		if (conn.player)
-			conn.player.game.playerDisconnect(conn);
-		conn.close();
-	}, 20000);
 }

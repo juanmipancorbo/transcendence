@@ -1,29 +1,25 @@
 import { UUID } from "crypto";
-import { PreGameProtocol, Protocol } from "./protocol";
 import { ByteWriter } from "./stream-utils/writer";
 import { Board, getValidMoves, Position, STATUS_ACTIVE } from "../game";
 import { GameSession, PositionUpdate } from "./session";
+
+import { Protocol as GameProtocol }  from "./handlers/game-handler";
+import { Protocol as QueueProtocol } from "./handlers/queue-handler";
 
 export function build(typeId: number): ByteWriter {
 	return new ByteWriter().writeUint8(typeId);
 }
 
-// PreGame
+// Queue
 
 export function buildMatchmakeError(message: string): BufferSource {
-	return build(PreGameProtocol.MatchmakeError)
-		.writePrefixedUTF(message)
-		.freeze();
-}
-
-export function buildPreGameError(message: string): BufferSource {
-	return build(PreGameProtocol.Error)
+	return build(QueueProtocol.MatchmakeError)
 		.writePrefixedUTF(message)
 		.freeze();
 }
 
 export function buildMatchFound(game: GameSession, opponent: UUID): BufferSource {
-	return build(PreGameProtocol.MatchFound)
+	return build(QueueProtocol.MatchFound)
 		.writePrefixedUTF(game.id)
 		.writePrefixedUTF(opponent)
 		.freeze();
@@ -35,7 +31,7 @@ export function buildMatchFound(game: GameSession, opponent: UUID): BufferSource
 * @param as: BLACK | WHITE, anything else means its as spectator
 */
 export function buildGameState(game: GameSession, as: number): BufferSource {
-	const w = build(Protocol.State)
+	const w = build(GameProtocol.State)
 		.writePrefixedUTF(game.id)
 		.writeBoard(game.state.board)
 		.writeUint8(as)
@@ -61,35 +57,35 @@ export function buildGameState(game: GameSession, as: number): BufferSource {
 }
 
 export function buildOpponentAbandon() {
-	return build(Protocol.OpponentAbandon).freeze();
+	return build(GameProtocol.OpponentAbandon).freeze();
 }
 
 export function buildSpectatorJoin(specId: UUID): BufferSource {
-	return build(Protocol.SpectatorJoin)
+	return build(GameProtocol.SpectatorJoin)
 		.writePrefixedUTF(specId)
 		.freeze();
 }
 
 export function buildSpectatorLeave(specId: UUID): BufferSource {
-	return build(Protocol.SpectatorLeave)
+	return build(GameProtocol.SpectatorLeave)
 		.writePrefixedUTF(specId)
 		.freeze();
 }
 
 export function buildGameError(message: string): BufferSource {
-	return build(Protocol.Error)
+	return build(GameProtocol.Error)
 		.writePrefixedUTF(message)
 		.freeze();
 }
 
 export function buildBoard(board: Board) {
-	return build(Protocol.Board)
+	return build(GameProtocol.Board)
 		.writeBoard(board)
 		.freeze();
 }
 
 export function buildMoveUpdate(/*player: Player, move: Position, */updates: PositionUpdate[]): BufferSource {
-	const writer = build(Protocol.MoveUpdate)
+	const writer = build(GameProtocol.MoveUpdate)
 		.writeUint32(updates.length);
 	updates.forEach(p => {
 		writer.writeUint8(p.content);
@@ -101,7 +97,7 @@ export function buildMoveUpdate(/*player: Player, move: Position, */updates: Pos
 }
 
 export function buildYourTurn(moves: Position[], timeToLose: number): BufferSource {
-	const writer = build(Protocol.YourTurn)
+	const writer = build(GameProtocol.YourTurn)
 		.writeInt32(timeToLose)
 		.writeUint32(moves.length);
 	moves.forEach(m => {
@@ -113,19 +109,19 @@ export function buildYourTurn(moves: Position[], timeToLose: number): BufferSour
 }
 
 export function buildOpponentTurn(opponentTimeToLose: number): BufferSource {
-	return build(Protocol.OpponentTurn)
+	return build(GameProtocol.OpponentTurn)
 		.writeInt32(opponentTimeToLose)
 		.freeze()
 }
 
 export function buildGameEnd(game: GameSession): BufferSource {
-	return build(Protocol.GameEnd)
+	return build(GameProtocol.GameEnd)
 		.writeUint8(!game.state.winner || game.state.winner === "DRAW" ? 0 : game.state.winner)
 		.freeze();
 }
 
 export function buildChatMessage(senderId: UUID, message: string): BufferSource {
-	return build(Protocol.ChatMessage)
+	return build(GameProtocol.ChatMessage)
 		.writePrefixedUTF(senderId)
 		.writePrefixedUTF(message)
 		.freeze();
