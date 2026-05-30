@@ -18,3 +18,52 @@ export async function selectAuthUser(email: string): Promise<AuthUser | null>
   `, [email]);
   return (ret.rows[0] ?? null);
 }
+
+export async function selectUserById(id: string): Promise<AuthUser | null>
+{
+  const ret = await pool.query(sql`
+    SELECT id, username, email, password_hash FROM users
+      WHERE id = $1
+  `, [id]);
+  return (ret.rows[0] ?? null);
+}
+
+export async function selectUserByUsername(username: string): Promise<AuthUser | null>
+{
+  const ret = await pool.query(sql`
+    SELECT id, username, email, password_hash FROM users
+      WHERE username = $1
+  `, [username]);
+  return (ret.rows[0] ?? null);
+}
+
+export async function saveRefreshToken(userId: string, tokenHash: string, expiresAt: Date): Promise<void>
+{
+  await pool.query(sql`
+    INSERT INTO auth_sessions (user_id, refresh_token_hash, expires_at)
+      VALUES ($1, $2, $3)
+  `, [userId, tokenHash, expiresAt]);
+}
+
+export async function deleteRefreshToken(userId: string, tokenHash: string): Promise<void>
+{
+  await pool.query(sql`
+    DELETE FROM auth_sessions WHERE user_id = $1 AND refresh_token_hash = $2
+  `, [userId, tokenHash]);
+}
+
+export async function deleteAllUserSessions(userId: string): Promise<void>
+{
+  await pool.query(sql`
+    DELETE FROM auth_sessions WHERE user_id = $1
+  `, [userId]);
+}
+
+export async function findRefreshToken(userId: string, tokenHash: string): Promise<boolean>
+{
+  const ret = await pool.query(sql`
+    SELECT 1 FROM auth_sessions 
+      WHERE user_id = $1 AND refresh_token_hash = $2 AND expires_at > NOW()
+  `, [userId, tokenHash]);
+  return ret.rows.length > 0;
+}
