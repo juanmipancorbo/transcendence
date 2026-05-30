@@ -6,6 +6,7 @@ import { buildMatchFound } from "./logic/sync/protocol-utils";
 import { Socket } from "./logic/sync/socket";
 import queueHandler from "./logic/sync/handlers/queue-handler";
 import gameHandler, { Protocol as GameProtocol } from "./logic/sync/handlers/game-handler";
+import { authMiddleware } from "./src/middleware/auth-middleware";
 
 function isUUID(value: string): boolean {
 	const uuidRegex =
@@ -23,7 +24,7 @@ export function unsetQuickplay() {
 	quickplay = null;
 }
 
-router.use("/quickplay", (req, res, next) => {
+router.use("/quickplay", authMiddleware, (req, res, next) => {
 	const id = req.userId;
 	if (quickplay && quickplay.id === id)
 		return res.status(400).json({ success: false, data: "You are already in queue" });
@@ -32,7 +33,7 @@ router.use("/quickplay", (req, res, next) => {
 });
 
 router.ws("/quickplay", async (ws, req, _) => {
-	const client = new Socket(req.userId, ws);
+	const client = new Socket((req as any).userId, ws);
 	if (!quickplay) {
 		client.handler = queueHandler;
 		quickplay = client;
@@ -45,7 +46,7 @@ router.ws("/quickplay", async (ws, req, _) => {
 	}
 });
 
-router.use("/join", (req, res, next) => {
+router.use("/join", authMiddleware, (req, res, next) => {
 	if (!req.query.gameId || !isUUID(req.query.gameId as string))
 		return res.status(400).json({ success: false, data: "gameId query is required as uuid" });
 	const gameId = req.query.gameId as string;
@@ -57,7 +58,7 @@ router.use("/join", (req, res, next) => {
 });
 
 router.ws("/join",/* TODO: Token validation and ID injection */ async (ws, req, _) => {
-	const client = new Socket(req.userId, ws);
+	const client = new Socket((req as any).userId, ws);
 	const game: GameSession = (req as any).game;
 	const res = game.joinGame(client);
 	if (res instanceof Error)
