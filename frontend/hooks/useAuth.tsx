@@ -1,55 +1,125 @@
 "use client";
 
-/**
- * TODO:
- *   - Replace MOCK_USER with a real API call to /api/auth/me
- *   - Store the access token from /api/auth/login
- *   - Wire logout to /api/auth/logout
- */
-
-import React, { createContext, useContext, useState } from "react";
-import { MOCK_USER } from "@/lib/api";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { authApi } from "@/lib/api";
 import type { User } from "@/types";
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login:    (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
-  logout:   () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Start logged-in with the mock user
-  const [user, setUser] = useState<User | null>(MOCK_USER);
+// Token storage utilities
+const TOKEN_KEY = "auth_tokens";
+let tokenMemory: { accessToken: string; refreshToken: string } | null = null;
 
-  const login = async (_username: string, _password: string) => {
-    // TODO: call authApi.login(), then authApi.me()
-    setUser(MOCK_USER);
+function getTokens(): { accessToken: string; refreshToken: string } | null {
+  if (tokenMemory) return tokenMemory;
+  if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem(TOKEN_KEY);
+  return stored ? JSON.parse(stored) : null;
+}
+
+function setTokens(tokens: { accessToken: string; refreshToken: string } | null) {
+  tokenMemory = tokens;
+  if (typeof window === "undefined") return;
+  if (tokens) {
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize from stored tokens on mount
+  useEffect(() => {
+    const tokens = getTokens();
+    if (tokens) {
+      authApi
+        .me(tokens.accessToken)
+        .then(setUser)
+        .catch(() => {
+          setTokens(null);
+          setUser(null);
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+    const tokens = getTokens();
+    if (!tokens?.refreshToken) return null;
+
+    try {
+      const { accessToken } = await authApi.refresh(tokens.refreshToken);
+      setTokens({ accessToken, refreshToken: tokens.refreshToken });
+      return accessToken;
+    } catch {
+      setTokens(null);
+      setUser(null);
+      return null;
+    }
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { accessToken, refreshToken } = await authApi.login(email, password);
+      setTokens({ accessToken, refreshToken });
+      const userData = await authApi.me(accessToken);
+      setUser(userData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const register = async (_username: string, _email: string, _password: string) => {
-    // TODO: call authApi.register(), then authApi.me()
-    setUser(MOCK_USER);
+  const register = async (email: string, username: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { accessToken, refreshToken } = await authApi.register(email, username, password);
+      setTokens({ accessToken, refreshToken });
+      const userData = await authApi.me(accessToken);
+      setUser(userData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
-    // TODO: call authApi.logout()
+    const tokens = getTokens();
+    if (tokens?.refreshToken) {
+      try {
+        await authApi.logout(tokens.refreshToken);
+      } catch {
+        // Continue logout even if API call fails
+      }
+    }
+    setTokens(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading:       false,   // never loading in mock
-      isAuthenticated: user !== null,
-      login,
-      register,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: user !== null,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

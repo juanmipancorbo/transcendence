@@ -21,9 +21,9 @@ export async function loginUser(input: {email: string, password: string}): Promi
 {
   const user = await Repo.selectAuthUser(input.email);
   if (!user)
-    throw ("INVALID_CREDENTIAL");
+    throw new Error("USER_NOT_FOUND");
   if (!await argon2.verify(user.password_hash as any, input.password))
-    throw ("INVALID_CREDENTIAL");
+    throw new Error("INVALID_PASSWORD");
   delete user.password_hash;
   return (user)
 }

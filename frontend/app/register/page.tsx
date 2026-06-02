@@ -1,17 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: "", email: "", password: "", confirmPassword: "" });
+  const { register, isLoading, isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const [form, setForm] = useState({ username: "", email: "", password: "", confirmPassword: "" });
+  const [error, setError] = useState("");
+
+  const errorLines = error
+    ? error.split(/;|\n/).map((line) => line.trim()).filter(Boolean)
+    : [];
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/lobby");
+    }
+  }, [isAuthenticated, router]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: call authApi.register(), then redirect
-    router.push("/lobby");
+    setError("");
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      await register(form.email, form.username, form.password);
+      router.push("/lobby");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed");
+    }
   }
 
   const FIELDS = [
@@ -61,14 +90,23 @@ export default function RegisterPage() {
                       className="field-input"
                       value={form[key]}
                       onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                      required
                     />
                     <div className="field-underline" />
                   </div>
                 </div>
               ))}
 
-              <button type="submit" className="btn-primary mt-4">
-                Initialize_Account
+              {error && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-sm space-y-1">
+                  {errorLines.map((line, index) => (
+                    <div key={index}>{line}</div>
+                  ))}
+                </div>
+              )}
+
+              <button type="submit" className="btn-primary mt-4" disabled={mounted ? isLoading : false}>
+                {mounted && isLoading ? "Creating..." : "Initialize_Account"}
               </button>
             </form>
 

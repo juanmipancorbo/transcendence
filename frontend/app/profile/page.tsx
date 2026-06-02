@@ -2,26 +2,28 @@
 
 import { useState } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-
-// TODO: fetch real user from userApi.getProfile(userId)
-const MOCK_PROFILE = {
-  id:            "1",
-  username:      "ft_transcendance",
-  displayName:   "FT_TRANSCENDANCE",
-  bio:           "Master of the Digital Grid. Specializing in high-velocity combat and tactical maneuvering. Member since 2024.",
-  avatarUrl:     null as string | null,  // TODO: real avatar URL
-  matchesPlayed: 782,
-  victories:     612,
-};
-
-// TODO: fetch from friendsApi.getList()
-const MOCK_FRIENDS = [
-  { id: "f1", username: "Cyan_Blade",  status: "online" as const, statusLabel: "Online" },
-  { id: "f2", username: "Echo_Render", status: "online" as const, statusLabel: "Lobby"  },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfilePage() {
-  const [profile,   setProfile]   = useState(MOCK_PROFILE);
+  const { user } = useAuth();
+
+  // TODO: fetch real profile data from userApi.getProfile(userId)
+  const profile = {
+    id: user?.id ?? "unknown",
+    username: user?.username ?? "unknown",
+    displayName: user?.displayName ?? user?.username ?? "User",
+    bio: "Master of the Digital Grid. Specializing in high-velocity combat and tactical maneuvering. Member since 2024.",
+    avatarUrl: user?.avatarUrl ?? null,
+    matchesPlayed: (user?.wins ?? 0) + (user?.losses ?? 0),
+    victories: user?.wins ?? 0,
+  };
+
+  // TODO: fetch from friendsApi.getList()
+  const MOCK_FRIENDS = [
+    { id: "f1", username: "Cyan_Blade",  status: "online" as const, statusLabel: "Online" },
+    { id: "f2", username: "Echo_Render", status: "online" as const, statusLabel: "Lobby"  },
+  ];
+
   const [editing,   setEditing]   = useState(false);
   const [draftName, setDraftName] = useState(profile.displayName);
   const [draftBio,  setDraftBio]  = useState(profile.bio);

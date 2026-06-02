@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { MOCK_USER } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LobbyPage() {
-  const user = MOCK_USER;
+  const { user } = useAuth();
 
   // Queue UI state purely visual
   const [inQueue,  setInQueue]  = useState(false);
@@ -21,7 +21,7 @@ export default function LobbyPage() {
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
 
-  const xpProgress = (user.xp % 1000) / 10;
+  const xpProgress = user ? (user.xp % 1000) / 10 : 0;
 
   return (
     <ProtectedLayout activeRoute="/lobby">
@@ -93,7 +93,7 @@ export default function LobbyPage() {
               <div className="w-full md:w-72 shrink-0">
                 <div className="flex justify-between items-end mb-2">
                   <span className="label-micro accent">Level Progress</span>
-                  <span className="label-micro text-on-surface">LVL {user.level}</span>
+                  <span className="label-micro text-on-surface">LVL {user?.level ?? 0}</span>
                 </div>
                 <div className="xp-bar-track">
                   <div
@@ -108,10 +108,10 @@ export default function LobbyPage() {
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "GLOBAL_RANK", value: `#${user.rank}`,   color: "text-primary" },
-              { label: "WINS",        value: user.wins,          color: "text-secondary" },
-              { label: "LOSSES",      value: user.losses,        color: "text-on-surface-variant" },
-              { label: "WIN_RATE",    value: `${Math.round(user.wins / (user.wins + user.losses) * 100)}%`, color: "text-tertiary" },
+              { label: "GLOBAL_RANK", value: `#${user?.rank ?? 0}`,   color: "text-primary" },
+              { label: "WINS",        value: user?.wins ?? 0,          color: "text-secondary" },
+              { label: "LOSSES",      value: user?.losses ?? 0,        color: "text-on-surface-variant" },
+              { label: "WIN_RATE",    value: `${user ? Math.round(user.wins / (user.wins + user.losses) * 100) : 0}%`, color: "text-tertiary" },
             ].map(({ label, value, color }) => (
               <div key={label} className="stat-card">
                <div className={`stat-card-value ${color}`}>{value}</div>

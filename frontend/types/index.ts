@@ -24,6 +24,7 @@ export type UserStatus = "online" | "offline" | "in-game";
 export interface User {
   id: string;
   username: string;
+  email: string;
   displayName: string;
   avatarUrl?: string;
   status: UserStatus;

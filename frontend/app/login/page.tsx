@@ -1,18 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const { login, isLoading, isAuthenticated } = useAuth();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  const errorLines = error
+    ? error.split(/;|\n/).map((line) => line.trim()).filter(Boolean)
+    : [];
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/lobby");
+    }
+  }, [isAuthenticated, router]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: call authApi.login(username, password), then redirect
-    router.push("/lobby");
+    setError("");
+    try {
+      await login(email, password);
+      router.push("/lobby");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    }
   }
 
   return (
@@ -59,10 +77,11 @@ export default function LoginPage() {
                   <div className="field-wrap">
                     <input
                       className="field-input"
-                      placeholder="USERNAME OR EMAIL"
-                      type="text"
-                      value={username}
-                      onChange={e => setUsername(e.target.value)}
+                      placeholder="EMAIL ADDRESS"
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
                     />
                     <div className="field-underline" />
                   </div>
@@ -77,13 +96,22 @@ export default function LoginPage() {
                       type="password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
+                      required
                     />
                     <div className="field-underline" />
                   </div>
                 </div>
 
-                <button type="submit" className="btn-primary mt-8">
-                  Initialize_Login
+                {error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-sm space-y-1">
+                    {errorLines.map((line, index) => (
+                      <div key={index}>{line}</div>
+                    ))}
+                  </div>
+                )}
+
+                <button type="submit" className="btn-primary mt-8" disabled={isLoading}>
+                  {isLoading ? "Initializing..." : "Initialize_Login"}
                 </button>
               </form>
 

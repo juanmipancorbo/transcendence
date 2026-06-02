@@ -7,8 +7,14 @@ export function validateBody(bodyValidator: ZodObject) {
       try {
         bodyValidator.parse(req.body);
       } catch (err) {
-        if (err instanceof ZodError)
-          throw ("INVALID_REQUEST");
+        if (err instanceof ZodError) {
+          const messages = err.issues.map((issue) => {
+            const path = issue.path.join(".");
+            return path ? `${path} ${issue.message}` : issue.message;
+          });
+          const uniqueMessages = Array.from(new Set(messages));
+          return res.status(400).json({ success: false, error: uniqueMessages.join("; ") });
+        }
         throw err;
       }
       next();
@@ -21,8 +27,14 @@ export function validateQuery(queryValidator: ZodObject) {
       try {
         queryValidator.parse(req.query);
       } catch (err) {
-        if (err instanceof ZodError)
-          throw ("INVALID_REQUEST");
+        if (err instanceof ZodError) {
+          const messages = err.issues.map((issue) => {
+            const path = issue.path.join(".");
+            return path ? `${path} ${issue.message}` : issue.message;
+          });
+          const uniqueMessages = Array.from(new Set(messages));
+          return res.status(400).json({ success: false, error: uniqueMessages.join("; ") });
+        }
         throw err;
       }
       next();
@@ -35,8 +47,14 @@ export function validateParams(paramsValidator: ZodObject) {
       try {
         paramsValidator.parse(req.params);
       } catch (err) {
-        if (err instanceof ZodError)
-          throw ("INVALID_REQUEST");
+        if (err instanceof ZodError) {
+          const messages = err.issues.map((issue) => {
+            const path = issue.path.join(".");
+            return path ? `${path} ${issue.message}` : issue.message;
+          });
+          const uniqueMessages = Array.from(new Set(messages));
+          return res.status(400).json({ success: false, error: uniqueMessages.join("; ") });
+        }
         throw err;
       }
       next();

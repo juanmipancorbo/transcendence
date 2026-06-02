@@ -9,15 +9,40 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(options?.headers || {}),
     },
     ...options,
   });
 
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+  const contentType = res.headers.get("content-type") ?? "";
+  const text = await res.text();
+  let json: any = null;
+
+  if (contentType.includes("application/json") && text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
+    }
   }
 
-  return res.json();
+  const rawError = json?.error ?? json?.message ?? text;
+
+  if (!res.ok) {
+    const errorMessage = typeof rawError === "string" && rawError.trim().length > 0
+      ? rawError
+      : `API error: ${res.status}`;
+    throw new Error(errorMessage);
+  }
+
+  if (json && typeof json === "object" && "success" in json && json.success === false) {
+    const errorMessage = typeof rawError === "string" && rawError.trim().length > 0
+      ? rawError
+      : `API error: ${res.status}`;
+    throw new Error(errorMessage);
+  }
+
+  return json as T;
 }
 
 //   Mock data                      
@@ -25,6 +50,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 export const MOCK_USER: User = {
   id: "1",
   username: "neon_razor",
+  email: "neon_razor@example.com",
   displayName: "NeonRazor",
   avatarUrl: undefined,
   status: "online",
@@ -47,24 +73,60 @@ export const MOCK_LEADERBOARD: LeaderboardEntry[] = [
 //   Auth                      
 
 export const authApi = {
-  /** TODO: POST /api/auth/login  */
-  login: async (_username: string, _password: string): Promise<void> => {
-    //does nothing
+  login: async (email: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
+    const res = await apiFetch<{ success: boolean; data: any }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    return {
+      accessToken: res.data.accessToken,
+      refreshToken: res.data.refreshToken,
+      user: {
+        id: res.data.id,
+        username: res.data.username,
+        email: res.data.email,
+      },
+    };
   },
 
-  /** TODO: POST /api/auth/register */
-  register: async (_username: string, _email: string, _password: string): Promise<void> => {
-    // stub
+  register: async (email: string, username: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
+    const res = await apiFetch<{ success: boolean; data: any }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, username, password }),
+    });
+    return {
+      accessToken: res.data.accessToken,
+      refreshToken: res.data.refreshToken,
+      user: {
+        id: res.data.id,
+        username: res.data.username,
+        email: res.data.email,
+      },
+    };
   },
 
-  /** TODO: POST /api/auth/logout */
-  logout: async (): Promise<void> => {
-    // stub
+  logout: async (refreshToken: string): Promise<void> => {
+    await apiFetch("/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({ refreshToken }),
+    });
   },
 
-  /** TODO: GET /api/auth/me — return the current user */
-  me: async (): Promise<User> => {
-    return MOCK_USER;
+  me: async (accessToken: string): Promise<User> => {
+    return apiFetch<{ success: boolean; data: User }>("/auth/me", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+    }).then(res => res.data);
+  },
+
+  refresh: async (refreshToken: string): Promise<{ accessToken: string }> => {
+    const res = await apiFetch<{ success: boolean; data: { accessToken: string } }>("/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({ refreshToken }),
+    });
+    return { accessToken: res.data.accessToken };
   },
 };
 
