@@ -1,15 +1,12 @@
-import { init as initUser } from "./user/init";
-import { init as initGame } from "./game/init";
-import { init as initAuth } from "./auth/init";
+import { init as initDatabase } from "./database/init";
 
 async function init() {
- /* if (process.env.NODE_ENV !== "development") {
+  if (process.env.NODE_ENV !== "development") {
     console.error("Don't even try")
     process.exit(1);
-  }*/
-  await initUser();
-  await initGame();
-  await initAuth();
+  }
+
+  await initDatabase();
 }
 
 init().catch((err) => {

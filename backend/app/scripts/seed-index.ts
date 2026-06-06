@@ -1,4 +1,4 @@
-import { seed as seedUser } from "./user/seed";
+import { seedUser } from "./database/seed";
 
 async function seed() {
   /*if (process.env.NODE_ENV !== "development") {

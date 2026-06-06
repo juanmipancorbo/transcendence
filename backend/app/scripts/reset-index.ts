@@ -1,17 +1,13 @@
-import { ft_delete as deleteUser } from "./user/delete";
-import { ft_delete as deleteGame } from "./game/delete";
-import { init as initUser } from "./user/init";
-import { init as initGame } from "./game/init";
-
+import { del as deleteDatabase } from "./database/delete";
+import { init as initDatabase} from "./database/init";
 async function reset() {
   if (process.env.NODE_ENV !== "development") {
     console.error("Don't even try")
     process.exit(1);
   }
-  await deleteGame();
-  await deleteUser();
-  await initUser();
-  await initGame();
+
+  await deleteDatabase();
+  await initDatabase();
 }
 
 reset().catch((err) => {
