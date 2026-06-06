@@ -5,7 +5,7 @@ import argon2 from "argon2"
 const sql = String.raw;
 
 
-export async function seed(){
+export async function seedUser(){
   const pool = new Pool();
 
   const count = 10;

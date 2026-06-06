@@ -7,11 +7,6 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS user_profiles (
-    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    avatar_url TEXT DEFAULT NULL
-);
-
 -- Seeded users
 INSERT INTO users (username, email, password_hash) VALUES 
 ('admin', 'admin@fakemail.com', 'fakeword'),
