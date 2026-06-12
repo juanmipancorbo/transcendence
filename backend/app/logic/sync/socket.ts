@@ -56,7 +56,7 @@ export class Socket {
 	}
 
 	close(code?: number, msg?: string) {
-		this.ws.close(code ?? 0, msg);
+		this.ws.close(code, msg);
 	}
 
 	send(data: BufferSource) {

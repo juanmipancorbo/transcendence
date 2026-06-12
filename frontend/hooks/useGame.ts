@@ -86,6 +86,57 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	let opponentTimer: number | undefined;
 
 	// --- Handler functions start ---
+	function onStateInit(payload: ByteReader, socket: GameSocket) {
+		const id = payload.readPrefixedUTF();
+		const board = payload.readBoard();
+		const as = payload.readUint8() as PlayerColor | 0;
+		const white = payload.readPrefixedUTF();
+		const black = payload.readPrefixedUTF();
+		const timeLimit = payload.readInt32();
+		const status = payload.readPrefixedUTF() as GameStatus;
+		const allowSpectators = payload.readBool();
+
+		let currentTurn: number | undefined;
+		let startedAt: number | undefined;
+		let validMoves: Array<[number, number]> = [];
+
+		if (status === "ACTIVE") {
+			currentTurn = payload.readUint8();
+			startedAt = payload.readUint32();
+			if (as === BLACK || as === WHITE) {
+				const yourTurn = currentTurn === as;
+				setYourTurn(yourTurn);
+				setOpponentTurn(!yourTurn);
+				if (yourTurn) {
+					const len = payload.readUint8();
+					for (let i = 0; i < len; ++i)
+					validMoves.push([payload.readUint8(), payload.readUint8()]);
+				}
+			}
+		}
+
+		const scores = getScores(board);
+		setState({
+			id,
+			currentTurn: currentTurn ? currentTurn as PlayerColor : null,
+			status, board,
+			players: { black, white },
+			scores: { black: scores[0], white: scores[1] },
+			validMoves,
+			startedAt,
+			allowSpectators,
+			timeLimit
+		});
+		setMyColor(as);
+		if (timeLimit !== -1) {
+			const format = formatMs(timeLimit);
+			setTimeLeftFormat(format);
+			setOpponentTimeLeftFormat(format);
+		}
+
+		socket.send(buildReadyToGame()); // Notify the backend this player is ready
+	}
+
 	function onOpponentAbandon(_: ByteReader) {
 		setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false });
 	}
@@ -155,7 +206,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		setOpponentTurn(true);
 	}
 
-	function onGameStart(p: ByteReader) {
+	function onGameStart(_: ByteReader) {
 		setGameMessage({ msg: "The game has started", isError: false, show: true });
 	}
 
@@ -172,11 +223,11 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		setMessages([...messages, { sender: senderId, message: message }]);
 	}
 
-	function onNoMoves(p: ByteReader) {
+	function onNoMoves(_: ByteReader) {
 		setGameMessage({ msg: "You can't move so your opponent gets to move again", show: true, isError: false });
 	}
 
-	function onOpponentNoMoves(p: ByteReader) {
+	function onOpponentNoMoves(_: ByteReader) {
 		setGameMessage({ msg: "Your opponent can't move, so it's your turn again", show: true, isError: false });
 	}
 	// --- Handler functions end ---
@@ -191,58 +242,9 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			setSocket(socket);
 			onJoin();
 		});
-		socket.on(Protocol.State, payload => {
-			const id = payload.readPrefixedUTF();
-			const board = payload.readBoard();
-			const as = payload.readUint8() as PlayerColor | 0;
-			const white = payload.readPrefixedUTF();
-			const black = payload.readPrefixedUTF();
-			const timeLimit = payload.readInt32();
-			const status = payload.readPrefixedUTF() as GameStatus;
-			const allowSpectators = payload.readBool();
-
-			let currentTurn: number | undefined;
-			let startedAt: number | undefined;
-			let validMoves: Array<[number, number]> = [];
-
-			if (status === "ACTIVE") {
-				currentTurn = payload.readUint8();
-				startedAt = payload.readUint32();
-				if (as === BLACK || as === WHITE) {
-					const yourTurn = currentTurn === as;
-					setYourTurn(yourTurn);
-					setOpponentTurn(!yourTurn);
-					if (yourTurn) {
-						const len = payload.readUint8();
-						for (let i = 0; i < len; ++i)
-							validMoves.push([payload.readUint8(), payload.readUint8()]);
-					}
-				}
-			}
-
-			const scores = getScores(board);
-			setState({
-				id,
-				currentTurn: currentTurn ? currentTurn as PlayerColor : null,
-				status, board,
-				players: { black, white },
-				scores: { black: scores[0], white: scores[1] },
-				validMoves,
-				startedAt,
-				allowSpectators,
-				timeLimit
-			});
-			setMyColor(as);
-			if (timeLimit !== -1) {
-				const format = formatMs(timeLimit);
-				setTimeLeftFormat(format);
-				setOpponentTimeLeftFormat(format);
-			}
-
-			socket.send(buildReadyToGame()); // Notify the backend this player is ready
-		});
 
 		// Game socket setup start
+		socket.on(Protocol.State, payload => onStateInit(payload, socket));
 		socket.on(Protocol.OpponentAbandon, onOpponentAbandon);
 		socket.on(Protocol.SpectatorJoin, onSpectatorJoin);
 		socket.on(Protocol.SpectatorLeave, onSpectatorLeave);
@@ -257,7 +259,6 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket.on(Protocol.NoMoves, _ => onNoMoves);
 		socket.on(Protocol.OpponentNoMoves, onOpponentNoMoves);
 		// Game socket setup end
-
 	}, []);
 
 	useEffect(() => {
@@ -283,6 +284,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			for (const user of u)
 				newProfiles.set(user.id, user);
 
+			console.log(newProfiles);
 			setProfiles(newProfiles);
 		});
 	}, [spectators, state]);
