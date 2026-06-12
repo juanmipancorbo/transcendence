@@ -22,5 +22,5 @@ export default function onAuth(data: RawData, conn: Socket, callback: () => void
 		conn.id = payload.id as UUID;
 		conn.authenticated = true;
 		callback();
-	} catch (e) { conn.close(CloseCodes.Error, `Failed to authenticate: ${e}`); }
+	} catch (e: any) { conn.close(CloseCodes.Error, `Invalid or expired token`); }
 }

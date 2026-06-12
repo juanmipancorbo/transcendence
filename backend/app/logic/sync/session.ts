@@ -4,7 +4,7 @@ import { Socket } from "./socket";
 import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
 import { addGameMovement, createGame, setFinished, setUserTimeLeft, setWinner } from "../../src/database/game/service";
 import { updateUserGame, updateUserGameNull } from "../../src/database/user/service";
-import { quickplay, unsetQuickplay } from "../../websockets";
+import { waiting, unsetQuickplay } from "../../websockets";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
@@ -269,7 +269,7 @@ export class GameSession {
 			}
 		}
 		this.abandon(conn);
-		if (quickplay && quickplay.id === conn.id)
+		if (waiting && waiting.id === conn.id)
 			unsetQuickplay();
 	}
 
@@ -289,7 +289,7 @@ export class GameSession {
 		let player = this.blackPlayer.id === conn.id ? this.blackPlayer : this.whitePlayer.id === conn.id ? this.whitePlayer : null;
 		if (player && player.conn.delete(conn) && player.conn.size === 0)
 			this.abandon(conn);
-		if (quickplay && quickplay.id === conn.id)
+		if (waiting && waiting.id === conn.id)
 			unsetQuickplay();
 	}
 }

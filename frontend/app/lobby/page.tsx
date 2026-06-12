@@ -26,7 +26,7 @@ export default function LobbyPage() {
       console.error(e.message);
 	  return;
 	}
-	console.log(`Match found ${e}`);
+	console.log(`Match found with id ${e}`);
     router.push(`/game?id=${e}`);
   }
 

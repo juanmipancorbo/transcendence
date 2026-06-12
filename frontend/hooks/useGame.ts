@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
-import { buildChat, buildConsumeTurn, buildReadyToGame } from "@/lib/ws/stream-utils";
+import { buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
 import api from "@/lib/api";
 import { getTokens } from "./useAuth";
 
@@ -14,7 +14,7 @@ export function useQueue() {
 	const tokens = getTokens();
 
 	function joinQueue(callback: (foundGame: string | Error) => void) {
-		const socket = new GameSocket(WS_URL + "/matches/quickplay", tokens ? tokens.accessToken : "", (e) => {
+		const socket = new GameSocket(WS_URL + "/play/quickplay", tokens ? tokens.accessToken : "", (e) => {
 			if (e) {
 				callback(e);
 				return;
@@ -85,8 +85,104 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	let timer: number | undefined;
 	let opponentTimer: number | undefined;
 
+	// --- Handler functions start ---
+	function onOpponentAbandon(_: ByteReader) {
+		setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false });
+	}
+
+	function onSpectatorJoin(p: ByteReader) {
+		setSpectators([...spectators, p.readPrefixedUTF()]);
+	}
+
+	function onSpectatorLeave(p: ByteReader) {
+		const id = p.readPrefixedUTF();
+		setSpectators(spectators.filter(s => s !== id));
+	}
+
+	function onError(p: ByteReader) {
+		setGameMessage({ msg: p.readPrefixedUTF(), show: true, isError: true });
+	}
+
+	function onBoardInit(p: ByteReader) {
+		setState(state ? { ...state, board: p.readBoard() } : null);
+	}
+
+	function onMoveUpdate(p: ByteReader) {
+		window.clearInterval(timer);
+		window.clearInterval(opponentTimer);
+
+		const board = state ? [...state.board] : null;
+		if (!board) return;
+
+		const length = p.readUint8();
+		for (let i = 0; i < length; ++i) {
+			const content = p.readUint8();
+			const row = p.readUint8();
+			const col = p.readUint8();
+			board[row][col] = content as CellState;
+		}
+
+		setState({ ...state as GameState, board: board });
+	}
+
+	function onYourTurn(p: ByteReader) {
+		let timeLeft = p.readInt32();
+
+		if (timeLeft !== -1) {
+			setTimeLeftFormat(formatMs(timeLeft));
+			timer = window.setInterval(() => {
+				timeLeft -= 300;
+				setTimeLeftFormat(formatMs(timeLeft));
+			}, 300);
+		}
+
+		setYourTurn(true);
+		setOpponentTurn(false);
+	}
+
+	function onOpponentTurn(p: ByteReader) {
+		let timeLeft = p.readInt32();
+
+		if (timeLeft !== -1) {
+			setOpponentTimeLeftFormat(formatMs(timeLeft));
+			opponentTimer = window.setInterval(() => {
+				timeLeft -= 300;
+				setOpponentTimeLeftFormat(formatMs(timeLeft));
+			}, 300);
+		}
+
+		setYourTurn(false);
+		setOpponentTurn(true);
+	}
+
+	function onGameStart(p: ByteReader) {
+		setGameMessage({ msg: "The game has started", isError: false, show: true });
+	}
+
+	function onGameEnd(p: ByteReader) {
+		const result = p.readUint8() as PlayerColor | 0;
+		setYourTurn(false);
+		setOpponentTurn(false);
+		setState({ ...state as GameState, status: "FINISHED", winner: result });
+	}
+
+	function onChatMessage(p: ByteReader) {
+		const senderId = p.readPrefixedUTF();
+		const message = p.readPrefixedUTF();
+		setMessages([...messages, { sender: senderId, message: message }]);
+	}
+
+	function onNoMoves(p: ByteReader) {
+		setGameMessage({ msg: "You can't move so your opponent gets to move again", show: true, isError: false });
+	}
+
+	function onOpponentNoMoves(p: ByteReader) {
+		setGameMessage({ msg: "Your opponent can't move, so it's your turn again", show: true, isError: false });
+	}
+	// --- Handler functions end ---
+
 	useEffect(() => {
-		const socket = new GameSocket(WS_URL + `/matches/join?gameId=${id}`, tokens ? tokens.accessToken : "", (e) => {
+		const socket = new GameSocket(WS_URL + `/play/join?gameId=${id}`, tokens ? tokens.accessToken : "", (e) => {
 			if (e) {
 				onJoin(e);
 				return;
@@ -147,73 +243,19 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		});
 
 		// Game socket setup start
-		socket.on(Protocol.OpponentAbandon, _ => setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false }));
-		socket.on(Protocol.SpectatorJoin, p => setSpectators([...spectators, p.readPrefixedUTF()]));
-		socket.on(Protocol.SpectatorLeave, p => {
-			const id = p.readPrefixedUTF();
-			setSpectators(spectators.filter(s => s !== id));
-		});
-		socket.on(Protocol.Error, p => setGameMessage({ msg: p.readPrefixedUTF(), show: true, isError: true }));
-		socket.on(Protocol.Board, p => setState(state ? { ...state, board: p.readBoard() } : null));
-		socket.on(Protocol.MoveUpdate, p => {
-			window.clearInterval(timer);
-			window.clearInterval(opponentTimer);
-
-			const board = state ? [...state.board] : null;
-			if (!board) return;
-
-			const length = p.readUint8();
-			for (let i = 0; i < length; ++i) {
-				const content = p.readUint8();
-				const row = p.readUint8();
-				const col = p.readUint8();
-				board[row][col] = content as CellState;
-			}
-
-			setState({ ...state as GameState, board: board });
-		});
-		socket.on(Protocol.YourTurn, p => {
-			let timeLeft = p.readInt32();
-
-			if (timeLeft !== -1) {
-				setTimeLeftFormat(formatMs(timeLeft));
-				timer = window.setInterval(() => {
-					timeLeft -= 300;
-					setTimeLeftFormat(formatMs(timeLeft));
-				}, 300);
-			}
-
-			setYourTurn(true);
-			setOpponentTurn(false);
-		});
-		socket.on(Protocol.OpponentTurn, p => {
-			let timeLeft = p.readInt32();
-
-			if (timeLeft !== -1) {
-				setOpponentTimeLeftFormat(formatMs(timeLeft));
-				opponentTimer = window.setInterval(() => {
-					timeLeft -= 300;
-					setOpponentTimeLeftFormat(formatMs(timeLeft));
-				}, 300);
-			}
-
-			setYourTurn(false);
-			setOpponentTurn(true);
-		});
-		socket.on(Protocol.GameStart, _ => { setGameMessage({ msg: "The game has started", isError: false, show: true }) });
-		socket.on(Protocol.GameEnd, p => {
-			const result = p.readUint8() as PlayerColor | 0;
-			setYourTurn(false);
-			setOpponentTurn(false);
-			setState({ ...state as GameState, status: "FINISHED", winner: result });
-		});
-		socket.on(Protocol.ChatMessage, p => {
-			const senderId = p.readPrefixedUTF();
-			const message = p.readPrefixedUTF();
-			setMessages([...messages, { sender: senderId, message: message }]);
-		});
-		socket.on(Protocol.NoMoves, _ => setGameMessage({ msg: "You can't move so your opponent gets to move again", show: true, isError: false }));
-		socket.on(Protocol.OpponentNoMoves, _ => setGameMessage({ msg: "Your opponent can't move, so it's your turn again", show: true, isError: false }));
+		socket.on(Protocol.OpponentAbandon, onOpponentAbandon);
+		socket.on(Protocol.SpectatorJoin, onSpectatorJoin);
+		socket.on(Protocol.SpectatorLeave, onSpectatorLeave);
+		socket.on(Protocol.Error, onError);
+		socket.on(Protocol.Board, onBoardInit);
+		socket.on(Protocol.MoveUpdate, onMoveUpdate);
+		socket.on(Protocol.YourTurn, onYourTurn);
+		socket.on(Protocol.OpponentTurn, onOpponentTurn);
+		socket.on(Protocol.GameStart, onGameStart);
+		socket.on(Protocol.GameEnd, onGameEnd);
+		socket.on(Protocol.ChatMessage, onChatMessage);
+		socket.on(Protocol.NoMoves, _ => onNoMoves);
+		socket.on(Protocol.OpponentNoMoves, onOpponentNoMoves);
 		// Game socket setup end
 
 	}, []);
