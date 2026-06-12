@@ -31,7 +31,7 @@ export async function selectPublicUser(userId: string): Promise<PublicUser | nul
 export async function updateUserGame(userId: string, gameId: string)
 {
   await pool.query(sql`
-    UPDATE users
+    UPDATE user_profiles
       SET current_game = $2, updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
   `, [userId, gameId]);
@@ -40,7 +40,7 @@ export async function updateUserGame(userId: string, gameId: string)
 export async function updateUserGameNull(userId: string)
 {
   await pool.query(sql`
-    UPDATE users
+    UPDATE user_profiles
       SET current_game = NULL, updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
   `, [userId]);
