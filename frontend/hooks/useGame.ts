@@ -6,13 +6,15 @@ import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
 import { buildChat, buildConsumeTurn, buildReadyToGame } from "@/lib/ws/stream-utils";
 import api from "@/lib/api";
+import { getTokens } from "./useAuth";
 
 export function useQueue() {
 	const [inQueue, setInQueue] = useState(false);
 	const [socket, setSocket] = useState<GameSocket | null>(null);
+	const tokens = getTokens();
 
 	function joinQueue(callback: (foundGame: string | Error) => void) {
-		const socket = new GameSocket(WS_URL + "/matches/quickplay", (e) => {
+		const socket = new GameSocket(WS_URL + "/matches/quickplay", tokens ? tokens.accessToken : "", (e) => {
 			if (e) {
 				callback(e);
 				return;
@@ -65,6 +67,8 @@ function formatMs(ms: number) {
 }
 
 export function useGame(id: string, onJoin: (err?: Error) => void) {
+	const tokens = getTokens();
+
 	const [socket, setSocket] = useState<GameSocket | null>(null);
 	const [state, setState] = useState<GameState | null>(null);
 	const [yourTurn, setYourTurn] = useState<boolean>(false);
@@ -82,7 +86,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	let opponentTimer: number | undefined;
 
 	useEffect(() => {
-		const socket = new GameSocket(WS_URL + `/matches/join?gameId=${id}`, (e) => {
+		const socket = new GameSocket(WS_URL + `/matches/join?gameId=${id}`, tokens ? tokens.accessToken : "", (e) => {
 			if (e) {
 				onJoin(e);
 				return;

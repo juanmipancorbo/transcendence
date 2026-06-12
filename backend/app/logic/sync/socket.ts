@@ -1,9 +1,11 @@
-import { UUID } from "node:crypto";
+import { randomUUID, UUID } from "node:crypto";
 import { type SessionPlayer } from "./session";
-import { WebSocket } from "ws";
-import { RawData } from "ws";
-import { MessageEvent } from "ws";
+import { WebSocket, RawData, MessageEvent } from "ws";
 import { Protocol as GameProtocol } from "./handlers/game-handler";
+
+export enum CloseCodes {
+	Error = 4444,
+}
 
 function handle(e: MessageEvent, sock: Socket) {
 	if (sock.handler)
@@ -14,12 +16,14 @@ export class Socket {
 	lastKeepAlive: number;
 	pollTimeout?: NodeJS.Timeout;
 	id: UUID;
+	authenticated: boolean;
 	player?: SessionPlayer; // Only set if the user is in a game, to avoid map lookups
 	ws: WebSocket;
 	handler?: (data: RawData, conn: Socket) => void;
 
-	constructor(id: UUID, sock: WebSocket) {
-		this.id = id;
+	constructor(sock: WebSocket) {
+		this.id = randomUUID();
+		this.authenticated = false;
 		this.ws = sock;
 		this.lastKeepAlive = Date.now();
 		this.resetTimeout();
@@ -36,8 +40,7 @@ export class Socket {
 			}
 		}
 
-		this.ws.onerror = (e) => {
-			console.error("Client was disconnected with an error: " + e.message);
+		this.ws.onerror = (_) => {
 			if (this.player)
 				this.player.game.playerDisconnect(this);
 		}

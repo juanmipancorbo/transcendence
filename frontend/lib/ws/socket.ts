@@ -1,14 +1,20 @@
 import { Protocol } from "@/types";
-import { build, ByteReader } from "./stream-utils";
+import { build, ByteReader, ByteWriter } from "./stream-utils";
+
+export enum CloseCodes {
+	Error = 4444,
+}
 
 export class GameSocket {
 	private ws: WebSocket;
 	private handlers: ((p: ByteReader) => void)[] = [];
+	private token: string;
 	url: string;
 	ondisconnect?: (e?: Error) => void;
 
-	constructor(url: string, onConnect: (e?: Error) => void) {
+	constructor(url: string, token: string, onConnect: (e?: Error) => void) {
 		this.ws = new WebSocket(url);
+		this.token = token;
 		this.ws.binaryType = "arraybuffer";
 		this.url = url;
 		this.setup(onConnect);
@@ -22,10 +28,12 @@ export class GameSocket {
 				if (this.ondisconnect)
 					this.ondisconnect(new Error(`${e}`));
 			};
-			this.ws.onclose = () => {
+			this.ws.onclose = e => {
+				console.log(e);
 				if (this.ondisconnect)
-					this.ondisconnect();
+					this.ondisconnect(e.code === CloseCodes.Error ? new Error(e.reason) : undefined);
 			}
+			this.send(new ByteWriter(60).writeUint8(0).writePrefixedUTF(this.token).freeze()); // Authenticate
 			onConnect();
 
 			// Keep alive

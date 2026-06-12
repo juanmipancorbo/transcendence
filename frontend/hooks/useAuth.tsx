@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const TOKEN_KEY = "auth_tokens";
 let tokenMemory: { accessToken: string; refreshToken: string } | null = null;
 
-function getTokens(): { accessToken: string; refreshToken: string } | null {
+export function getTokens(): { accessToken: string; refreshToken: string } | null {
   if (tokenMemory) return tokenMemory;
   if (typeof window === "undefined") return null;
   const stored = localStorage.getItem(TOKEN_KEY);

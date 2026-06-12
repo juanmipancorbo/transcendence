@@ -4,19 +4,31 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { useQueue } from "@/hooks/useGame";
+import { useRouter } from "next/navigation";
 
 export default function LobbyPage() {
   const { user } = useAuth();
 
   // Queue UI state purely visual
-  const [inQueue,  setInQueue]  = useState(false);
+  const { inQueue, socket, joinQueue, leaveQueue } = useQueue();
   const [elapsed,  setElapsed]  = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     if (!inQueue) { setElapsed(0); return; }
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
   }, [inQueue]);
+
+  function matchFound(e: string | Error) {
+    if (e instanceof Error) {
+      console.error(e.message);
+	  return;
+	}
+	console.log(`Match found ${e}`);
+    router.push(`/game?id=${e}`);
+  }
 
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
@@ -42,7 +54,7 @@ export default function LobbyPage() {
               <div className="mt-8 flex gap-4 w-full md:w-auto">
                 {!inQueue ? (
                   <button
-                    onClick={() => setInQueue(true)}
+                    onClick={() => joinQueue(matchFound)}
                     className="btn-find-match"
                   >
                     FIND MATCH
@@ -50,7 +62,7 @@ export default function LobbyPage() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => setInQueue(false)}
+                    onClick={() => leaveQueue()}
                     className="btn-cancel-queue"
                   >
                     CANCEL SEARCH
