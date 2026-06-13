@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
@@ -80,7 +80,14 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");
 	const [messages, setMessages] = useState<Array<{ sender: string, message: string }>>([]);
 	const [myColor, setMyColor] = useState<PlayerColor | 0>(0);
-	const validSet  = new Set(state ? state.validMoves.map(([r, c]) => `${r},${c}`) : null);
+	const validSet = useMemo(() => {
+		if (!state?.validMoves) return new Set<string>();
+		return new Set(state.validMoves.map(([r, c]) => `${r},${c}`));
+	}, [state?.validMoves]);
+
+	const socketRef   = useRef<GameSocket | null>(null);
+	const yourTurnRef = useRef<boolean>(false);
+	const stateRef    = useRef<GameState | null>(null);
 
 	let timer: number | undefined;
 	let opponentTimer: number | undefined;
@@ -105,7 +112,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			startedAt = payload.readUint32();
 			if (as === BLACK || as === WHITE) {
 				const yourTurn = currentTurn === as;
-				setYourTurn(yourTurn);
+				setYourTurn(yourTurn);  yourTurnRef.current = yourTurn;
 				setOpponentTurn(!yourTurn);
 				if (yourTurn) {
 					const len = payload.readUint8();
@@ -127,6 +134,17 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			allowSpectators,
 			timeLimit
 		});
+		stateRef.current = {
+			id,
+			currentTurn: currentTurn ? currentTurn as PlayerColor : null,
+			status, board,
+			players: { black, white },
+			scores: { black: scores[0], white: scores[1] },
+			validMoves,
+			startedAt,
+			allowSpectators,
+			timeLimit
+		}; 
 		setMyColor(as);
 		if (timeLimit !== -1) {
 			const format = formatMs(timeLimit);
@@ -142,12 +160,12 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onSpectatorJoin(p: ByteReader) {
-		setSpectators([...spectators, p.readPrefixedUTF()]);
+		setSpectators(prev =>[...prev, p.readPrefixedUTF()]);
 	}
 
 	function onSpectatorLeave(p: ByteReader) {
 		const id = p.readPrefixedUTF();
-		setSpectators(spectators.filter(s => s !== id));
+		setSpectators(prev =>[...prev.filter(s => s !== id)]);
 	}
 
 	function onError(p: ByteReader) {
@@ -155,25 +173,36 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onBoardInit(p: ByteReader) {
-		setState(state ? { ...state, board: p.readBoard() } : null);
+		const board = p.readBoard();
+
+		setState(prev => {
+			if (!prev) return prev;
+			return { ...prev, board};
+		});
 	}
 
 	function onMoveUpdate(p: ByteReader) {
 		window.clearInterval(timer);
 		window.clearInterval(opponentTimer);
+		setState(prev => {
+			if (!prev) return prev;
 
-		const board = state ? [...state.board] : null;
-		if (!board) return;
+			const board = prev.board.map(row => [...row]);
 
-		const length = p.readUint8();
-		for (let i = 0; i < length; ++i) {
-			const content = p.readUint8();
-			const row = p.readUint8();
-			const col = p.readUint8();
-			board[row][col] = content as CellState;
-		}
+			const length = p.readUint8();
+			console.log("MoveUpdate length:", length);
 
-		setState({ ...state as GameState, board: board });
+			for (let i = 0; i < length; ++i) {
+				const content = p.readUint8();
+				const row = p.readUint8();
+				const col = p.readUint8();
+
+				board[row][col] = content as CellState;
+			}
+			const next = {...prev, board};
+			stateRef.current = next;
+			return next;
+		});
 	}
 
 	function onYourTurn(p: ByteReader) {
@@ -186,8 +215,18 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 				setTimeLeftFormat(formatMs(timeLeft));
 			}, 300);
 		}
+		const validMoves: Array<[number, number]> = [];
+		const len = p.readUint32();          // backend writes Uint32
+		for (let i = 0; i < len; i++)
+			validMoves.push([p.readUint8(), p.readUint8()]);
 
-		setYourTurn(true);
+		setState(prev => {
+			if (!prev) return prev;
+			const next = { ...prev, validMoves};
+			stateRef.current = next;
+			return next;
+		});
+		setYourTurn(true);   yourTurnRef.current = true;
 		setOpponentTurn(false);
 	}
 
@@ -202,25 +241,38 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			}, 300);
 		}
 
-		setYourTurn(false);
+		setYourTurn(false);   yourTurnRef.current = false;
 		setOpponentTurn(true);
 	}
 
 	function onGameStart(_: ByteReader) {
 		setGameMessage({ msg: "The game has started", isError: false, show: true });
+		setState(prev => {
+			if (!prev) return prev;
+			const next = { ...prev, status: "ACTIVE" as GameStatus };
+			stateRef.current = next;
+			return next;
+		});
 	}
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
-		setYourTurn(false);
+		setYourTurn(false);   yourTurnRef.current = false;
 		setOpponentTurn(false);
-		setState({ ...state as GameState, status: "FINISHED", winner: result });
+		setState(prev => {
+			if (!prev) return prev;
+			return {
+				...prev,
+				status: "FINISHED",
+				winner: result
+			};
+		});
 	}
 
 	function onChatMessage(p: ByteReader) {
 		const senderId = p.readPrefixedUTF();
 		const message = p.readPrefixedUTF();
-		setMessages([...messages, { sender: senderId, message: message }]);
+		setMessages(prev =>[...prev, { sender: senderId, message: message }]);
 	}
 
 	function onNoMoves(_: ByteReader) {
@@ -239,7 +291,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 				return;
 			}
 
-			setSocket(socket);
+			setSocket(socket); socketRef.current = socket;
 			onJoin();
 		});
 
@@ -256,7 +308,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket.on(Protocol.GameStart, onGameStart);
 		socket.on(Protocol.GameEnd, onGameEnd);
 		socket.on(Protocol.ChatMessage, onChatMessage);
-		socket.on(Protocol.NoMoves, _ => onNoMoves);
+		socket.on(Protocol.NoMoves, onNoMoves);
 		socket.on(Protocol.OpponentNoMoves, onOpponentNoMoves);
 		// Game socket setup end
 	}, []);
@@ -295,10 +347,18 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}, [gameMessage]);
 
 	const makeMove = (row: number, col: number) => {
-		if (!state || !validSet.has(`${row},${col}`) || !yourTurn || state.status !== "ACTIVE") return;
+		const state    = stateRef.current;
+		const yourTurn = yourTurnRef.current;
+		const socket   = socketRef.current;
 
+		if (!state)                    { console.log("makeMove blocked: no state");      return; }
+		if (state.status !== "ACTIVE") { console.log("makeMove blocked: not ACTIVE");    return; }
+		if (!yourTurn)                 { console.log("makeMove blocked: not your turn"); return; }
+
+		console.log("Move sent row:", row, "col:", col);
 		socket?.send(buildConsumeTurn(row, col));
 	};
+	
 
 	const chat = (message: string) => {
 		socket?.send(buildChat(message));
@@ -308,10 +368,10 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		setSocket(prev => {
 			prev?.disconnect(Protocol.PlayerAbandon);
 			return null;
-		});
+		}); socketRef.current = socket;
 		window.clearInterval(timer);
 		window.clearInterval(opponentTimer);
-		setYourTurn(false);
+		setYourTurn(false);   yourTurnRef.current = false;
 		setOpponentTurn(false);
 	};
 

@@ -55,7 +55,7 @@ export default function GamePage() {
         <aside className="w-full md:w-72 flex flex-col gap-6 order-2 md:order-1">
           <PlayerPanel
             name={username}
-            label="PLAYER_01"
+            label={username.toUpperCase()}
             score={score}
             total={64}
             accentClass="border-primary"
@@ -87,7 +87,7 @@ export default function GamePage() {
                 {game.state && game.state.board.map((row, r) =>
                   row.map((cell, c) => {
                     const key     = `${r},${c}`;
-                    const isValid = game.validSet.has(key) && game.yourTurn && (game.state as GameState).status !== "FINISHED";
+                    const isValid = game.validSet.has(key) && game.yourTurn && game.state?.status !== "FINISHED";
                     return (
                       <div
                         key={key}
@@ -134,7 +134,7 @@ export default function GamePage() {
         <aside className="w-full md:w-72 flex flex-col gap-6 order-3">
           <PlayerPanel
             name={username1}
-            label="PLAYER_02"
+            label={username1.toUpperCase()}
             score={score1}
             total={64}
             accentClass="border-tertiary"
