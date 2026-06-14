@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
-import { buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
+import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
 import api from "@/lib/api";
 import { getTokens } from "./useAuth";
 
@@ -33,7 +33,7 @@ export function useQueue() {
 	const leaveQueue = () => {
 		if (socket && inQueue) {
 			setInQueue(false);
-			socket.disconnect(0);
+			socket.disconnect(1000);
 		}
 	}
 
@@ -365,10 +365,11 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	};
 
 	const abandon = () => {
+		socketRef.current?.send(build(Protocol.PlayerAbandon).freeze());
 		setSocket(prev => {
-			prev?.disconnect(Protocol.PlayerAbandon);
+			prev?.disconnect(1000);
 			return null;
-		}); socketRef.current = socket;
+		});
 		window.clearInterval(timer);
 		window.clearInterval(opponentTimer);
 		setYourTurn(false);   yourTurnRef.current = false;

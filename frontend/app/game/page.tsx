@@ -120,13 +120,6 @@ export default function GamePage() {
               <span className="material-symbols-outlined text-sm">close</span>
               {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
             </button>
-            <button
-              onClick={() => {/*setFinished(true)*/}}
-              className="px-6 py-3 bg-surface-container-high border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary transition-all font-headline text-xs font-bold tracking-widest uppercase flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-sm">flag</span>
-              End (Demo)
-            </button>
           </div>
         </section>
 

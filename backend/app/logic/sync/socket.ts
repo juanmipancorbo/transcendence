@@ -17,6 +17,7 @@ export class Socket {
 	pollTimeout?: NodeJS.Timeout;
 	id: UUID;
 	authenticated: boolean;
+	abandonedExplicitly: boolean = false;
 	player?: SessionPlayer; // Only set if the user is in a game, to avoid map lookups
 	ws: WebSocket;
 	handler?: (data: RawData, conn: Socket) => void;
@@ -32,13 +33,14 @@ export class Socket {
 
 	private setup() {
 		this.ws.onmessage = (e) => handle(e, this);
-		this.ws.onclose = (e) => {
-			if (this.player) {
-				if (e.code === GameProtocol.PlayerAbandon)
-					this.player.game.playerAbandon(this);
-				else this.player.game.playerDisconnect(this);
-			}
+		this.ws.onclose = () => {
+		if (this.player) {
+			if (this.abandonedExplicitly)
+				this.player.game.playerAbandon(this);
+			else
+				this.player.game.playerDisconnect(this);
 		}
+	}
 
 		this.ws.onerror = (_) => {
 			if (this.player)

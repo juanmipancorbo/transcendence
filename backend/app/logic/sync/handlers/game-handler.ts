@@ -40,11 +40,18 @@ function onChat(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
 	const message = reader.readPrefixedUTF();
 	game.chat(conn, message);
 }
+function onPlayerAbandon(_: ByteReader, game: GameSession, player: SessionPlayer, sock: Socket) {
+    sock.abandonedExplicitly = true
+    game.playerAbandon(sock);
+}
 
-const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlayer) => void> = [];
+
+const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlayer, sock: Socket) => void> = [];
+
 callbacks[Protocol.ConsumeTurn] = onConsumeTurn;
 callbacks[Protocol.Ready] = onReady;
 callbacks[Protocol.ChatMessage] = onChat;
+callbacks[Protocol.PlayerAbandon] = onPlayerAbandon;
 
 export default function handler(data: RawData, conn: Socket) {
 	const reader = new ByteReader(data);
@@ -53,5 +60,5 @@ export default function handler(data: RawData, conn: Socket) {
 	if (typeId === Protocol.KeepAlive)
 		conn.onKeepAlive();
 	else if (conn.player && conn.player.game && callbacks[typeId])
-		callbacks[typeId](reader, conn.player.game, conn.player);
+		callbacks[typeId](reader, conn.player.game, conn.player, conn);
 }
