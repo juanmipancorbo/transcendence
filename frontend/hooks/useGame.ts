@@ -184,22 +184,22 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	function onMoveUpdate(p: ByteReader) {
 		window.clearInterval(timer);
 		window.clearInterval(opponentTimer);
+
+		const length = p.readUint32();
+		const updates: { content: CellState; row: number; col: number }[] = [];
+		for (let i = 0; i < length; ++i) {
+			updates.push({
+				content: p.readUint8() as CellState,
+				row: p.readUint8(),
+				col: p.readUint8(),
+			});
+		}
 		setState(prev => {
 			if (!prev) return prev;
-
 			const board = prev.board.map(row => [...row]);
-
-			const length = p.readUint8();
-			console.log("MoveUpdate length:", length);
-
-			for (let i = 0; i < length; ++i) {
-				const content = p.readUint8();
-				const row = p.readUint8();
-				const col = p.readUint8();
-
-				board[row][col] = content as CellState;
-			}
-			const next = {...prev, board};
+			for (const u of updates) 
+				board[u.row][u.col] = u.content;
+			const next = { ...prev, board };
 			stateRef.current = next;
 			return next;
 		});
