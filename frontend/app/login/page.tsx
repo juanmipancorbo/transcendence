@@ -110,7 +110,7 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <button type="submit" className="btn-primary mt-8" disabled={isLoading}>
+                <button type="submit" className="btn-primary mt-8" disabled={isLoading ? true : false}>
                   {isLoading ? "Initializing..." : "Initialize_Login"}
                 </button>
               </form>

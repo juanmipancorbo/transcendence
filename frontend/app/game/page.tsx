@@ -91,7 +91,7 @@ export default function GamePage() {
                     return (
                       <div
                         key={key}
-                        onClick={() => game.makeMove(r, c)}
+                        onClick={() => { if (isValid) game.makeMove(r, c); }}
                         className={`w-12 h-12 md:w-14 md:h-14 bg-surface-container-low flex items-center justify-center transition-all ${isValid ? "cursor-pointer hover:bg-surface-container-high" : ""}`}
                       >
                         {cell === BLACK && (
@@ -100,7 +100,7 @@ export default function GamePage() {
                         {cell === WHITE && (
                           <div className="w-3/4 h-3/4 rounded-full bg-primary-container shadow-[0_0_10px_rgba(0,238,252,0.4)]" />
                         )}
-                        {cell === 0 && isValid && (
+                        {cell !== BLACK && cell !== WHITE && isValid && (
                           <div className="w-1/3 h-1/3 rounded-full bg-primary/30 border border-primary/40" />
                         )}
                       </div>
