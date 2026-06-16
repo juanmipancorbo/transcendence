@@ -313,6 +313,9 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket.on(Protocol.NoMoves, onNoMoves);
 		socket.on(Protocol.OpponentNoMoves, onOpponentNoMoves);
 		// Game socket setup end
+		return () => {
+			socket.disconnect(1000);
+		};
 	}, []);
 
 	useEffect(() => {

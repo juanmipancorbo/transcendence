@@ -251,7 +251,7 @@ export class GameSession {
 
 	private abandon(conn: Socket) {
 		if (this.state.status !== "FINISHED") {
-			abandonGame(this.state, conn.id);
+			this.state = abandonGame(this.state, conn.id);
 			if (this.blackPlayer.id === conn.id)
 				this.whitePlayer.send(buildOpponentAbandon())
 			else if (this.whitePlayer.id === conn.id)
