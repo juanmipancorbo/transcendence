@@ -1,11 +1,12 @@
 
 import type { User, LeaderboardEntry } from "@/types";
+import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
 
 import { API_URL } from "./config";
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
@@ -13,6 +14,27 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     },
     ...options,
   });
+
+  if (res.status === 401 && !_isRetry) {
+    const tokens = getTokens();
+    if (tokens?.refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+        });
+        if (refreshRes.ok) {
+          const body = await refreshRes.json();
+          const newAccessToken: string = body.data.accessToken;
+          setTokens({ accessToken: newAccessToken, refreshToken: tokens.refreshToken });
+          const headers = { ...(options?.headers as Record<string, string> ?? {}) };
+          if (headers["Authorization"]) headers["Authorization"] = `Bearer ${newAccessToken}`;
+          return apiFetch<T>(path, { ...options, headers }, true);
+        }
+      } catch { /* fall through to original 401 error */ }
+    }
+  }
 
   const contentType = res.headers.get("content-type") ?? "";
   const text = await res.text();

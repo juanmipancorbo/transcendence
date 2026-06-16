@@ -1,8 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { authApi } from "@/lib/api";
+import { getTokens, setTokens } from "@/lib/auth-storage";
 import type { User } from "@/types";
+
+export { getTokens } from "@/lib/auth-storage";
 
 interface AuthContextValue {
   user: User | null;
@@ -14,27 +17,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-// Token storage utilities
-const TOKEN_KEY = "auth_tokens";
-let tokenMemory: { accessToken: string; refreshToken: string } | null = null;
-
-export function getTokens(): { accessToken: string; refreshToken: string } | null {
-  if (tokenMemory) return tokenMemory;
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(TOKEN_KEY);
-  return stored ? JSON.parse(stored) : null;
-}
-
-function setTokens(tokens: { accessToken: string; refreshToken: string } | null) {
-  tokenMemory = tokens;
-  if (typeof window === "undefined") return;
-  if (tokens) {
-    localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
-  } else {
-    localStorage.removeItem(TOKEN_KEY);
-  }
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -54,21 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-    }
-  }, []);
-
-  const refreshAccessToken = useCallback(async (): Promise<string | null> => {
-    const tokens = getTokens();
-    if (!tokens?.refreshToken) return null;
-
-    try {
-      const { accessToken } = await authApi.refresh(tokens.refreshToken);
-      setTokens({ accessToken, refreshToken: tokens.refreshToken });
-      return accessToken;
-    } catch {
-      setTokens(null);
-      setUser(null);
-      return null;
     }
   }, []);
 
