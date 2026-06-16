@@ -31,6 +31,7 @@ export function useQueue() {
 		setInQueue(true);
 		console.log("[Matchmaking] Joined queue");
 	}
+
 	const leaveQueue = () => {
 		if (socket && inQueue) {
 			setInQueue(false);

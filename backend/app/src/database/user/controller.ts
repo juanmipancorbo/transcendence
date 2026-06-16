@@ -1,6 +1,15 @@
 import { type Response, type Request } from "express";
 import * as Service from "./service"
-import type { FullUserReq } from "@endpoints/users-request";
+import type { FullUserReq, Id } from "@endpoints/users-request";
+
+export async function getProfile(req: Request<Id>, res: Response) {
+	const id = req.params.id;
+	const data = await Service.
+}
+
+export async function updateProfile(req: Request, res: Response) {
+	
+}
 
 // TEST Controller DELETE in prod
 export async function getFullUser(req: Request<FullUserReq>, res: Response){

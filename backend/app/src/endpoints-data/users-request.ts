@@ -1,6 +1,12 @@
 import z from "zod";
 import { validationError as vError } from "./validation-errors";
 
+export const IdSchema = z.strictObject({
+	id: z.string()
+})
+
+export type Id = z.infer<typeof IdSchema>;
+
 export const FullUserReqSchema = z.strictObject({
   username: z.string()
     .min(3, vError.tooShort)

@@ -69,21 +69,6 @@ async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false
 
 //   Mock data                      
 
-export const MOCK_USER: User = {
-  id: "1",
-  username: "neon_razor",
-  email: "neon_razor@example.com",
-  displayName: "NeonRazor",
-  avatarUrl: undefined,
-  status: "online",
-  xp: 4200,
-  level: 4,
-  rank: 3,
-  wins: 38,
-  losses: 12,
-  createdAt: "2024-01-01",
-};
-
 export const MOCK_LEADERBOARD: LeaderboardEntry[] = [
   { rank: 1, user: { id: "2", username: "v_specter",   displayName: "V_Specter",   avatarUrl: undefined, status: "in-game" }, wins: 91, losses: 9,  xp: 12400, winRate: 91 },
   { rank: 2, user: { id: "3", username: "cyber_druid", displayName: "CyberDruid",  avatarUrl: undefined, status: "online"  }, wins: 76, losses: 14, xp: 9800,  winRate: 84 },
