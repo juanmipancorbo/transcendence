@@ -20,28 +20,22 @@ export function unsetQuickplay() {
 	waiting = null;
 }
 
-export function quickplayMiddl(req: Request, res: Response, next: NextFunction) {
-	const id = req.userId;
-	if (waiting && waiting.id === id)
-		return res.status(400).json({ success: false, data: "You are already in queue" });
-
-	next();
-}
-
 export function quickplay(ws: WebSocket, _req: Request, _: NextFunction) {
 	const client = new Socket(ws);
 	client.handler = (data, conn) => {
 		onAuth(data, conn, () => {
+			if (!waiting) {
+				waiting = client;
+				return;
+			} else if (waiting.id === client.id)
+				return client.close(CloseCodes.Error, "You are already in queue");
 			client.handler = queueHandler;
-			if (!waiting) waiting = client;
-			else {
-				const game = createGameSession(waiting.id, client.id, false /* TODO: Maybe take into account user settings */, 100);
-				waiting.send(buildMatchFound(game, client.id));
-				client.send(buildMatchFound(game, waiting.id));
-				client.close();
-				waiting.close();
-				waiting = null;
-			}
+			const game = createGameSession(waiting.id, client.id, false /* TODO: Maybe take into account user settings */, 100);
+			waiting.send(buildMatchFound(game, client.id));
+			client.send(buildMatchFound(game, waiting.id));
+			client.close();
+			waiting.close();
+			waiting = null;
 		});
 	};
 }

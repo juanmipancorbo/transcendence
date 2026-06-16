@@ -29,11 +29,13 @@ export function useQueue() {
 		});
 		setSocket(socket);
 		setInQueue(true);
+		console.log("[Matchmaking] Joined queue");
 	}
 	const leaveQueue = () => {
 		if (socket && inQueue) {
 			setInQueue(false);
 			socket.disconnect(1000);
+			console.log("[Matchmaking] Left queue");
 		}
 	}
 

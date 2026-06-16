@@ -269,8 +269,6 @@ export class GameSession {
 			}
 		}
 		this.abandon(conn);
-		if (waiting && waiting.id === conn.id)
-			unsetQuickplay();
 	}
 
 	playerDisconnect(conn: Socket) {
@@ -289,8 +287,6 @@ export class GameSession {
 		let player = this.blackPlayer.id === conn.id ? this.blackPlayer : this.whitePlayer.id === conn.id ? this.whitePlayer : null;
 		if (player && player.conn.delete(conn) && player.conn.size === 0)
 			this.abandon(conn);
-		if (waiting && waiting.id === conn.id)
-			unsetQuickplay();
 	}
 }
 

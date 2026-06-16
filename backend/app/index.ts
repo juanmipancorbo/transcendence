@@ -3,7 +3,7 @@ import expressWs from "express-ws";
 import { router as routerUser } from "./src/database/user/router";
 import { router as routerAuth } from "./src/database/auth/router";
 import { router as routerGame } from "./src/database/game/router";
-import { join, joinMiddl, quickplay, quickplayMiddl } from "./websockets";
+import { join, joinMiddl, quickplay } from "./websockets";
 
 const { app, getWss, applyTo } = expressWs(express());
 
@@ -34,7 +34,6 @@ app.use((req, res, next) => {
 
 // WebSockets endpoints.
 // do not make a router as express-ws with routers is broken
-app.use("/play/quickplay", quickplayMiddl);
 app.use("/play/join", joinMiddl);
 app.ws("/play/quickplay", quickplay);
 app.ws("/play/join", join);

@@ -1,7 +1,7 @@
 import { randomUUID, UUID } from "node:crypto";
 import { type SessionPlayer } from "./session";
 import { WebSocket, RawData, MessageEvent } from "ws";
-import { Protocol as GameProtocol } from "./handlers/game-handler";
+import { unsetQuickplay, waiting } from "../../websockets";
 
 export enum CloseCodes {
 	Error = 4444,
@@ -34,15 +34,19 @@ export class Socket {
 	private setup() {
 		this.ws.onmessage = (e) => handle(e, this);
 		this.ws.onclose = () => {
-		if (this.player) {
-			if (this.abandonedExplicitly)
-				this.player.game.playerAbandon(this);
-			else
-				this.player.game.playerDisconnect(this);
+			if (waiting && waiting.id === this.id)
+				unsetQuickplay();
+			if (this.player) {
+				if (this.abandonedExplicitly)
+					this.player.game.playerAbandon(this);
+				else
+					this.player.game.playerDisconnect(this);
+			}
 		}
-	}
 
 		this.ws.onerror = (_) => {
+			if (waiting && waiting.id === this.id)
+				unsetQuickplay();
 			if (this.player)
 				this.player.game.playerDisconnect(this);
 		}
