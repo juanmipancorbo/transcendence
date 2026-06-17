@@ -3,8 +3,6 @@ import * as Service from "./service"
 import type { FullUserReq, Id } from "@endpoints/users-request";
 
 export async function getProfile(req: Request<Id>, res: Response) {
-	const id = req.params.id;
-	const data = await Service.
 }
 
 export async function updateProfile(req: Request, res: Response) {
