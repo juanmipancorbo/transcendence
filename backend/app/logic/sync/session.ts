@@ -256,6 +256,7 @@ export class GameSession {
 				this.whitePlayer.send(buildOpponentAbandon())
 			else if (this.whitePlayer.id === conn.id)
 				this.blackPlayer.send(buildOpponentAbandon())
+			this.reportFinished();
 		}
 	}
 

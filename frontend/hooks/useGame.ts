@@ -91,6 +91,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const socketRef   = useRef<GameSocket | null>(null);
 	const yourTurnRef = useRef<boolean>(false);
 	const stateRef    = useRef<GameState | null>(null);
+	const myColorRef  = useRef<PlayerColor | 0>(0);
 
 	let timer: number | undefined;
 	let opponentTimer: number | undefined;
@@ -148,7 +149,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			allowSpectators,
 			timeLimit
 		}; 
-		setMyColor(as);
+		setMyColor(as);  myColorRef.current = as;
 		if (timeLimit !== -1) {
 			const format = formatMs(timeLimit);
 			setTimeLeftFormat(format);
@@ -160,6 +161,14 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 
 	function onOpponentAbandon(_: ByteReader) {
 		setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false });
+		setYourTurn(false);   yourTurnRef.current = false;
+		setOpponentTurn(false);
+		setState(prev => {
+			if (!prev) return prev;
+			const next = { ...prev, status: "FINISHED" as GameStatus, winner: myColorRef.current as PlayerColor };
+			stateRef.current = next;
+			return next;
+		});
 	}
 
 	function onSpectatorJoin(p: ByteReader) {
