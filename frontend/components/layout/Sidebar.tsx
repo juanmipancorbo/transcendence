@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
   { href: "/lobby",       label: "Lobby",      icon: "sports_esports" },
@@ -12,6 +13,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[#0e0e13] flex flex-col py-10 z-50"
@@ -42,16 +44,9 @@ export default function Sidebar() {
       </nav>
 
       <div className="px-6 mt-auto flex flex-col gap-3">
-        <Link
-          href="/lobby"
-          className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-headline font-bold text-xs tracking-widest uppercase text-center block transition-all hover:shadow-[0_0_20px_rgba(0,238,252,0.3)]"
-        >
-          FIND MATCH
-        </Link>
-        {/* TODO: wire to authApi.logout() */}
-        <Link href="/login" className="w-full py-2 text-[10px] font-headline font-bold tracking-widest uppercase text-slate-600 hover:text-slate-400 transition-colors text-center">
+        <button onClick={() => logout()} className="w-full py-2 text-[10px] font-headline font-bold tracking-widest uppercase text-slate-600 hover:text-slate-400 transition-colors text-center">
           LOG OUT
-        </Link>
+        </button>
       </div>
     </aside>
   );

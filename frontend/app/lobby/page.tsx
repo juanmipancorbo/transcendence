@@ -75,18 +75,9 @@ export default function LobbyPage() {
                     {inQueue ? "Queue Time" : "Avg Queue"}
                   </span>
                   <span className="text-xl font-bold text-white tracking-widest font-headline">
-                    {inQueue ? fmt(elapsed) : "02:45_"}
+                    {inQueue ? fmt(elapsed) : "???"}
                   </span>
                 </div>
-
-                {/* Fake shortcut straight to game page */}
-                <Link
-                  href="/game"
-                  className="px-6 py-5 bg-surface-container-high/40 border border-outline-variant text-on-surface-variant font-headline text-xs font-bold tracking-widest flex items-center gap-2 hover:border-primary hover:text-primary transition-all"
-                >
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  PREVIEW GAME
-                </Link>
               </div>
             </div>
           </section>
@@ -95,7 +86,7 @@ export default function LobbyPage() {
           <div className="mode-card">
             <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="flex-1">
-                <div className="mode-card-label">Protocol_Unified_Nexus</div>
+                <div className="mode-card-label">Protocol_QuickMatch</div>
                 <h3 className="mode-card-title">Find Match</h3>
                 <p className="text-on-surface-variant text-base font-medium leading-relaxed max-w-2xl">
                   Initialize core combat protocols. System will automatically match you based on skill level
