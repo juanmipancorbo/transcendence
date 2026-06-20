@@ -16,7 +16,7 @@ export async function readUserTable() {
   return (table)
 }
 
-export async function updateUserGame(userId: string, gameId: string) { // TODO: use timeLeft
+export async function updateUserGame(userId: string, gameId: string) {
   const user = await Repo.selectPublicUser(userId);
   if (!user)
     throw ("INVALID_CREDENTIAL");
