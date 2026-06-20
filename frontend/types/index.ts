@@ -126,5 +126,6 @@ export enum Protocol {
 	MoveUpdate = 14,
 	GameStart = 15,
 	GameEnd = 16,
-	Error = 17
+	Error = 17,
+	XpUpdate = 18
 };
