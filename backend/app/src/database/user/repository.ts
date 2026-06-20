@@ -2,6 +2,8 @@ import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
 import { PublicUser, FullUser } from "@endpoints/users-response" 
 
+const PROFILE_DATA = " id, username, email, avatarUrl, gamesPlayed, gamesWon, gamesLost, xp, level";
+
 // TEST Query DELETE in prod
 export async function selectUser(username: string): Promise<FullUser | null>{
   const res = await pool.query(sql`
@@ -18,10 +20,10 @@ export async function selectUserTable(): Promise<FullUser[] | null> {
   return (res.rows ?? null);
 }
 
-export async function selectPublicUser(userId: string): Promise<PublicUser | null>
+export async function selectProfile(userId: string): Promise<PublicUser | null>
 {
   const res = await pool.query(sql`
-    SELECT id, username, email
+    SELECT ${PROFILE_DATA}
       FROM users
     WHERE id = $1
   `, [userId])

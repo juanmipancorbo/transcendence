@@ -1,11 +1,11 @@
 import z from "zod";
 import { validationError as vError } from "./validation-errors";
 
-export const IdSchema = z.strictObject({
-	id: z.string()
-})
+export const ProfileReqSchema = z.strictObject({
+	id: z.uuid(),
+});
 
-export type Id = z.infer<typeof IdSchema>;
+export type ProfileReq = z.infer<typeof ProfileReqSchema>;
 
 export const FullUserReqSchema = z.strictObject({
   username: z.string()
