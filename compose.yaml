@@ -12,8 +12,6 @@ services:
       dockerfile: ./container/Dockerfile
       target: development
     restart: unless-stopped
-    ports:
-      - "3000:3000" # TODO dependent of an env file
     env_file: "./backend/container/.env"
     volumes:
       - ./backend/app:/app
