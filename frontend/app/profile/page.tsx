@@ -5,7 +5,7 @@ import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
 
-// TODO: replace with friendsApi.getList() when available
+// TODO: replace with friendsApi.getList()
 const MOCK_FRIENDS = [
   { id: "f1", username: "Cyan_Blade",  status: "online" as const, statusLabel: "Online" },
   { id: "f2", username: "Echo_Render", status: "online" as const, statusLabel: "Lobby"  },
@@ -14,7 +14,7 @@ const MOCK_FRIENDS = [
 export default function ProfilePage() {
   const { user } = useAuth();
 
-  // bio is not in the User type yet — local state until userApi.getProfile is implemented
+  //local state until userApi.getProfile is implemented
   const [bio, setBio] = useState("");
 
   const [editing,   setEditing]   = useState(false);
