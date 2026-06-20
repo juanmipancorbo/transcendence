@@ -22,7 +22,8 @@ export enum Protocol {
 	MoveUpdate = 14,
 	GameStart = 15,
 	GameEnd = 16,
-	Error = 17
+	Error = 17,
+	XpUpdate = 18
 };
 
 function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
@@ -40,7 +41,7 @@ function onChat(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
 	const message = reader.readPrefixedUTF();
 	game.chat(conn, message);
 }
-function onPlayerAbandon(_: ByteReader, game: GameSession, player: SessionPlayer, sock: Socket) {
+function onPlayerAbandon(_: ByteReader, game: GameSession, _player: SessionPlayer, sock: Socket) {
     sock.abandonedExplicitly = true
     game.playerAbandon(sock);
 }

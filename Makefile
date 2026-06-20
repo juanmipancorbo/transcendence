@@ -32,11 +32,8 @@ up:
 down:
 	${COMPOSE} -f ${COMPOSE_FILE} down
 
-init-db:
-	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run init-db
-
-reset-db:
-	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run reset-db
+drop-db:
+	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run drop-db
 
 seed-db:
 	${COMPOSE} -f ${COMPOSE_FILE} exec backend npm run seed-db

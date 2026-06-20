@@ -6,8 +6,7 @@
 	"scripts": {
 		"dev": "tsx watch index.ts",
 		"start": "nodemon index.ts",
-		"init-db": "tsx ./scripts/init-index.ts",
-		"reset-db": "tsx ./scripts/reset-index.ts",
+		"drop-db": "tsx ./scripts/drop-index.ts",
 		"seed-db": "tsx ./scripts/seed-index.ts"
 	},
 	"keywords": [],

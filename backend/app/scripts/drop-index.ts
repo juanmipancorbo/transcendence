@@ -1,5 +1,5 @@
 import { del as deleteDatabase } from "./database/delete";
-import { init as initDatabase} from "./database/init";
+
 async function reset() {
   if (process.env.NODE_ENV !== "development") {
     console.error("Don't even try")
@@ -7,7 +7,6 @@ async function reset() {
   }
 
   await deleteDatabase();
-  await initDatabase();
 }
 
 reset().catch((err) => {

@@ -1,8 +1,10 @@
 import { type Response, type Request } from "express";
 import * as Service from "./service"
-import type { FullUserReq, Id } from "@endpoints/users-request";
+import type { FullUserReq, ProfileReq } from "@endpoints/users-request";
 
-export async function getProfile(req: Request<Id>, res: Response) {
+export async function getProfile(req: Request<ProfileReq>, res: Response) {
+	const data = await Service.readProfile(req.params.id);
+  res.status(200).json({ success: true, data});
 }
 
 export async function updateProfile(req: Request, res: Response) {

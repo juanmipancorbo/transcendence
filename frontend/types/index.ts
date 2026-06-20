@@ -30,7 +30,6 @@ export interface User {
   status: UserStatus;
   xp: number;
   level: number;
-  rank: number;
   wins: number;
   losses: number;
   createdAt: string;
@@ -127,5 +126,6 @@ export enum Protocol {
 	MoveUpdate = 14,
 	GameStart = 15,
 	GameEnd = 16,
-	Error = 17
+	Error = 17,
+	XpUpdate = 18
 };

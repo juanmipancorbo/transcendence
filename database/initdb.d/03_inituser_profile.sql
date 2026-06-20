@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS user_profiles (
-    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    current_game UUID REFERENCES games(id) DEFAULT NULL,
-    avatar_url TEXT DEFAULT NULL
-);

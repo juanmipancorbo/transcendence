@@ -120,6 +120,12 @@ export function buildGameEnd(game: GameSession): BufferSource {
 		.freeze();
 }
 
+export function buildXpUpdate(newXp: number): BufferSource {
+	return build(GameProtocol.XpUpdate)
+		.writeUint32(newXp)
+		.freeze();
+}
+
 export function buildChatMessage(senderId: UUID, message: string): BufferSource {
 	return build(GameProtocol.ChatMessage)
 		.writePrefixedUTF(senderId)

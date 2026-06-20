@@ -81,13 +81,14 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const [yourTurn, setYourTurn] = useState<boolean>(false);
 	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
 	const [spectators, setSpectators] = useState<string[]>([]);
-	const [profiles, setProfiles] = useState(new Map<string, Pick<User, "xp" | "rank" | "wins" | "username" | "avatarUrl" | "displayName">>());
+	const [profiles, setProfiles] = useState(new Map<string, Pick<User, "xp" | "level" | "wins" | "username" | "avatarUrl" | "displayName">>());
 	const [gameMessage, setGameMessage] = useState({ msg: "", show: false, isError: false });
 	const [timeLeftFormat, setTimeLeftFormat] = useState("");
 	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");
 	const [messages, setMessages] = useState<Array<{ sender: string, message: string }>>([]);
 	const [myColor, setMyColor] = useState<PlayerColor | 0>(0);
 	const [log, setLog] = useState<LogEntry[]>([]);
+	const [newXp, setNewXp] = useState(-1);
 	const validSet = useMemo(() => {
 		if (!state?.validMoves) return new Set<string>();
 		return new Set(state.validMoves.map(([r, c]) => `${r},${c}`));
@@ -316,6 +317,11 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	function onOpponentNoMoves(_: ByteReader) {
 		setGameMessage({ msg: "Your opponent can't move, so it's your turn again", show: true, isError: false });
 	}
+
+	function onNewXp(p: ByteReader) {
+		const newXp = p.readUint32();
+		setNewXp(newXp);
+	}
 	// --- Handler functions end ---
 
 	useEffect(() => {
@@ -344,6 +350,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket.on(Protocol.ChatMessage, onChatMessage);
 		socket.on(Protocol.NoMoves, onNoMoves);
 		socket.on(Protocol.OpponentNoMoves, onOpponentNoMoves);
+		socket.on(Protocol.XpUpdate, onNewXp);
 		// Game socket setup end
 		return () => {
 			socket.disconnect(1000);
@@ -425,6 +432,8 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		myColor,
 		profiles,
 		validSet,
+		messages,
+		newXp,
 		makeMove,
 		chat,
 		abandon,

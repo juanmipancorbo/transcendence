@@ -1,10 +1,9 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
 import { Socket } from "./socket";
-import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildYourTurn } from "./protocol-utils";
-import { addGameMovement, createGame, setFinished, setUserTimeLeft, setWinner } from "../../src/database/game/service";
-import { updateUserGame, updateUserGameNull } from "../../src/database/user/service";
-import { waiting, unsetQuickplay } from "../../websockets";
+import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildXpUpdate, buildYourTurn } from "./protocol-utils";
+import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "../../src/database/game/service";
+import { updateUserGame } from "../../src/database/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
@@ -70,6 +69,7 @@ export class GameSession {
 	whitePlayer: SessionPlayer;
 	spectators: Set<SessionPlayer> = new Set();
 	allowSpectators: boolean;
+	friendly: boolean;
 	timeLimit: number; // In seconds, -1 for unlimited
 	moves: PlayerMove[] = [];
 	messages: Message[] = [];
@@ -82,11 +82,13 @@ export class GameSession {
 		black: UUID,
 		white: UUID,
 		allowSpectators: boolean,
+		friendly: boolean,
 		timeLimit: number
 	) {
 		this.id = id;
 		this.state = state;
 		this.allowSpectators = allowSpectators;
+		this.friendly = friendly;
 		this.timeLimit = timeLimit;
 		this.blackPlayer = new SessionPlayer(black, timeLimit * 1000, this);
 		this.whitePlayer = new SessionPlayer(white, timeLimit * 1000, this);
@@ -142,16 +144,16 @@ export class GameSession {
 	reportFinished() {
 		this.finishedAt = Date.now();
 		this.broadcast(buildGameEnd(this));
+		const winner = this.state.winner !== null ?
+			(this.state.winner === BLACK ? 
+				this.blackPlayer
+				: this.whitePlayer)
+			: null;
 
-		// TODO: Save and if leaderboard or exp systems, add something here
-		if (this.state.winner === BLACK)
-			setWinner({ gameId: this.id, winnerId: this.blackPlayer.id }).catch(e => console.error(e));
-		else if (this.state.winner === WHITE)
-			setWinner({ gameId: this.id, winnerId: this.whitePlayer.id }).catch(e => console.error(e));
-		setFinished(this.id).catch(e => console.error(e));
-		updateUserGameNull(this.whitePlayer.id).catch(e => console.error(e));
-		updateUserGameNull(this.blackPlayer.id).catch(e => console.error(e));
-		this.closeSession();
+		reportFinishedGame(this.id, winner?.id ?? null)
+			.then(newXp => winner?.send(buildXpUpdate(newXp!)))
+			.catch(e => console.error(e))
+			.finally(() => this.closeSession());
 	}
 
 	playerReady(conn: SessionPlayer) {
@@ -205,7 +207,7 @@ export class GameSession {
 		const opponent = conn.player === BLACK ? this.whitePlayer : this.blackPlayer;
 		conn.send(build(GameProtocol.OpponentNoMoves).freeze());
 		opponent.send(build(GameProtocol.NoMoves).freeze());
-		addGameMovement(this.id, conn.id, pos, updates).catch(e => console.error(e));
+		addGameMovement(this.id, conn.id, pos).catch(e => console.error(e));
 		if (this.timeLimit !== -1)
 			setUserTimeLeft(this.id, conn.id, conn.timeLeft).catch(e => console.error(e));
 
@@ -299,20 +301,22 @@ export function createGameSession(
 	white: UUID,
 	black: UUID,
 	allowSpectators: boolean,
+	friendly: boolean,
 	timeLimit: number
 ): GameSession {
-	const game: GameSession = new GameSession(randomUUID(), createInitialGameState(), black, white, allowSpectators, timeLimit);
+	const game: GameSession = new GameSession(randomUUID(), createInitialGameState(), black, white, allowSpectators, friendly, timeLimit);
 	createGame({
 		gameId: game.id,
 		whiteId: white,
 		blackId: black,
 		timeLimit: game.timeLimit,
-		allowSpectators: game.allowSpectators
+		allowSpectators: game.allowSpectators,
+		friendly
 	}).catch(e => console.error(e));
 
 	SESSIONS.set(game.id, game);
-	updateUserGame(white, game.id, game.timeLimit).catch(e => console.error(e));
-	updateUserGame(black, game.id, game.timeLimit).catch(e => console.error(e));
+	updateUserGame(white, game.id).catch(e => console.error(e));
+	updateUserGame(black, game.id).catch(e => console.error(e));
 
-	return game;
+return game;
 }

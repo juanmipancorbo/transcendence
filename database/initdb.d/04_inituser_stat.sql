@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS user_stats (
-    id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    current_game UUID DEFAULT NULL REFERENCES games(id) ON DELETE SET NULL,
-    games_played INTEGER DEFAULT 0,
-    games_won INTEGER DEFAULT 0,
-    games_lost INTEGER DEFAULT 0
-);

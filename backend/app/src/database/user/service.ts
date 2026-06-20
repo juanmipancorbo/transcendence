@@ -1,3 +1,4 @@
+import { PublicUser } from "@endpoints/users-response";
 import * as Repo from "./repository"
 
 // TEST Service DELETE in prod
@@ -16,16 +17,17 @@ export async function readUserTable() {
   return (table)
 }
 
-export async function updateUserGame(userId: string, gameId: string, timeLeft: number) { // TODO: use timeLeft
-  const user = await Repo.selectPublicUser(userId);
+export async function readProfile(userId: string): Promise<PublicUser>
+{
+  const profile = await Repo.selectProfile(userId);
+  if (!profile)
+    throw ("INVALID_CREDENTIAL");
+  return (profile);
+}
+
+export async function updateUserGame(userId: string, gameId: string) {
+  const user = await Repo.selectProfile(userId);
   if (!user)
     throw ("INVALID_CREDENTIAL");
   await Repo.updateUserGame(userId, gameId);
-}
-
-export async function updateUserGameNull(userId: string) {
-  const user = await Repo.selectPublicUser(userId);
-  if (!user)
-    throw ("INVALID_CREDENTIAL");
-  await Repo.updateUserGameNull(userId);
 }
