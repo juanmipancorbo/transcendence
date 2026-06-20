@@ -24,13 +24,13 @@ export function quickplay(ws: WebSocket, _req: Request, _: NextFunction) {
 	const client = new Socket(ws);
 	client.handler = (data, conn) => {
 		onAuth(data, conn, () => {
+			client.handler = queueHandler;
 			if (!waiting) {
 				waiting = client;
 				return;
 			} else if (waiting.id === client.id)
 				return client.close(CloseCodes.Error, "You are already in queue");
-			client.handler = queueHandler;
-			const game = createGameSession(waiting.id, client.id, false /* TODO: Maybe take into account user settings */, 100);
+			const game = createGameSession(waiting.id, client.id, false /* TODO: Maybe take into account user settings */, false, 100);
 			waiting.send(buildMatchFound(game, client.id));
 			client.send(buildMatchFound(game, waiting.id));
 			client.close();

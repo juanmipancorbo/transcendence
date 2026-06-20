@@ -18,6 +18,8 @@ export class ByteReader {
 	get remaining() { return this.buf.length - this.offset; }
 
 	readUint8(): number {
+		if (this.remaining < 1)
+			throw new Error("Not enough bytes left to read");
 		return this.buf.readUint8(this.offset++);
 	}
 
@@ -26,6 +28,8 @@ export class ByteReader {
 	}
 
 	readInt32(): number {
+		if (this.remaining < 4)
+			throw new Error("Not enough bytes left to read");
 		const res = this.buf.readInt32BE(this.offset);
 		this.offset += 4;
 
@@ -33,6 +37,8 @@ export class ByteReader {
 	}
 
 	readUint32(): number {
+		if (this.remaining < 4)
+			throw new Error("Not enough bytes left to read");
 		const res = this.buf.readUint32BE(this.offset);
 		this.offset += 4;
 
@@ -41,7 +47,10 @@ export class ByteReader {
 
 	readPrefixedUTF(): string {
 		const length = this.readUint32();
+		if (this.remaining < length)
+			throw new Error("Not enough bytes left to read");
 		const bytes = this.buf.subarray(this.offset, this.offset + length);
+		this.offset += length;
 
 		return bytes.toString("utf8");
 	}
@@ -50,11 +59,13 @@ export class ByteReader {
 		const board: Board = [];
 		const height = this.readUint32();
 		const width = this.readUint32();
+		if (this.remaining < height * width)
+			throw new Error("Not enough bytes left to read");
 
 		for (let i = 0; i < height; ++i) {
 			board.push([]);
 			for (let j = 0; j < width; ++j)
-				board[i].push(this.readUint8() as Cell);	
+				board[i].push(this.readUint8() as Cell);
 		}
 
 		return board;
