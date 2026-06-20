@@ -142,12 +142,12 @@ export const authApi = {
 export const userApi = {
   /** TODO: GET /api/users/:id */
   getProfile: async (_userId: string): Promise<User> => {
-    return MOCK_USER;
+    return Promise.reject(new Error("getProfile not yet implemented"));
   },
 
   /** TODO: PATCH /api/users/:id */
-  updateProfile: async (_userId: string, data: Partial<User>): Promise<User> => {
-    return { ...MOCK_USER, ...data };
+  updateProfile: async (_userId: string, _data: Partial<User>): Promise<User> => {
+    return Promise.reject(new Error("updateProfile not yet implemented"));
   },
 };
 
