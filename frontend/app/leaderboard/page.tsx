@@ -1,11 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { MOCK_LEADERBOARD, MOCK_USER } from "@/lib/api";
+import { leaderboardApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import type { LeaderboardEntry } from "@/types";
 
 export default function LeaderboardPage() {
-  // TODO: replace MOCK_LEADERBOARD with leaderboardApi.getTop()
-  const entries = MOCK_LEADERBOARD;
+  const { user } = useAuth();
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+
+  useEffect(() => {
+    leaderboardApi.getTop().then(setEntries).catch(() => setEntries([]));
+  }, []);
 
   return (
     <ProtectedLayout activeRoute="/leaderboard">
@@ -37,7 +44,7 @@ export default function LeaderboardPage() {
         {/* Rows */}
         <div className="flex flex-col space-y-2">
           {entries.map((entry, i) => {
-            const isMe      = entry.user.id === MOCK_USER.id;
+            const isMe      = entry.user.id === user?.id;
             const rankColor = entry.rank === 1 ? "text-primary"
                             : entry.rank <= 3  ? "text-secondary"
                             :                    "text-on-surface-variant";

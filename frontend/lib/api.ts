@@ -156,7 +156,7 @@ export const userApi = {
 export const leaderboardApi = {
   /** TODO: GET /api/leaderboard */
   getTop: async (_limit = 50): Promise<LeaderboardEntry[]> => {
-    return MOCK_LEADERBOARD;
+    return Promise.reject(new Error("getTop not yet implemented"));
   },
 };
 
