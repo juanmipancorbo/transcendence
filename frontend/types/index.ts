@@ -30,7 +30,6 @@ export interface User {
   status: UserStatus;
   xp: number;
   level: number;
-  rank: number;
   wins: number;
   losses: number;
   createdAt: string;

@@ -1,6 +1,4 @@
 import { Position } from "../../../logic/game";
-import { PositionUpdate } from "../../../logic/sync/session";
-import * as UserRepo from "../user/repository"
 import * as Repo from "./repository"
 import { DatabaseError } from "pg";
 
@@ -19,48 +17,37 @@ export async function readAllGame() {
   return (game);
 }
 
-export async function createGame({ gameId, whiteId, blackId, timeLimit, allowSpectators }: {
+export async function createGame({ gameId, whiteId, blackId, timeLimit, allowSpectators, friendly }: {
     gameId: string,
     whiteId: string,
     blackId: string,
+	friendly: boolean,
     timeLimit: number, // TODO: set time limit
     allowSpectators: boolean // TODO: set if it allows spectators or not, basically if the game is public and others can see it or not
 }) {
-  const [whiteUser, blackUser] = await Promise.all([
-    UserRepo.selectPublicUser(whiteId),
-    UserRepo.selectPublicUser(blackId)]);
-  if (!blackUser || !whiteUser)
-    throw ("INVALID_CREDENTIAL")
   try {
-    await Repo.insertGame(gameId, whiteId, blackId);
+    await Repo.insertGame(gameId, whiteId, blackId, friendly, timeLimit, allowSpectators);
   } catch (err) {
     if (!(err instanceof DatabaseError) || err.code !== "23505") throw err;
-    throw ("DUPLICATED_ENTITY");
+    throw (`DATABASE_ERROR: ${err.message}`);
   }
 }
 
-export async function setWinner(
-    {gameId, winnerId}: {gameId: string, winnerId: string}) {
-  let game = await Repo.selectGame(gameId);
-  if (!game)
-    throw ("INVALID_CREDENTIAL");
-  if (game.winner_id)
-    throw ("MATCH_ALREADY_WON");
-  if (game.black_player_id != winnerId && game.white_player_id != winnerId)
-    throw ("PLAYER_NOT_IN_GAME");
-  game = await Repo.updateWinner(gameId, winnerId);
-  return (game);
+export async function updateUserTimer(gameId: string, userId: string, timeLeft: number) {
+	return Repo.updateUserTimer(gameId, userId, timeLeft);
 }
 
-// TODO: adds a move to the database for restore later, or for game review
-export async function addGameMovement(gameId: string, userId: string, pos: Position, updates: PositionUpdate[]) {
-
+export async function addGameMovement(gameId: string, userId: string, pos: Position) {
+	return Repo.addGameMovement(gameId, userId, pos.row, pos.col);
 }
 
 export async function setUserTimeLeft(gameId: string, userId: string, timeLeft: number) {
-
+	return Repo.updateUserTimer(gameId, userId, timeLeft);
 }
 
-export async function setFinished(gameId: string) {
-	
+export async function reportFinishedGame(gameId: string, winnerId: string | null): Promise<number | null> {
+  const res = await Repo.reportFinishedGame(gameId, winnerId);
+  if (!res)
+    throw ("WRONG_INFO");
+  return res;
 }

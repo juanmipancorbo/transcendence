@@ -1,9 +1,9 @@
 import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
-import { PublicUser, User } from "@endpoints/users-response" 
+import { PublicUser, FullUser } from "@endpoints/users-response" 
 
 // TEST Query DELETE in prod
-export async function selectUser(username: string): Promise<User | null>{
+export async function selectUser(username: string): Promise<FullUser | null>{
   const res = await pool.query(sql`
     SELECT * FROM users
     WHERE username = $1;
@@ -12,7 +12,7 @@ export async function selectUser(username: string): Promise<User | null>{
 }
 
 // TEST Query DELETE in prod
-export async function selectUserTable(): Promise< User[] | null >{
+export async function selectUserTable(): Promise<FullUser[] | null> {
   const res = await pool.query(sql`
     SELECT * FROM users`);
   return (res.rows ?? null);
@@ -31,17 +31,8 @@ export async function selectPublicUser(userId: string): Promise<PublicUser | nul
 export async function updateUserGame(userId: string, gameId: string)
 {
   await pool.query(sql`
-    UPDATE user_profiles
+    UPDATE users
       SET current_game = $2, updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
   `, [userId, gameId]);
-}
-
-export async function updateUserGameNull(userId: string)
-{
-  await pool.query(sql`
-    UPDATE user_profiles
-      SET current_game = NULL, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $1
-  `, [userId]);
 }
