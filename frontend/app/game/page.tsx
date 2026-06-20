@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { useGame } from "@/hooks/useGame";
+import { useGame, type LogEntry } from "@/hooks/useGame";
 import { BLACK, GameState, WHITE } from "@/types";
 import { useEffect } from "react";
 
@@ -65,7 +65,12 @@ export default function GamePage() {
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
-            <p className="text-xs text-on-surface-variant italic">Moves will appear here…</p>
+            <div className="overflow-y-auto max-h-64 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {game.log.length === 0
+                ? <p className="text-xs text-on-surface-variant italic">Moves will appear here…</p>
+                : game.log.map((entry, i) => <LogLine key={i} entry={entry} />)
+              }
+            </div>
           </div>
         </aside>
 
@@ -191,5 +196,28 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
         </span>
       )}
     </div>
+  );
+}
+
+function LogLine({ entry }: { entry: LogEntry }) {
+  if (entry.type === 'abandon') {
+    return (
+      <p className="text-xs text-on-surface-variant">
+        <span className={entry.byMe ? "text-primary" : "text-tertiary"}>
+          {entry.byMe ? "You" : "Opponent"}
+        </span>
+        {" resigned"}
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-on-surface-variant font-mono">
+      <span className="text-on-surface-variant/40">{entry.turn}. </span>
+      <span className={entry.byMe ? "text-primary" : "text-tertiary"}>
+        {entry.byMe ? "You" : "Opp"}
+      </span>
+      {` ${entry.col}${entry.row}`}
+      <span className="text-on-surface-variant/50"> +{entry.flips}</span>
+    </p>
   );
 }

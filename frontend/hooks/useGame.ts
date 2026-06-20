@@ -8,6 +8,10 @@ import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from
 import api from "@/lib/api";
 import { getTokens } from "./useAuth";
 
+export type LogEntry =
+	| { type: 'move';    byMe: boolean; col: string; row: number; flips: number; turn: number }
+	| { type: 'abandon'; byMe: boolean }
+
 export function useQueue() {
 	const [inQueue, setInQueue] = useState(false);
 	const [socket, setSocket] = useState<GameSocket | null>(null);
@@ -83,6 +87,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");
 	const [messages, setMessages] = useState<Array<{ sender: string, message: string }>>([]);
 	const [myColor, setMyColor] = useState<PlayerColor | 0>(0);
+	const [log, setLog] = useState<LogEntry[]>([]);
 	const validSet = useMemo(() => {
 		if (!state?.validMoves) return new Set<string>();
 		return new Set(state.validMoves.map(([r, c]) => `${r},${c}`));
@@ -92,6 +97,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const yourTurnRef = useRef<boolean>(false);
 	const stateRef    = useRef<GameState | null>(null);
 	const myColorRef  = useRef<PlayerColor | 0>(0);
+	const turnCountRef = useRef(0);
 
 	let timer: number | undefined;
 	let opponentTimer: number | undefined;
@@ -161,6 +167,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 
 	function onOpponentAbandon(_: ByteReader) {
 		setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false });
+		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
 		setYourTurn(false);   yourTurnRef.current = false;
 		setOpponentTurn(false);
 		setState(prev => {
@@ -206,10 +213,25 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 				col: p.readUint8(),
 			});
 		}
+
+		const boardBefore = stateRef.current?.board;
+		const placed = boardBefore ? updates.find(u => boardBefore[u.row][u.col] === 0) : null;
+		if (placed) {
+			const turn = ++turnCountRef.current;
+			setLog(prev => [{
+				type: 'move',
+				byMe: yourTurnRef.current,
+				col: String.fromCharCode(65 + placed.col),
+				row: placed.row + 1,
+				flips: updates.length - 1,
+				turn,
+			}, ...prev]);
+		}
+
 		setState(prev => {
 			if (!prev) return prev;
 			const board = prev.board.map(row => [...row]);
-			for (const u of updates) 
+			for (const u of updates)
 				board[u.row][u.col] = u.content;
 			const next = { ...prev, board };
 			stateRef.current = next;
@@ -381,6 +403,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 
 	const abandon = () => {
 		socketRef.current?.send(build(Protocol.PlayerAbandon).freeze());
+		setLog(prev => [{ type: 'abandon', byMe: true }, ...prev]);
 		setSocket(prev => {
 			prev?.disconnect(1000);
 			return null;
@@ -404,6 +427,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		validSet,
 		makeMove,
 		chat,
-		abandon
+		abandon,
+		log,
 	};
 }
