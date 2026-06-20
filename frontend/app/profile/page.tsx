@@ -3,40 +3,33 @@
 import { useState } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { userApi } from "@/lib/api";
+
+// TODO: replace with friendsApi.getList() when available
+const MOCK_FRIENDS = [
+  { id: "f1", username: "Cyan_Blade",  status: "online" as const, statusLabel: "Online" },
+  { id: "f2", username: "Echo_Render", status: "online" as const, statusLabel: "Lobby"  },
+];
 
 export default function ProfilePage() {
   const { user } = useAuth();
 
-  // TODO: fetch real profile data from userApi.getProfile(userId)
-  const profile = {
-    id: user?.id ?? "unknown",
-    username: user?.username ?? "unknown",
-    displayName: user?.displayName ?? user?.username ?? "User",
-    bio: "Master of the Digital Grid. Specializing in high-velocity combat and tactical maneuvering. Member since 2024.",
-    avatarUrl: user?.avatarUrl ?? null,
-    matchesPlayed: (user?.wins ?? 0) + (user?.losses ?? 0),
-    victories: user?.wins ?? 0,
-  };
-
-  // TODO: fetch from friendsApi.getList()
-  const MOCK_FRIENDS = [
-    { id: "f1", username: "Cyan_Blade",  status: "online" as const, statusLabel: "Online" },
-    { id: "f2", username: "Echo_Render", status: "online" as const, statusLabel: "Lobby"  },
-  ];
+  // bio is not in the User type yet — local state until userApi.getProfile is implemented
+  const [bio, setBio] = useState("");
 
   const [editing,   setEditing]   = useState(false);
-  const [draftName, setDraftName] = useState(profile.displayName);
-  const [draftBio,  setDraftBio]  = useState(profile.bio);
+  const [draftName, setDraftName] = useState("");
+  const [draftBio,  setDraftBio]  = useState("");
 
   function handleEdit() {
-    setDraftName(profile.displayName);
-    setDraftBio(profile.bio);
+    setDraftName(user?.displayName ?? user?.username ?? "");
+    setDraftBio(bio);
     setEditing(true);
   }
 
   function handleSave() {
-    // TODO: call userApi.updateProfile(profile.id, { displayName: draftName, bio: draftBio })
-    setProfile(p => ({ ...p, displayName: draftName, bio: draftBio }));
+    setBio(draftBio);
+    userApi.updateProfile(user?.id ?? "", { displayName: draftName }).catch(() => {});
     setEditing(false);
   }
 
@@ -44,10 +37,9 @@ export default function ProfilePage() {
     setEditing(false);
   }
 
-  function handleViewAllFriends() {
-    // TODO: navigate to /friends or open a modal
-    console.log("View all friends");
-  }
+  const displayName    = user?.displayName ?? user?.username ?? "User";
+  const matchesPlayed  = (user?.wins ?? 0) + (user?.losses ?? 0);
+  const victories      = user?.wins ?? 0;
 
   return (
     <ProtectedLayout activeRoute="/profile">
@@ -59,16 +51,16 @@ export default function ProfilePage() {
 
             {/* Avatar */}
             <div className="profile-avatar-frame">
-              {profile.avatarUrl ? (
+              {user?.avatarUrl ? (
                 <img
-                  src={profile.avatarUrl}
+                  src={user.avatarUrl}
                   alt="Profile picture"
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="text-5xl font-black" style={{ color: "var(--primary)", fontFamily: "Space Grotesk, sans-serif" }}>
-                    {profile.username[0].toUpperCase()}
+                    {(user?.username ?? "?")[0].toUpperCase()}
                   </span>
                 </div>
               )}
@@ -92,7 +84,7 @@ export default function ProfilePage() {
                   placeholder="Display name"
                 />
               ) : (
-                <h1 className="profile-username mb-4">{profile.displayName}</h1>
+                <h1 className="profile-username mb-4">{displayName}</h1>
               )}
 
               {editing ? (
@@ -105,7 +97,7 @@ export default function ProfilePage() {
                   style={{ fontSize: "0.95rem", fontWeight: 400, fontStyle: "normal" }}
                 />
               ) : (
-                <p className="profile-bio">{profile.bio}</p>
+                <p className="profile-bio">{bio || <span className="text-on-surface-variant/40 italic">No bio yet.</span>}</p>
               )}
 
               <div className="flex justify-center md:justify-start gap-3">
@@ -126,17 +118,15 @@ export default function ProfilePage() {
           {/* ── Stats grid ────────────────────────────────────────────── */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="profile-stat-card">
-              {/* TODO: replace with real stats from API */}
               <div className="profile-stat-value" style={{ color: "var(--primary)" }}>
-                {profile.matchesPlayed}
+                {matchesPlayed}
               </div>
               <div className="profile-stat-label">Matches_Played</div>
             </div>
 
             <div className="profile-stat-card secondary">
-              {/* TODO: replace with real stats from API */}
               <div className="profile-stat-value" style={{ color: "var(--secondary)" }}>
-                {profile.victories}
+                {victories}
               </div>
               <div className="profile-stat-label">Victories</div>
             </div>
@@ -145,18 +135,16 @@ export default function ProfilePage() {
           {/* ── Friends bar ───────────────────────────────────────────── */}
           <div className="friends-bar">
             <div className="flex gap-10 group">
-              {/* TODO: replace MOCK_FRIENDS with friendsApi.getList() */}
+              {/* TODO: replace with friendsApi.getList() */}
               {MOCK_FRIENDS.map(friend => (
                 <div
                   key={friend.id}
                   className="friend-entry"
                   onClick={() => {
                     // TODO: navigate to /profile?id=friend.id
-                    console.log("Open friend profile:", friend.id);
                   }}
                 >
                   <div className="friend-avatar">
-                    {/* TODO: show real friend avatar when available */}
                     <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
                       <span className="text-sm font-black" style={{ color: "var(--on-surface-variant)", fontFamily: "Space Grotesk, sans-serif" }}>
                         {friend.username[0].toUpperCase()}
@@ -173,7 +161,7 @@ export default function ProfilePage() {
               ))}
             </div>
 
-            <button className="btn-view-friends" onClick={handleViewAllFriends}>
+            <button className="btn-view-friends">
               View All Friends
             </button>
           </div>
@@ -181,7 +169,6 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {/* Ambient background glows */}
       <div className="ambient-layer">
         <div className="ambient-blob -top-[10%] -right-[10%] w-[50%] h-[50%] blur-[120px]" style={{ background: "rgba(0,238,252,0.03)"   }} />
         <div className="ambient-blob -bottom-[5%]  -left-[5%]  w-[40%] h-[40%] blur-[100px]" style={{ background: "rgba(172,138,255,0.03)" }} />
