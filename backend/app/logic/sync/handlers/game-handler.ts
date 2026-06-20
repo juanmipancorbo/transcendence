@@ -1,6 +1,6 @@
 import { RawData } from "ws";
 import { Position } from "../../game";
-import { Socket } from "../socket";
+import { CloseCodes, Socket } from "../socket";
 import { GameSession, SessionPlayer } from "../session";
 import { ByteReader } from "../stream-utils/reader";
 
@@ -56,10 +56,13 @@ callbacks[Protocol.PlayerAbandon] = onPlayerAbandon;
 
 export default function handler(data: RawData, conn: Socket) {
 	const reader = new ByteReader(data);
-	const typeId = reader.readUint8();
-
-	if (typeId === Protocol.KeepAlive)
-		conn.onKeepAlive();
-	else if (conn.player && conn.player.game && callbacks[typeId])
-		callbacks[typeId](reader, conn.player.game, conn.player, conn);
+	try {
+		const typeId = reader.readUint8();
+		if (typeId === Protocol.KeepAlive)
+			conn.onKeepAlive();
+		else if (conn.player && conn.player.game && callbacks[typeId])
+			callbacks[typeId](reader, conn.player.game, conn.player, conn);
+	} catch (_) {
+		conn.close(CloseCodes.Error, "Invalid payload, use the protocol correctly and try again");
+	}
 }
