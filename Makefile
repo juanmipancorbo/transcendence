@@ -11,10 +11,15 @@ COMPOSE_FILE = ./compose.yaml
 all: setup up
 
 setup:
-	@echo seting up stuff
-
-up:
 	@echo "Starting project..."
+	@if [ ! -f backend/container/.env ]; then \
+		echo "Creating backend/.env from backend/.env.example..."; \
+		./setup-env.sh; \
+	fi
+	@if [ ! -f frontend/.env ]; then \
+		echo "Creating frontend/.env from frontend/.env.example..."; \
+		cp frontend/.env.example frontend/.env; \
+	fi
 	@if [ ! -f nginx/certs/cert.pem ]; then \
 		echo "Generating SSL certificates..."; \
 		mkdir -p nginx/certs; \
@@ -24,6 +29,8 @@ up:
 			-out nginx/certs/cert.pem \
 			-subj "/CN=localhost"; \
 	fi
+
+up:
 	${COMPOSE} -f ${COMPOSE_FILE} up -d --build
 
 #rebuild:
