@@ -140,9 +140,26 @@ export const authApi = {
 //   User                      
 
 export const userApi = {
-  /** TODO: GET /api/users/:id */
-  getProfile: async (_userId: string): Promise<User> => {
-    return Promise.reject(new Error("getProfile not yet implemented"));
+  getProfile: async (userId: string): Promise<User> => {
+    const res = await apiFetch<{ success: boolean; data: {
+      id: string; username: string; email: string; avatarUrl?: string;
+      gamesPlayed: number; gamesWon: number; gamesLost: number; xp: number; level: number;
+    } }>(`/users/profile/${userId}`);
+    const d = res.data;
+    return {
+      id: d.id,
+      username: d.username,
+      email: d.email,
+      displayName: d.username,
+      avatarUrl: d.avatarUrl,
+      status: "online",
+      xp: d.xp,
+      level: d.level,
+      rank: 0,
+      wins: d.gamesWon,
+      losses: d.gamesLost,
+      createdAt: "",
+    };
   },
 
   /** TODO: PATCH /api/users/:id */

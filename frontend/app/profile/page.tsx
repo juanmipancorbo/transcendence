@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
+import type { User } from "@/types";
 
 // TODO: replace with friendsApi.getList()
 const MOCK_FRIENDS = [
@@ -13,8 +14,13 @@ const MOCK_FRIENDS = [
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const [profile, setProfile] = useState<User | null>(null);
 
-  //local state until userApi.getProfile is implemented
+  useEffect(() => {
+    if (user?.id)
+      userApi.getProfile(user.id).then(setProfile).catch(() => {});
+  }, [user?.id]);
+
   const [bio, setBio] = useState("");
 
   const [editing,   setEditing]   = useState(false);
@@ -37,9 +43,9 @@ export default function ProfilePage() {
     setEditing(false);
   }
 
-  const displayName    = user?.displayName ?? user?.username ?? "User";
-  const matchesPlayed  = (user?.wins ?? 0) + (user?.losses ?? 0);
-  const victories      = user?.wins ?? 0;
+  const displayName   = user?.displayName ?? user?.username ?? "User";
+  const matchesPlayed = profile ? profile.wins + profile.losses : (user?.wins ?? 0) + (user?.losses ?? 0);
+  const victories     = profile?.wins ?? user?.wins ?? 0;
 
   return (
     <ProtectedLayout activeRoute="/profile">
