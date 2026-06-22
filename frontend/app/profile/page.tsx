@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
@@ -14,6 +15,7 @@ const MOCK_FRIENDS = [
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [profile, setProfile] = useState<User | null>(null);
 
   useEffect(() => {
@@ -146,9 +148,7 @@ export default function ProfilePage() {
                 <div
                   key={friend.id}
                   className="friend-entry"
-                  onClick={() => {
-                    // TODO: navigate to /profile?id=friend.id
-                  }}
+                  onClick={() => router.push(`/friend?id=${friend.id}`)}
                 >
                   <div className="friend-avatar">
                     <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
