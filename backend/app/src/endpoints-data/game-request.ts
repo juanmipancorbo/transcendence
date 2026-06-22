@@ -1,7 +1,12 @@
 import z from "zod";
 
 export const NewGameReqSchema = z.strictObject({
-  id: z.string().optional()
+  gameId: z.uuid(),
+  whiteId: z.uuid(),
+  blackId: z.uuid(),
+  timeLimit: z.number(),
+  allowSpectators: z.boolean(),
+  friendly: z.boolean(),
 });
 
 export const PostWinReqSchema = z.strictObject({

@@ -3,12 +3,14 @@
 		"target": "es6",
 		"module": "commonjs",
 		"rootDir": "./",
-		"outDir": "./build",
+		"outDir": "./dist",
 		"esModuleInterop": true,
 		"strict": true,
     "paths": {
       "@utils/*": ["./src/utils/*"],
       "@endpoints/*": ["./src/endpoints-data/*"],
+      "@gameLogic/*": ["./src/logic/*"],
+      "@databaseAccess/*": ["./src/database/*"],
     }
 	}
 }

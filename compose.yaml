@@ -10,7 +10,7 @@ services:
     build:
       context: ./backend
       dockerfile: ./container/Dockerfile
-      target: development
+      target: production
     restart: unless-stopped
     expose:
       - "3000"

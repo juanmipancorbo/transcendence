@@ -44,3 +44,12 @@ export async function reportFinishedGame(gameId: string, winner: string | null):
   `, [gameId, winner]);
   return res.rows[0] ?? null;
 }
+
+export async function updateGameWinner(gameId: string, winnerId: string)
+{
+  await pool.query(sql`
+    UPDATE games
+      SET winner_id = $2, finished_at = CURRENT_TIMESTAMP
+    WHERE id = $1
+`, [gameId, winnerId]);
+}
