@@ -195,3 +195,59 @@ BEGIN
 		  AND user_id IN (white_player_id, black_player_id);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Friends: unique unordered pairs of users.
+-- The pair is stored canonically with user1_id < user2_id (see the trigger
+-- below) so that a friendship between A and B is represented by a single row
+-- regardless of which side it was created from. The CHECK + PRIMARY KEY
+-- guarantee that canonical ordering and uniqueness hold even for direct inserts.
+CREATE TABLE IF NOT EXISTS friends (
+    user1_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user2_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user1_id, user2_id),
+    CONSTRAINT friends_no_self CHECK (user1_id <> user2_id),
+    CONSTRAINT friends_ordered CHECK (user1_id < user2_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_friends_user2_id ON friends(user2_id);
+
+-- Sort the ids before insert/update so user1_id is always smaller than
+-- user2_id, avoiding logically duplicate rows (A,B) and (B,A).
+CREATE OR REPLACE FUNCTION trg_order_friends()
+RETURNS TRIGGER AS $$
+BEGIN
+	IF NEW.user1_id > NEW.user2_id THEN
+		SELECT NEW.user2_id, NEW.user1_id INTO NEW.user1_id, NEW.user2_id;
+	END IF;
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS friends_order ON friends;
+CREATE TRIGGER friends_order
+BEFORE INSERT OR UPDATE ON friends
+FOR EACH ROW
+EXECUTE FUNCTION trg_order_friends();
+
+-- Look up whether two users are friends, regardless of argument order.
+CREATE OR REPLACE FUNCTION are_friends(a UUID, b UUID)
+RETURNS BOOLEAN AS $$
+	SELECT EXISTS (
+		SELECT 1 FROM friends
+		WHERE user1_id = LEAST(a, b)
+		  AND user2_id = GREATEST(a, b)
+	);
+$$ LANGUAGE sql STABLE;
+
+-- Pending friend requests. Directional: sender_id asked receiver_id to be
+-- friends. No ordering trigger here since direction is meaningful.
+CREATE TABLE IF NOT EXISTS friend_requests (
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (sender_id, receiver_id),
+    CONSTRAINT friend_requests_no_self CHECK (sender_id <> receiver_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_friend_requests_receiver_id ON friend_requests(receiver_id);

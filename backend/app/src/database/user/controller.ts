@@ -1,35 +1,21 @@
 import { type Response, type Request } from "express";
 import * as Service from "./service"
-import type { FullUserReq, ProfileReq } from "@endpoints/users-request";
+import type { ProfileReq } from "@endpoints/users-request";
+import { injectStatus } from "@gameLogic/sync/socket";
 
 export async function getProfile(req: Request<ProfileReq>, res: Response) {
 	const data = await Service.readProfile(req.params.id);
-  res.status(200).json({ success: true, data});
+	injectStatus(data);
+	res.status(200).json({ success: true, data});
 }
 
-export async function updateProfile(req: Request, res: Response) {
-	
+export async function updateUsername(req: Request, res: Response) {
+	const newUsername = req.body.username;
+	const userId = (req as any).userId;
+	try {
+		if (!(await Service.updateUsername(userId, newUsername)))
+			return res.status(404).json({ success: false, data: "User likely doesn't exist" });
+	} catch (e) { return res.status(500).json({ success: false, data: "Unknown error" }); }
+
+	res.status(200).json({ success: true, data: null });
 }
-
-// TEST Controller DELETE in prod
-export async function getFullUser(req: Request<FullUserReq>, res: Response){
-  if (process.env.NODE_ENV !== "development")
-  {
-    res.status(400).json({ success: false, data: "Don't try"})
-    return ;
-  }
-  const username = req.params.username;
-  const data = await Service.readUserData(username);
-  res.status(200).json({ success: true, data});
-};
-
-// TEST Controller DELETE in prod
-export async function getAllUsers(req: Request, res: Response){
-  if (process.env.NODE_ENV !== "development")
-  {
-    res.status(400).json({ success: false, data: "Don't try"})
-    return ;
-  }
-  const data = await Service.readUserTable();
-  res.status(200).json({ success: true, data});
-};

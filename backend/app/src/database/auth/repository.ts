@@ -1,6 +1,8 @@
-import { AuthUser } from "@endpoints/users-response";
+import { AuthUser, FullUser } from "@endpoints/users-response";
 import { pool } from "@utils/pg-pool";
 import { sql } from "@utils/sql";
+
+const USER_DATA = ` id, username, email, avatar_url AS "avatarUrl", games_played AS "gamesPlayed", games_won AS "gamesWon", games_lost AS "gamesLost", xp, level`;
 
 export async function insertUser(email: string, username: string, password: string)
 {
@@ -26,6 +28,15 @@ export async function selectUserById(id: string): Promise<AuthUser | null>
       WHERE id = $1
   `, [id]);
   return (ret.rows[0] ?? null);
+}
+
+export async function selectFullUserById(id: string): Promise<FullUser | null>
+{
+  const ret = await pool.query(sql`
+    SELECT ${USER_DATA} FROM users
+      WHERE id = $1
+  `, [id]);
+  return (ret.rows[0] ? { ...ret.rows[0], status: "offline" } : null);
 }
 
 export async function selectUserByUsername(username: string): Promise<AuthUser | null>

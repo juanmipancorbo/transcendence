@@ -1,6 +1,6 @@
 import { RawData } from "ws";
 import { ByteReader } from "../stream-utils/reader";
-import { Socket } from "../socket";
+import { registerSocket, Socket } from "../socket";
 import { tokenUtils } from "@utils/jwt-utils";
 import { UUID } from "crypto";
 import { CloseCodes } from "../socket";
@@ -22,6 +22,7 @@ export default function onAuth(data: RawData, conn: Socket, callback: () => void
 			const payload = tokenUtils.verifyAccessToken(token);
 			conn.id = payload.id as UUID;
 			conn.authenticated = true;
+			registerSocket(conn);
 			callback();
 		} catch (e: any) { conn.close(CloseCodes.Error, `Invalid or expired token`); }
 	} catch (_) {

@@ -2,11 +2,11 @@ import express from "express";
 import expressWs from "express-ws";
 import { router as routerUser } from "@databaseAccess/user/router";
 import { router as routerAuth } from "@databaseAccess/auth/router";
-import { router as routerGame } from "@databaseAccess/game/router";
+import { router as routerFriend } from "@databaseAccess/friend/router";
 import { join, joinMiddl, quickplay } from "./src/websockets";
 import { errorHandler } from "./src/middleware/error-middleware";
 
-const { app, getWss, applyTo } = expressWs(express());
+const { app } = expressWs(express());
 
 const SUCCESS_COLOR = "\x1b[32m";
 const FAILURE_COLOR = "\x1b[31m";
@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 });
 
 // WebSockets endpoints.
-// do not make a router as express-ws with routers is broken
+// do not make a router as express-ws with routers is a pain
 app.use("/play/join", joinMiddl);
 app.ws("/play/quickplay", quickplay);
 app.ws("/play/join", join);
@@ -51,7 +51,7 @@ app.listen(port, _ => {
 
 app.use("/users", routerUser)
 app.use("/auth", routerAuth)
-app.use("/game", routerGame)
+app.use("/friends", routerFriend)
 
 // Error Handler (has to be last one)
 app.use(errorHandler);

@@ -2,6 +2,7 @@ import { randomUUID, UUID } from "node:crypto";
 import { type SessionPlayer } from "./session";
 import { WebSocket, RawData, MessageEvent } from "ws";
 import { unsetQuickplay, waiting } from "../../websockets";
+import { PublicUser } from "@endpoints/users-response";
 
 export enum CloseCodes {
 	Error = 4444,
@@ -12,6 +13,18 @@ function handle(e: MessageEvent, sock: Socket) {
 		sock.handler(e.data as RawData, sock);
 }
 
+const map = new Map<UUID, Socket>();
+
+export function registerSocket(sock: Socket) { map.set(sock.id, sock); }
+export function getSockById(id: UUID): Socket | undefined { return map.get(id); }
+
+export function injectStatus(...users: PublicUser[]) {
+	for (const user of users) {
+		const sock = getSockById(user.id);
+		user.status = sock?.status ?? "offline";
+	}
+}
+
 export class Socket {
 	lastKeepAlive: number;
 	pollTimeout?: NodeJS.Timeout;
@@ -20,6 +33,7 @@ export class Socket {
 	abandonedExplicitly: boolean = false;
 	player?: SessionPlayer; // Only set if the user is in a game, to avoid map lookups
 	ws: WebSocket;
+	status: "offline" | "online" | "busy" = "offline";
 	handler?: (data: RawData, conn: Socket) => void;
 
 	constructor(sock: WebSocket) {
@@ -42,6 +56,7 @@ export class Socket {
 				else
 					this.player.game.playerDisconnect(this);
 			}
+			map.delete(this.id);
 		}
 
 		this.ws.onerror = (_) => {
@@ -49,6 +64,7 @@ export class Socket {
 				unsetQuickplay();
 			if (this.player)
 				this.player.game.playerDisconnect(this);
+			map.delete(this.id);
 		}
 	}
 

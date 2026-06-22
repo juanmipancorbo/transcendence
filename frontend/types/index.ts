@@ -19,25 +19,27 @@ export interface RegisterCredentials {
 
 // ─── User ────────────────────────────────────────────────────────────────────
 
-export type UserStatus = "online" | "offline" | "in-game";
-
 export interface User {
-  id: string;
-  username: string;
-  email: string;
-  displayName: string;
-  avatarUrl?: string;
-  status: UserStatus;
-  xp: number;
-  level: number;
-  wins: number;
-  losses: number;
-  createdAt: string;
+	id: string,
+	username: string,
+	email: string,
+	avatarUrl?: string,
+	status: "offline" | "online" | "busy",
+	currentGame?: string,
+	gamesPlayed: number,
+	gamesWon: number,
+	gamesLost: number,
+	xp: number,
+	level: number,
+	createdAt: Date,
+	updatedAt: Date
 }
+
+export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "status" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 export interface LeaderboardEntry {
   rank: number;
-  user: Pick<User, "id" | "username" | "displayName" | "avatarUrl" | "status">;
+  user: PublicUser;
   wins: number;
   losses: number;
   xp: number;
@@ -90,14 +92,14 @@ export interface GameState {
 export type GameMode = "ranked" | "casual" | "private";
 
 export interface LobbyPlayer {
-  user: Pick<User, "id" | "username" | "displayName" | "avatarUrl" | "status" | "rank">;
+  user: PublicUser;
   gameMode: GameMode;
   queuedAt: string;
 }
 
 export interface MatchFoundPayload {
   gameId: string;
-  opponent: Pick<User, "id" | "username" | "avatarUrl" | "rank">;
+  opponent: PublicUser;
   playerColor: PlayerColor;
 }
 

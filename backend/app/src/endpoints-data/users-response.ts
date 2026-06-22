@@ -12,6 +12,7 @@ export interface FullUser {
 	username: string,
 	email: string,
 	avatarUrl?: string,
+	status: "offline" | "online" | "busy",
 	currentGame?: UUID,
 	gamesPlayed: number,
 	gamesWon: number,
@@ -42,7 +43,7 @@ export interface GameData {
 	finished_at: Date | null
 };
 
-export type PublicUser = Pick<FullUser, "id" | "username" | "email" | "avatarUrl" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
+export type PublicUser = Pick<FullUser, "id" | "username" | "avatarUrl" | "status" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 export interface AuthResponse {
   user: PublicUser;

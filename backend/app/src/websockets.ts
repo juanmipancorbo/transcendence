@@ -25,6 +25,7 @@ export function quickplay(ws: WebSocket, _req: Request, _: NextFunction) {
 	client.handler = (data, conn) => {
 		onAuth(data, conn, () => {
 			client.handler = queueHandler;
+			client.status = "busy";
 			if (!waiting) {
 				waiting = client;
 				return;
@@ -59,6 +60,7 @@ export function join(ws: WebSocket, req: Request, _: NextFunction) {
 		onAuth(data, conn, () => {
 			const game: GameSession = (req as any).game;
 			client.handler = gameHandler;
+			client.status = "busy";
 			const res = game.joinGame(client);
 			if (res instanceof Error)
 				client.close(CloseCodes.Error, res.message);

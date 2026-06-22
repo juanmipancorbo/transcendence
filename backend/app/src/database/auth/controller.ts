@@ -67,32 +67,16 @@ export async function postLogin(req: Request<unknown, unknown, LoginReq>, res: R
 
 export async function getMe(req: Request, res: Response)
 {
-  try {
-    const userId = (req as any).userId;
-    
-    if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
+	const userId = (req as any).userId;
+	try {
+		const user = await Service.getFullUserById(userId);
+		if (!user)
+			return res.status(404).json({ success: false, error: 'User not found' });
 
-    // Get user from DB - import repository dynamically
-    const { selectUserById } = await import('./repository');
-    const user = await selectUserById(userId);
-
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        id: user.id,
-        username: user.username,
-        email: user.email
-      }
-    });
-  } catch (error: any) {
-    return res.status(400).json({ success: false, error: error.message });
-  }
+		return res.status(200).json({ success: true, data: user });
+	} catch (error: any) {
+		return res.status(400).json({ success: false, error: error.message });
+	}
 }
 
 export async function postRefresh(req: Request, res: Response)

@@ -1,7 +1,7 @@
 import * as argon2 from "argon2"
 import * as Repo from "./repository"
 import { DatabaseError } from "pg";
-import { AuthUser } from "@endpoints/users-response";
+import { AuthUser, FullUser } from "@endpoints/users-response";
 import { tokenUtils, TokenPayload } from "@utils/jwt-utils";
 import { createHash } from 'crypto';
 import { ApiError } from "@utils/error";
@@ -9,7 +9,6 @@ import { ApiError } from "@utils/error";
 export async function createUser(input: {email: string, username: string, password: string})
 {
   const hashPassword = await argon2.hash(input.password);
-  // REMARK generateToken() // Should we use a verification token?
   try {
     await Repo.insertUser(input.email, input.username, hashPassword)
   } catch (err) {
@@ -69,6 +68,10 @@ export async function refreshAccessToken(refreshToken: string) {
   } catch (error) {
     throw (new ApiError('Invalid refresh token', 401));
   }
+}
+
+export async function getFullUserById(userId: string): Promise<FullUser | null> {
+	return Repo.selectFullUserById(userId);
 }
 
 export async function logoutUser(userId: string, refreshTokenHash: string) {
