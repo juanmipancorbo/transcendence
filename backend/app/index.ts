@@ -1,9 +1,9 @@
 import express from "express";
 import expressWs from "express-ws";
-import { router as routerUser } from "./src/database/user/router";
-import { router as routerAuth } from "./src/database/auth/router";
-import { router as routerGame } from "./src/database/game/router";
-import { join, joinMiddl, quickplay } from "./websockets";
+import { router as routerUser } from "@databaseAccess/user/router";
+import { router as routerAuth } from "@databaseAccess/auth/router";
+import { router as routerGame } from "@databaseAccess/game/router";
+import { join, joinMiddl, quickplay } from "./src/websockets";
 
 const { app, getWss, applyTo } = expressWs(express());
 
@@ -45,7 +45,7 @@ app.get('/', (_req, _res) => {
 
 // Server start
 app.listen(port, _ => {
-	console.log("Listening on http://" + ":" + port);
+	console.log("Listening on http://localhost" + ":" + port);
 });
 
 app.use("/users", routerUser)

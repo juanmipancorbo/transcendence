@@ -2,8 +2,8 @@ import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
 import { Socket } from "./socket";
 import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildXpUpdate, buildYourTurn } from "./protocol-utils";
-import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "../../src/database/game/service";
-import { updateUserGame } from "../../src/database/user/service";
+import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
+import { updateUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();

@@ -1,4 +1,4 @@
-import { Position } from "../../../logic/game";
+import { Position } from "@gameLogic/game";
 import * as Repo from "./repository"
 import { DatabaseError } from "pg";
 
@@ -50,4 +50,14 @@ export async function reportFinishedGame(gameId: string, winnerId: string | null
   if (!res)
     throw ("WRONG_INFO");
   return res;
+}
+
+export async function setWinner({gameId, winnerId}:{ gameId: string; winnerId?: string | undefined })
+{
+  const game = await Repo.selectGame(gameId);
+  if (!game)
+    throw ("GAME_NOT_FOUND");
+  if (winnerId != game.black_player_id || winnerId != game.white_player_id)
+    throw ("INVAID_CREDENTIAL");
+  await Repo.updateGameWinner(game.id, winnerId);
 }
