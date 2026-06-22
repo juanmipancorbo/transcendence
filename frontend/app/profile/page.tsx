@@ -3,25 +3,24 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
-import { useAuth } from "@/hooks/useAuth";
-import { userApi } from "@/lib/api";
-import type { User } from "@/types";
-
-// TODO: replace with friendsApi.getList()
-const MOCK_FRIENDS = [
-  { id: "f1", username: "Cyan_Blade",  status: "online" as const, statusLabel: "Online" },
-  { id: "f2", username: "Echo_Render", status: "online" as const, statusLabel: "Lobby"  },
-];
+import { getTokens, useAuth } from "@/hooks/useAuth";
+import { friendApi, userApi } from "@/lib/api";
+import type { PublicUser } from "@/types";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<User | null>(null);
+  const [profile, setProfile] = useState<PublicUser | null>(null);
+  const [friends, setFriends] = useState<PublicUser[]>([]);
 
   useEffect(() => {
     if (user?.id)
       userApi.getProfile(user.id).then(setProfile).catch(() => {});
   }, [user?.id]);
+
+  useEffect(() => {
+    friendApi.getProfiles(getTokens()!.accessToken).then(setFriends);
+  });
 
   const [bio, setBio] = useState("");
 
@@ -30,14 +29,14 @@ export default function ProfilePage() {
   const [draftBio,  setDraftBio]  = useState("");
 
   function handleEdit() {
-    setDraftName(user?.displayName ?? user?.username ?? "");
+    setDraftName(user?.username ?? "");
     setDraftBio(bio);
     setEditing(true);
   }
 
   function handleSave() {
     setBio(draftBio);
-    userApi.updateProfile(user?.id ?? "", { displayName: draftName }).catch(() => {});
+    userApi.updateProfile(user?.id ?? "", { username: draftName }).catch(() => {});
     setEditing(false);
   }
 
@@ -45,9 +44,9 @@ export default function ProfilePage() {
     setEditing(false);
   }
 
-  const displayName   = user?.displayName ?? user?.username ?? "User";
-  const matchesPlayed = profile ? profile.wins + profile.losses : (user?.wins ?? 0) + (user?.losses ?? 0);
-  const victories     = profile?.wins ?? user?.wins ?? 0;
+  const displayName   = user?.username ?? "User";
+  const matchesPlayed = profile ? profile.gamesWon + profile.gamesLost : (user?.gamesWon ?? 0) + (user?.gamesLost ?? 0);
+  const victories     = profile?.gamesWon ?? user?.gamesWon ?? 0;
 
   return (
     <ProtectedLayout activeRoute="/profile">
@@ -144,7 +143,7 @@ export default function ProfilePage() {
           <div className="friends-bar">
             <div className="flex gap-10 group">
               {/* TODO: replace with friendsApi.getList() */}
-              {MOCK_FRIENDS.map(friend => (
+              {friends.map(friend => (
                 <div
                   key={friend.id}
                   className="friend-entry"
@@ -161,7 +160,7 @@ export default function ProfilePage() {
 
                   <div className="hidden sm:block">
                     <div className="friend-name">{friend.username}</div>
-                    <div className="friend-status-label">{friend.statusLabel}</div>
+                    <div className="friend-status-label">{friend.status}</div>
                   </div>
                 </div>
               ))}

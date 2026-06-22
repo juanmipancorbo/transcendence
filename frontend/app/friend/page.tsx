@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { userApi } from "@/lib/api";
-import type { User } from "@/types";
+import type { PublicUser } from "@/types";
 
 export default function FriendProfilePage() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("id");
 
-  const [profile, setProfile] = useState<User | null>(null);
+  const [profile, setProfile] = useState<PublicUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -22,9 +22,9 @@ export default function FriendProfilePage() {
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [userId]);
 
-  const displayName   = profile?.displayName ?? profile?.username ?? "User";
-  const matchesPlayed = profile ? profile.wins + profile.losses : 0;
-  const victories     = profile?.wins ?? 0;
+  const displayName   = profile?.username ?? "User";
+  const matchesPlayed = profile ? profile.gamesWon + profile.gamesLost : 0;
+  const victories     = profile?.gamesWon ?? 0;
 
   return (
     <ProtectedLayout activeRoute="">

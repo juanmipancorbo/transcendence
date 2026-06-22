@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
                             :                    "text-on-surface-variant";
 
             const statusColor = entry.user.status === "online"  ? "#8ff5ff"
-                              : entry.user.status === "in-game"  ? "#d575ff"
+                              : entry.user.status === "busy"  ? "#d575ff"
                               :                                    "#76747b";
 
             return (
@@ -69,11 +69,11 @@ export default function LeaderboardPage() {
                 <div className="col-span-5 flex items-center gap-4">
                   <div className="lb-avatar">{entry.user.username[0].toUpperCase()}</div>
                   <div>
-                    <p className="font-headline font-bold text-on-surface text-sm">{entry.user.displayName}</p>
+                    <p className="font-headline font-bold text-on-surface text-sm">{entry.user.username}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusColor }} />
                       <span className="label-micro">
-                        {entry.user.status === "in-game" ? "In Game" : entry.user.status}
+                        {entry.user.status === "busy" ? "Busy" : entry.user.status}
                       </span>
                     </div>
                   </div>

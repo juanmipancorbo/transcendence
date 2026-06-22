@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState } from "@/types";
+import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState, PublicUser } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
 import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
@@ -81,7 +81,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const [yourTurn, setYourTurn] = useState<boolean>(false);
 	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
 	const [spectators, setSpectators] = useState<string[]>([]);
-	const [profiles, setProfiles] = useState(new Map<string, Pick<User, "xp" | "level" | "wins" | "username" | "avatarUrl" | "displayName">>());
+	const [profiles, setProfiles] = useState(new Map<string, PublicUser>());
 	const [gameMessage, setGameMessage] = useState({ msg: "", show: false, isError: false });
 	const [timeLeftFormat, setTimeLeftFormat] = useState("");
 	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");

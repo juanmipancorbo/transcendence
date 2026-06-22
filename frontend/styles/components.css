@@ -487,6 +487,7 @@
   }
   .friend-status-dot.online  { background-color: var(--primary); }
   .friend-status-dot.offline { background-color: var(--outline-variant); }
+  .friend-status-dot.busy { background-color: red; }
 
   .friend-name {
     @apply hidden sm:block text-xs font-bold uppercase transition-colors;

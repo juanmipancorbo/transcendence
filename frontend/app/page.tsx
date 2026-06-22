@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueue } from "@/hooks/useGame";
@@ -10,8 +9,7 @@ import { useRouter } from "next/navigation";
 export default function LobbyPage() {
   const { user } = useAuth();
 
-  // Queue UI state purely visual
-  const { inQueue, socket, joinQueue, leaveQueue } = useQueue();
+  const { inQueue, joinQueue, leaveQueue } = useQueue();
   const [elapsed,  setElapsed]  = useState(0);
   const router = useRouter();
 
@@ -111,10 +109,10 @@ export default function LobbyPage() {
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "GLOBAL_RANK", value: `#${user?.rank ?? 0}`,   color: "text-primary" },
-              { label: "WINS",        value: user?.wins ?? 0,          color: "text-secondary" },
-              { label: "LOSSES",      value: user?.losses ?? 0,        color: "text-on-surface-variant" },
-              { label: "WIN_RATE",    value: `${user ? Math.round(user.wins / (user.wins + user.losses) * 100) : 0}%`, color: "text-tertiary" },
+              { label: "GLOBAL_RANK", value: `#${/*TODO user?.rank ?? */0}`,   color: "text-primary" },
+              { label: "WINS",        value: user?.gamesWon ?? 0,          color: "text-secondary" },
+              { label: "LOSSES",      value: user?.gamesLost ?? 0,        color: "text-on-surface-variant" },
+              { label: "WIN_RATE",    value: `${user ? Math.round(user.gamesWon / (user.gamesWon + user.gamesLost) * 100) : 0}%`, color: "text-tertiary" },
             ].map(({ label, value, color }) => (
               <div key={label} className="stat-card">
                <div className={`stat-card-value ${color}`}>{value}</div>
