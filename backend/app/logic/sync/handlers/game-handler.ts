@@ -46,7 +46,6 @@ function onPlayerAbandon(_: ByteReader, game: GameSession, _player: SessionPlaye
     game.playerAbandon(sock);
 }
 
-
 const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlayer, sock: Socket) => void> = [];
 
 callbacks[Protocol.ConsumeTurn] = onConsumeTurn;
