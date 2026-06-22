@@ -4,16 +4,17 @@ import { DatabaseError } from "pg";
 import { AuthUser } from "@endpoints/users-response";
 import { tokenUtils, TokenPayload } from "@utils/jwt-utils";
 import { createHash } from 'crypto';
+import { ApiError } from "@utils/error";
 
 export async function createUser(input: {email: string, username: string, password: string})
 {
-  const hashPassword = await argon2.hash(input.password);// TODO thrown error are handled at errMiddleware
+  const hashPassword = await argon2.hash(input.password);
   // REMARK generateToken() // Should we use a verification token?
   try {
     await Repo.insertUser(input.email, input.username, hashPassword)
   } catch (err) {
     if (!(err instanceof DatabaseError) || err.code !== "23505") throw err;
-    throw ("INVALID_CREDENTIAL");
+    throw (new ApiError ("Email or username is already taken", 409));
   }
 }
 
@@ -21,9 +22,9 @@ export async function loginUser(input: {email: string, password: string}): Promi
 {
   const user = await Repo.selectAuthUser(input.email);
   if (!user)
-    throw new Error("USER_NOT_FOUND");
+    throw (new ApiError("User not found", 404));
   if (!await argon2.verify(user.password_hash as any, input.password))
-    throw new Error("INVALID_PASSWORD");
+    throw (new ApiError("Invalid credentials", 401));
   delete user.password_hash;
   return (user)
 }
@@ -58,7 +59,7 @@ export async function refreshAccessToken(refreshToken: string) {
     const exists = await Repo.findRefreshToken(payload.id, tokenHash);
     
     if (!exists) {
-      throw new Error('Refresh token not found or expired');
+      throw (new ApiError('Refresh token not found or expired'), 401);
     }
 
     // Generate new access token
@@ -66,7 +67,7 @@ export async function refreshAccessToken(refreshToken: string) {
     
     return { accessToken: newAccessToken };
   } catch (error) {
-    throw new Error('Invalid refresh token');
+    throw (new ApiError('Invalid refresh token', 401));
   }
 }
 

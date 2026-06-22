@@ -4,6 +4,7 @@ import { router as routerUser } from "@databaseAccess/user/router";
 import { router as routerAuth } from "@databaseAccess/auth/router";
 import { router as routerGame } from "@databaseAccess/game/router";
 import { join, joinMiddl, quickplay } from "./src/websockets";
+import { errorHandler } from "./src/middleware/error-middleware";
 
 const { app, getWss, applyTo } = expressWs(express());
 
@@ -51,3 +52,6 @@ app.listen(port, _ => {
 app.use("/users", routerUser)
 app.use("/auth", routerAuth)
 app.use("/game", routerGame)
+
+// Error Handler (has to be last one)
+app.use(errorHandler);

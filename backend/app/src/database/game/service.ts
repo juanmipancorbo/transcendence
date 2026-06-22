@@ -1,11 +1,12 @@
 import { Position } from "@gameLogic/game";
 import * as Repo from "./repository"
+import { ApiError } from "@utils/error";
 import { DatabaseError } from "pg";
 
 export async function readGame(gameId: string) {
   const game = await Repo.selectGame(gameId);
   if (!game)
-    throw ("INVALID_CREDENTIAL");
+    throw (new ApiError("Game not found", 404));
   return (game);
 }
 
@@ -13,7 +14,7 @@ export async function readGame(gameId: string) {
 export async function readAllGame() {
   const game = await Repo.selectGameTable();
   if (!game)
-    throw ("INVALID_CREDENTIAL");
+    throw (new ApiError("GAME_TABLE_NOT_FOUND", 404));
   return (game);
 }
 
@@ -29,7 +30,7 @@ export async function createGame({ gameId, whiteId, blackId, timeLimit, allowSpe
     await Repo.insertGame(gameId, whiteId, blackId, friendly, timeLimit, allowSpectators);
   } catch (err) {
     if (!(err instanceof DatabaseError) || err.code !== "23505") throw err;
-    throw (`DATABASE_ERROR: ${err.message}`);
+    throw (new ApiError(`Failed to create game: Database: ${err.message}`, 409));
   }
 }
 
@@ -48,7 +49,7 @@ export async function setUserTimeLeft(gameId: string, userId: string, timeLeft: 
 export async function reportFinishedGame(gameId: string, winnerId: string | null): Promise<number | null> {
   const res = await Repo.reportFinishedGame(gameId, winnerId);
   if (!res)
-    throw ("WRONG_INFO");
+    throw (new ApiError("WRONG_INFO", 400));
   return res;
 }
 
@@ -56,8 +57,8 @@ export async function setWinner({gameId, winnerId}:{ gameId: string; winnerId?: 
 {
   const game = await Repo.selectGame(gameId);
   if (!game)
-    throw ("GAME_NOT_FOUND");
+    throw (new ApiError("Game not found", 404));
   if (winnerId != game.black_player_id || winnerId != game.white_player_id)
-    throw ("INVAID_CREDENTIAL");
+    throw (new ApiError("Ivalid player ID for this game", 403));
   await Repo.updateGameWinner(game.id, winnerId);
 }
