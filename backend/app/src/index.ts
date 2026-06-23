@@ -39,9 +39,12 @@ app.use("/play/join", joinMiddl);
 app.ws("/play/quickplay", quickplay);
 app.ws("/play/join", join);
 
-
-app.get('/', (_req, _res) => {
-	_res.send("TypeScript With Express");
+// Healthcheck to see if server is up
+app.get('/health', (_req, res) => {
+    res.status(200).json({
+        status: "UP",
+        timestamp: new Date().toISOString(),
+    });
 });
 
 // Server start

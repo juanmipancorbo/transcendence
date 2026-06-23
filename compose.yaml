@@ -6,6 +6,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/00_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ft_transcendence -U ${POSTGRES_USER:-ft_trans42}"]
+      interval: 300s
+      timeout: 30s
+      retries: 5
+      start_period: 3s
   backend:
     build:
       context: ./backend
@@ -19,6 +25,15 @@ services:
       #Put this on development
       # - ./backend/app:/app
       - backend_node_modules:/app/node_modules
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 300s
+      timeout: 30s
+      retries: 5
+      start_period: 3s
 
   frontend:
     build:
@@ -34,7 +49,8 @@ services:
     - NODE_ENV=development
     - WATCHPACK_POLLING=true
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
   nginx:
     image: nginx:alpine
     restart: unless-stopped
