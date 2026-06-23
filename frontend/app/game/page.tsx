@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useGame, type LogEntry } from "@/hooks/useGame";
 import { BLACK, GameState, WHITE } from "@/types";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // TODO: Implement chat, read through game.messages, which contains messages and sender uuids
 // get profiles data through game.profiles map, if it returns undefined it means the profile is not loaded yet
@@ -128,7 +128,7 @@ export default function GamePage() {
           </div>
         </section>
 
-        {/* Opponent panel */}
+        {/* Opponent panel + Chat */}
         <aside className="w-full md:w-72 flex flex-col gap-6 order-3">
           <PlayerPanel
             name={username1}
@@ -139,6 +139,12 @@ export default function GamePage() {
             scoreColorClass="text-tertiary"
             glowColor="#d575ff"
             isMyTurn={game.opponentTurn}
+          />
+          <ChatPanel
+            messages={game.messages}
+            profiles={game.profiles}
+            myId={game.state?.players[game.myColor === WHITE ? "white" : "black"] ?? ""}
+            onSend={game.chat}
           />
         </aside>
       </main>
@@ -195,6 +201,75 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
           ACTIVE
         </span>
       )}
+    </div>
+  );
+}
+
+function ChatPanel({ messages, profiles, myId, onSend }: {
+  messages: Array<{ sender: string; message: string }>;
+  profiles: Map<string, { username?: string }>;
+  myId: string;
+  onSend: (msg: string) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const lastSentAt = useRef(0);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  function submit() {
+    const text = draft.trim();
+    if (!text) return;
+    const now = Date.now();
+    if (now - lastSentAt.current < 500) return; // 500 ms cooldown
+    lastSentAt.current = now;
+    onSend(text);
+    setDraft("");
+  }
+
+  return (
+    <div className="match-log flex flex-col gap-2">
+      <div className="match-log-title">Chat</div>
+
+      <div className="overflow-y-auto max-h-48 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {messages.length === 0
+          ? <p className="text-xs text-on-surface-variant italic">No messages yet…</p>
+          : messages.map((m, i) => {
+              const isMe = m.sender === myId;
+              const name = profiles.get(m.sender)?.username ?? "…";
+              return (
+                <p key={i} className="text-xs text-on-surface-variant">
+                  <span className={isMe ? "text-primary font-semibold" : "text-tertiary font-semibold"}>
+                    {isMe ? "You" : name}
+                  </span>
+                  {": "}
+                  {m.message}
+                </p>
+              );
+            })
+        }
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="flex gap-2 mt-1">
+        <input
+          className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-2 py-1 outline-none border border-outline/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
+          placeholder="Message…"
+          value={draft}
+          maxLength={200}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submit(); }}
+        />
+        <button
+          onClick={submit}
+          disabled={!draft.trim()}
+          className="text-xs px-2 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }
