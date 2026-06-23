@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "es6",
 		"module": "commonjs",
-		"rootDir": "./",
+		"rootDir": "./src",
 		"outDir": "./dist",
 		"esModuleInterop": true,
 		"strict": true,
@@ -12,5 +12,10 @@
       "@gameLogic/*": ["./src/logic/*"],
       "@databaseAccess/*": ["./src/database/*"],
     }
-	}
+	},
+  "exclude": [
+    "node_modules",
+    "dist",
+    "scripts"
+  ]
 }
