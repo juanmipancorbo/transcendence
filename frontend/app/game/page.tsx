@@ -63,6 +63,7 @@ export default function GamePage() {
             scoreColorClass="text-primary"
             glowColor="#8ff5ff"
             isMyTurn={game.yourTurn}
+            timeLeft={game.timeLeftFormat}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -140,6 +141,7 @@ export default function GamePage() {
             scoreColorClass="text-tertiary"
             glowColor="#d575ff"
             isMyTurn={game.opponentTurn}
+            timeLeft={game.opponentTimeLeftFormat}
             userId={opponentId}
           />
           <ChatPanel
@@ -159,10 +161,11 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, userId }: {
+function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, userId, timeLeft }: {
   name: string; label: string; score: number; total: number;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
   userId?: string;
+  timeLeft?: string;
 }) {
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [addState,   setAddState]   = useState<"idle" | "sent">("idle");
@@ -275,6 +278,11 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
       <div className="text-center mt-2">
         <div className={`player-score-value ${scoreColorClass}`}>{score}</div>
         <div className="player-score-label">Captured_Cells</div>
+        {timeLeft && (
+          <div className="text-xs font-mono mt-1" style={{ color: glowColor }}>
+            ⏱ {timeLeft}
+          </div>
+        )}
       </div>
 
       <div className="player-bar-track">
