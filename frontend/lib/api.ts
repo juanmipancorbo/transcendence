@@ -48,7 +48,7 @@ async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false
     }
   }
 
-  const rawError = json?.error ?? json?.message ?? text;
+  const rawError = json?.error ?? json?.message ?? (typeof json?.data === "string" ? json.data : null) ?? text;
 
   if (!res.ok) {
     const errorMessage = typeof rawError === "string" && rawError.trim().length > 0

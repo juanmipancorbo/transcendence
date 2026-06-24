@@ -19,8 +19,9 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   useEffect(() => {
-    friendApi.getProfiles(getTokens()!.accessToken).then(setFriends);
-  });
+    const token = getTokens()?.accessToken;
+    if (token) friendApi.getProfiles(token).then(setFriends).catch(() => {});
+  }, []);
 
   const [bio, setBio] = useState("");
 
@@ -71,11 +72,6 @@ export default function ProfilePage() {
                   </span>
                 </div>
               )}
-              <div className="profile-avatar-badge">
-                <span className="material-symbols-outlined text-base" style={{ color: "var(--surface)", fontVariationSettings: "'FILL' 1" }}>
-                  military_tech
-                </span>
-              </div>
             </div>
 
             {/* Info */}
@@ -141,32 +137,42 @@ export default function ProfilePage() {
 
           {/* ── Friends bar ───────────────────────────────────────────── */}
           <div className="friends-bar">
-            <div className="flex gap-10 group">
-              {/* TODO: replace with friendsApi.getList() */}
-              {friends.map(friend => (
-                <div
-                  key={friend.id}
-                  className="friend-entry"
-                  onClick={() => router.push(`/friend?id=${friend.id}`)}
-                >
-                  <div className="friend-avatar">
-                    <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
-                      <span className="text-sm font-black" style={{ color: "var(--on-surface-variant)", fontFamily: "Space Grotesk, sans-serif" }}>
-                        {friend.username[0].toUpperCase()}
-                      </span>
-                    </div>
-                    <div className={`friend-status-dot ${friend.status}`} />
-                  </div>
+            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-1 min-w-0">
+              <div className="flex gap-10">
+                {friends.length === 0
+                  ? <p className="text-xs text-on-surface-variant italic">No friends yet.</p>
+                  : friends.map(friend => (
+                    <div
+                      key={friend.id}
+                      className="friend-entry flex-shrink-0"
+                      onClick={() => router.push(`/friend?id=${friend.id}`)}
+                    >
+                      <div className="friend-avatar">
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
+                          <span className="text-sm font-black" style={{ color: "var(--on-surface-variant)", fontFamily: "Space Grotesk, sans-serif" }}>
+                            {friend.username[0].toUpperCase()}
+                          </span>
+                        </div>
+                        <div className={`friend-status-dot ${friend.status}`} />
+                      </div>
 
-                  <div className="hidden sm:block">
-                    <div className="friend-name">{friend.username}</div>
-                    <div className="friend-status-label">{friend.status}</div>
-                  </div>
-                </div>
-              ))}
+                      <div className="hidden sm:block">
+                        <div className="friend-name">{friend.username}</div>
+                        <div className="friend-status-label" style={{
+                          color: friend.status === "online" ? "var(--primary)"
+                               : friend.status === "busy"   ? "#d575ff"
+                               :                              "var(--outline-variant)"
+                        }}>
+                          {friend.status === "busy" ? "Busy" : friend.status === "online" ? "Online" : "Offline"}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
             </div>
 
-            <button className="btn-view-friends">
+            <button className="btn-view-friends flex-shrink-0">
               View All Friends
             </button>
           </div>

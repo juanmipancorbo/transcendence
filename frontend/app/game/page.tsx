@@ -3,12 +3,10 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useGame, type LogEntry } from "@/hooks/useGame";
-import { BLACK, GameState, WHITE } from "@/types";
+import { BLACK, WHITE } from "@/types";
 import { useEffect, useRef, useState } from "react";
-
-// TODO: Implement chat, read through game.messages, which contains messages and sender uuids
-// get profiles data through game.profiles map, if it returns undefined it means the profile is not loaded yet
-
+import { friendApi } from "@/lib/api";
+import { getTokens } from "@/hooks/useAuth";
 // TODO: Maybe visualize current spectators? listed in game.spectators, their profiles also in game.profiles
 
 // TODO: Render time left, just read game.timeLeftFormat and game.opponentTimeLeftFormat
@@ -34,16 +32,19 @@ export default function GamePage() {
   let username1;
   let score;
   let score1;
+  let opponentId: string | undefined;
   if (game.myColor === WHITE) {
-    username = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
-    username1 = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
-	score = game.state?.scores.white ?? 0;
-	score1 = game.state?.scores.black ?? 0;
+    username   = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
+    username1  = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
+    score      = game.state?.scores.white ?? 0;
+    score1     = game.state?.scores.black ?? 0;
+    opponentId = game.state?.players.black;
   } else {
-    username = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
-    username1 = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
-	score = game.state?.scores.black ?? 0;
-	score1 = game.state?.scores.white ?? 0;
+    username   = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
+    username1  = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
+    score      = game.state?.scores.black ?? 0;
+    score1     = game.state?.scores.white ?? 0;
+    opponentId = game.state?.players.white;
   }
 
 
@@ -139,6 +140,7 @@ export default function GamePage() {
             scoreColorClass="text-tertiary"
             glowColor="#d575ff"
             isMyTurn={game.opponentTurn}
+            userId={opponentId}
           />
           <ChatPanel
             messages={game.messages}
@@ -157,27 +159,117 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn }: {
+function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, userId }: {
   name: string; label: string; score: number; total: number;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
+  userId?: string;
 }) {
+  const [menuOpen,   setMenuOpen]   = useState(false);
+  const [addState,   setAddState]   = useState<"idle" | "sent">("idle");
+  const [tipVisible, setTipVisible] = useState(false);
+  const menuRef  = useRef<HTMLDivElement>(null);
+  const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function close(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node))
+        setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [menuOpen]);
+
+  async function sendFriendRequest() {
+    if (!userId || addState === "sent") return;
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+    await friendApi.sendRequest(token, userId).catch(() => {});
+    setAddState("sent");
+    setMenuOpen(false);
+  }
+
+  function onAddBtnEnter() {
+    tipTimer.current = setTimeout(() => setTipVisible(true), 700);
+  }
+  function onAddBtnLeave() {
+    if (tipTimer.current) clearTimeout(tipTimer.current);
+    setTipVisible(false);
+  }
+
   return (
     <div className={`player-panel ${accentClass}`}>
-      <div className="relative">
+      <div className="relative" ref={menuRef}>
+
+        {/* Avatar — clickable*/}
         <div
-          className="w-24 h-24 rounded-full border-2 p-1 flex items-center justify-center bg-surface-container-highest"
+          className={`w-24 h-24 rounded-full border-2 p-1 flex items-center justify-center bg-surface-container-highest ${userId ? "cursor-pointer" : ""}`}
           style={{ borderColor: glowColor }}
+          onClick={() => userId && setMenuOpen(prev => !prev)}
         >
           <span className={`font-headline font-black text-3xl ${scoreColorClass}`}>
             {name[0].toUpperCase()}
           </span>
         </div>
+
+        {/* Quick Add Friend button */}
+        {userId && (
+          <div className="absolute -top-1 -right-1">
+            <button
+              onClick={e => { e.stopPropagation(); sendFriendRequest(); }}
+              onMouseEnter={onAddBtnEnter}
+              onMouseLeave={onAddBtnLeave}
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+              style={{
+                background: addState === "sent" ? "#22c55e20" : `${glowColor}20`,
+                color:      addState === "sent" ? "#22c55e"   : glowColor,
+                border:     `1px solid ${addState === "sent" ? "#22c55e50" : `${glowColor}50`}`,
+              }}
+            >
+              {addState === "sent" ? "✓" : "+"}
+            </button>
+            {tipVisible && (
+              <div
+                className="absolute bottom-full right-0 mb-1 px-2 py-1 rounded text-[10px] whitespace-nowrap font-semibold pointer-events-none"
+                style={{ background: "var(--surface-container-highest)", color: "var(--on-surface-variant)", border: "1px solid rgba(72,71,77,0.4)" }}
+              >
+                {addState === "sent" ? "Request sent" : "Send friend request"}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Name label */}
         <div
           className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full font-headline tracking-widest whitespace-nowrap text-on-primary-fixed"
           style={{ background: glowColor }}
         >
           {label}
         </div>
+
+        {/* Dropdown */}
+        {userId && menuOpen && (
+          <div
+            className="absolute top-[calc(100%+0.75rem)] left-1/2 -translate-x-1/2 w-40 rounded-lg overflow-hidden z-10"
+            style={{ background: "var(--surface-container-high)", border: "1px solid rgba(72,71,77,0.3)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+          >
+            <button
+              onClick={() => { setMenuOpen(false); window.open(`/friend?id=${userId}`, "_blank"); }}
+              className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors"
+              style={{ color: "var(--on-surface)" }}
+            >
+              View Profile ↗
+            </button>
+            <button
+              onClick={sendFriendRequest}
+              disabled={addState === "sent"}
+              className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors disabled:opacity-50"
+              style={{ color: addState === "sent" ? "#22c55e" : glowColor }}
+            >
+              {addState === "sent" ? "✓ Request Sent" : "Add Friend"}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="text-center mt-2">
