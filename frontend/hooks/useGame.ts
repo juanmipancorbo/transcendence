@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, User, CellState, PublicUser } from "@/types";
+import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, CellState, PublicUser } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
 import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
@@ -325,7 +325,9 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	// --- Handler functions end ---
 
 	useEffect(() => {
+		let cancelled = false;
 		const socket = new GameSocket(WS_URL + `/play/join?gameId=${id}`, tokens ? tokens.accessToken : "", (e) => {
+			if (cancelled) return;
 			if (e) {
 				onJoin(e);
 				return;
@@ -353,6 +355,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket.on(Protocol.XpUpdate, onNewXp);
 		// Game socket setup end
 		return () => {
+			cancelled = true;
 			socket.disconnect(1000);
 		};
 	}, []);
