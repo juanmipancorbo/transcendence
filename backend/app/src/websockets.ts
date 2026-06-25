@@ -2,7 +2,7 @@ import { createGameSession, GameSession, SESSIONS } from "./logic/sync/session";
 import { UUID } from "node:crypto";
 import { buildMatchFound } from "./logic/sync/protocol-utils";
 import { CloseCodes, Socket } from "./logic/sync/socket";
-import queueHandler from "./logic/sync/handlers/queue-handler";
+import globalHandler from "./logic/sync/handlers/global-handler";
 import gameHandler from "./logic/sync/handlers/game-handler";
 import onAuth from "./logic/sync/handlers/auth-handler";
 import { NextFunction, Request, Response } from "express";
@@ -14,29 +14,12 @@ function isUUID(value: string): boolean {
 	return uuidRegex.test(value);
 }
 
-export let waiting: Socket | null = null;
-
-export function unsetQuickplay() {
-	waiting = null;
-}
-
-export function quickplay(ws: WebSocket, _req: Request, _: NextFunction) {
+export function create(ws: WebSocket, _req: Request, _: NextFunction) {
 	const client = new Socket(ws);
 	client.handler = (data, conn) => {
 		onAuth(data, conn, () => {
-			client.handler = queueHandler;
-			client.status = "busy";
-			if (!waiting) {
-				waiting = client;
-				return;
-			} else if (waiting.id === client.id)
-				return client.close(CloseCodes.Error, "You are already in queue");
-			const game = createGameSession(waiting.id, client.id, false /* TODO: Maybe take into account user settings */, false, 100);
-			waiting.send(buildMatchFound(game, client.id));
-			client.send(buildMatchFound(game, waiting.id));
-			client.close();
-			waiting.close();
-			waiting = null;
+			client.handler = globalHandler;
+			client.status = "online";
 		});
 	};
 }

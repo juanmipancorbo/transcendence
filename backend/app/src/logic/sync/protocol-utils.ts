@@ -4,22 +4,22 @@ import { Board, getValidMoves, Position, STATUS_ACTIVE } from "../game";
 import { GameSession, PositionUpdate } from "./session";
 
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
-import { Protocol as QueueProtocol } from "./handlers/queue-handler";
+import { Protocol as GlobalProtocol } from "./handlers/global-handler";
 
 export function build(typeId: number): ByteWriter {
 	return new ByteWriter().writeUint8(typeId);
 }
 
-// Queue
+// Global
 
-export function buildMatchmakeError(message: string): BufferSource {
-	return build(QueueProtocol.MatchmakeError)
+export function buildError(message: string): BufferSource {
+	return build(GlobalProtocol.Error)
 		.writePrefixedUTF(message)
 		.freeze();
 }
 
 export function buildMatchFound(game: GameSession, opponent: UUID): BufferSource {
-	return build(QueueProtocol.MatchFound)
+	return build(GlobalProtocol.MatchFound)
 		.writePrefixedUTF(game.id)
 		.writePrefixedUTF(opponent)
 		.freeze();
