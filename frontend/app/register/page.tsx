@@ -30,8 +30,26 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
+    const validationErrors = [];
+    if (form.username.length < 3 || form.username.length > 16)
+      validationErrors.push("Username must be between 3 and 16 characters");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      validationErrors.push("Email address is invalid");
+    if (form.password.length < 8 || form.password.length > 16)
+      validationErrors.push("Password must be between 8 and 16 characters");
+    if (!/[a-z]/.test(form.password))
+      validationErrors.push("Password needs at least one lowercase letter");
+    if (!/[A-Z]/.test(form.password))
+      validationErrors.push("Password needs at least one uppercase letter");
+    if (!/[0-9]/.test(form.password))
+      validationErrors.push("Password needs at least one number");
+    if (!/[^a-zA-Z0-9]/.test(form.password))
+      validationErrors.push("Password needs at least one symbol");
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
+      validationErrors.push("Passwords do not match");
+    }
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join("; "));
       return;
     }
 

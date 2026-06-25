@@ -2,7 +2,20 @@ import { AuthUser, FullUser } from "@endpoints/users-response";
 import { pool } from "@utils/pg-pool";
 import { sql } from "@utils/sql";
 
-const USER_DATA = ` id, username, email, avatar_url AS "avatarUrl", games_played AS "gamesPlayed", games_won AS "gamesWon", games_lost AS "gamesLost", xp, level`;
+const USER_DATA = `
+  id,
+  username,
+  email,
+  avatar_url AS "avatarUrl",
+  current_game AS "currentGame",
+  games_played AS "gamesPlayed",
+  games_won AS "gamesWon",
+  games_lost AS "gamesLost",
+  xp,
+  level,
+  created_at AS "createdAt",
+  updated_at AS "updatedAt"
+`;
 
 export async function insertUser(email: string, username: string, password: string)
 {

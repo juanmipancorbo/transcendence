@@ -6,13 +6,19 @@ import { getTokens, setTokens } from "./auth-storage";
 
 import { API_URL } from "./config";
 
+type AuthPayload = {
+  accessToken: string;
+  refreshToken: string;
+  user: Partial<User>;
+};
+
 async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...(options?.headers || {}),
     },
-    ...options,
   });
 
   if (res.status === 401 && !_isRetry) {
@@ -71,40 +77,34 @@ async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false
 
 export const authApi = {
   login: async (email: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
-    const res = await apiFetch<{ success: boolean; data: any }>("/auth/login", {
+    const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
     return {
       accessToken: res.data.accessToken,
       refreshToken: res.data.refreshToken,
-      user: {
-        id: res.data.id,
-        username: res.data.username,
-        email: res.data.email,
-      },
+      user: res.data.user,
     };
   },
 
   register: async (email: string, username: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
-    const res = await apiFetch<{ success: boolean; data: any }>("/auth/register", {
+    const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ email, username, password }),
     });
     return {
       accessToken: res.data.accessToken,
       refreshToken: res.data.refreshToken,
-      user: {
-        id: res.data.id,
-        username: res.data.username,
-        email: res.data.email,
-      },
+      user: res.data.user,
     };
   },
 
   logout: async (refreshToken: string): Promise<void> => {
+    const tokens = getTokens();
     await apiFetch("/auth/logout", {
       method: "POST",
+      headers: tokens?.accessToken ? { "Authorization": `Bearer ${tokens.accessToken}` } : undefined,
       body: JSON.stringify({ refreshToken }),
     });
   },

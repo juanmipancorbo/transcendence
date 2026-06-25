@@ -2,6 +2,15 @@ import type { Request, Response } from "express";
 import * as Service from "./service";
 import { LoginReq, RegisterReq } from "@endpoints/users-request";
 import { createHash } from 'crypto';
+import { ApiError } from "@utils/error";
+
+function sendAuthError(res: Response, error: unknown) {
+  if (error instanceof ApiError)
+    return res.status(error.statusCode).json({ success: false, error: error.message });
+  if (error instanceof Error)
+    return res.status(400).json({ success: false, error: error.message });
+  return res.status(400).json({ success: false, error: String(error) });
+}
 
 export async function postRegister(req: Request<unknown, unknown, RegisterReq>, res: Response)
 {
@@ -25,10 +34,7 @@ export async function postRegister(req: Request<unknown, unknown, RegisterReq>, 
       }
     });
   } catch (error: any) {
-    if (error === "INVALID_CREDENTIAL") {
-      return res.status(409).json({ success: false, error: "Email or username already in use" });
-    }
-    return res.status(400).json({ success: false, error: error.toString() });
+    return sendAuthError(res, error);
   }
 }
 
@@ -50,18 +56,7 @@ export async function postLogin(req: Request<unknown, unknown, LoginReq>, res: R
       }
     });
   } catch (error: any) {
-    if (error instanceof Error) {
-      if (error.message === "USER_NOT_FOUND") {
-        return res.status(404).json({ success: false, error: "User not found" });
-      }
-      if (error.message === "INVALID_PASSWORD") {
-        return res.status(401).json({ success: false, error: "Invalid email or password" });
-      }
-      if (error.message.includes('relation "users" does not exist')) {
-        return res.status(500).json({ success: false, error: "Database not initialized. Run make init-db." });
-      }
-    }
-    return res.status(401).json({ success: false, error: error.toString() });
+    return sendAuthError(res, error);
   }
 }
 

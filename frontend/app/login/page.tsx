@@ -25,6 +25,17 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    const validationErrors = [];
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      validationErrors.push("Email address is invalid");
+    if (password.length === 0)
+      validationErrors.push("Password is required");
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join("; "));
+      return;
+    }
+
     try {
       await login(email, password);
       router.push("/lobby");

@@ -57,9 +57,8 @@ export async function refreshAccessToken(refreshToken: string) {
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
     const exists = await Repo.findRefreshToken(payload.id, tokenHash);
     
-    if (!exists) {
-      throw (new ApiError('Refresh token not found or expired'), 401);
-    }
+    if (!exists)
+      throw new ApiError('Refresh token not found or expired', 401);
 
     // Generate new access token
     const newAccessToken = tokenUtils.signAccessToken(payload);
