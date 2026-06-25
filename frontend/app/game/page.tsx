@@ -4,28 +4,22 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useGame, type LogEntry } from "@/hooks/useGame";
 import { BLACK, WHITE } from "@/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
 // TODO: Maybe visualize current spectators? listed in game.spectators, their profiles also in game.profiles
 
-// TODO: Render time left, just read game.timeLeftFormat and game.opponentTimeLeftFormat
-// its already formatted as minutes:seconds and its a react state that updates itself
 
 export default function GamePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const game = useGame(id ?? "", e => {
-    if (e) {
-      console.error(e.message);
-      // TODO: Do something on error?
-    }
-  });
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const onJoin = useCallback((e?: Error) => { if (e) setJoinError(e.message); }, []);
+  const game = useGame(id ?? "", onJoin);
 
   useEffect(() => {
-    if (!id)
-      router.push("/"); // TODO: or something else?
+    if (!id) router.push("/lobby");
   }, []);
 
   let username;
@@ -47,6 +41,18 @@ export default function GamePage() {
     opponentId = game.state?.players.white;
   }
 
+
+  if (joinError) return (
+    <ProtectedLayout activeRoute="/game">
+      <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
+        <p className="text-on-surface-variant text-sm">Could not connect to game</p>
+        <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinError}</p>
+        <button onClick={() => router.push("/lobby")} className="btn-ghost">
+          Back to Lobby
+        </button>
+      </main>
+    </ProtectedLayout>
+  );
 
   return (
     <ProtectedLayout activeRoute="/game">
