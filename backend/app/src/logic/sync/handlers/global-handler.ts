@@ -1,17 +1,30 @@
 import { RawData } from "ws";
 import { ByteReader } from "../stream-utils/reader";
-import { CloseCodes, Socket } from "../socket";
+import { CloseCodes, getSocksById, Socket } from "../socket";
 import { createGameSession } from "../session";
 import gameHandler from "./game-handler";
-import { buildError, buildMatchFound } from "../protocol-utils";
+import { buildError, buildFriendRequest, buildInfoMessage, buildMatchFound } from "../protocol-utils";
+import { sendFriendRequest } from "@databaseAccess/friend/service";
+import { UUID } from "node:crypto";
 
 export enum Protocol {
 	KeepAlive = 0,
 	JoinCasualQueue = 1,
 	JoinRankedQueue = 2, // TODO: Implement
 	LeaveQueue = 3,
-	MatchFound = 4,
-	Error = 5
+	FriendReqSend = 4,
+	FriendReqReject = 5,
+	FriendReqAccept = 6,
+	MatchFound = 7,
+	Info = 8,
+	Error = 9,
+	Notification = 10
+}
+
+export enum ProtocolCodes {
+	Generic = 0,
+	FriendReqFailed = 1,
+
 }
 
 export let waiting: Socket | null = null;
@@ -62,12 +75,32 @@ function onQueueLeave(_: ByteReader, conn: Socket) {
 	else conn.send(buildError("You are not in any queue"));
 }
 
+function onFriendRequestSend(p: ByteReader, conn: Socket) {
+	const to = p.readPrefixedUTF();
+	sendFriendRequest(conn.id, to).then(() => {
+		conn.send(buildInfoMessage("Friend request sent"));
+		
+		const online = getSocksById(to as UUID);
+		if (online) {
+			for (const client of online) {
+				if (client.status === "online")
+					client.send(buildFriendRequest(conn.id));
+			}
+		}
+	}).catch(e => conn.send(buildError(`Failed to send friend request: ${e.message}`, ProtocolCodes.FriendReqFailed)));
+}
+
+function onFriendRequestReject(p: ByteReader, conn: Socket) {
+	
+}
+
 const callbacks: Array<(read: ByteReader, sock: Socket) => void> = [];
 
 callbacks[Protocol.KeepAlive] = onKeepAlive;
 callbacks[Protocol.JoinCasualQueue] = onQueueCasual;
 callbacks[Protocol.JoinRankedQueue] = onQueueRanked;
 callbacks[Protocol.LeaveQueue] = onQueueLeave;
+callbacks[Protocol.FriendReqSend] = onFriendRequestSend;
 
 export default function handler(data: RawData, conn: Socket) {
 	const reader = new ByteReader(data);

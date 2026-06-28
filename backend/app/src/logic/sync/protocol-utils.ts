@@ -12,8 +12,15 @@ export function build(typeId: number): ByteWriter {
 
 // Global
 
-export function buildError(message: string): BufferSource {
+export function buildError(message: string, code?: number): BufferSource {
 	return build(GlobalProtocol.Error)
+		.writePrefixedUTF(message)
+		.writeUint8(code ?? 0)
+		.freeze();
+}
+
+export function buildInfoMessage(message: string): BufferSource {
+	return build(GlobalProtocol.Info)
 		.writePrefixedUTF(message)
 		.freeze();
 }
@@ -22,6 +29,12 @@ export function buildMatchFound(game: GameSession, opponent: UUID): BufferSource
 	return build(GlobalProtocol.MatchFound)
 		.writePrefixedUTF(game.id)
 		.writePrefixedUTF(opponent)
+		.freeze();
+}
+
+export function buildFriendRequest(from: UUID): BufferSource {
+	return build(GlobalProtocol.FriendReqSend)
+		.writePrefixedUTF(from)
 		.freeze();
 }
 
