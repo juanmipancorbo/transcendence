@@ -26,6 +26,16 @@ export function registerSocket(sock: Socket) {
 	}
 }
 
+export function unregisterSocket(sock: Socket) {
+	const sockSet = getSocksById(sock.id);
+	if (!sockSet)
+		return;
+
+	sockSet.delete(sock);
+	if (sockSet.size === 0)
+		connectedUsers.delete(sock.id);
+}
+
 export function getSocksById(id: UUID): Set<Socket> | undefined { return connectedUsers.get(id); }
 
 export function injectStatus(...users: PublicUser[]) {
@@ -72,16 +82,9 @@ export class Socket {
 			if (this.player) {
 				if (this.abandonedExplicitly)
 					this.player.game.playerAbandon(this);
-				else
-					this.player.game.playerDisconnect(this);
+				else this.player.game.playerDisconnect(this);
 			}
-			const sockSet = getSocksById(this.id);
-			if (!sockSet)
-				return;
-
-			sockSet.delete(this);
-			if (sockSet.size === 0)
-				connectedUsers.delete(this.id);
+			unregisterSocket(this);
 		}
 
 		this.ws.onerror = (_) => {
@@ -89,7 +92,7 @@ export class Socket {
 				unsetQuickplay();
 			if (this.player)
 				this.player.game.playerDisconnect(this);
-			connectedUsers.delete(this.id);
+			unregisterSocket(this);
 		}
 	}
 
