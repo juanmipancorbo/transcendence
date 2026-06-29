@@ -3,7 +3,7 @@ import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, Game
 import { Socket } from "./socket";
 import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildXpUpdate, buildYourTurn } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
-import { updateUserGame } from "@databaseAccess/user/service";
+import { updateUserGame, clearUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
@@ -135,6 +135,8 @@ export class GameSession {
 
 	closeSession() {
 		SESSIONS.delete(this.id);
+		clearUserGame(this.blackPlayer.id).catch(e => console.error(e));
+		clearUserGame(this.whitePlayer.id).catch(e => console.error(e));
 		this.blackPlayer.conn.forEach(c => c.close());
 		this.whitePlayer.conn.forEach(c => c.close());
 		this.spectators.forEach(s => s.conn.forEach(c => c.close()));

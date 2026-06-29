@@ -31,7 +31,7 @@ export function quickplay(ws: WebSocket, _req: Request, _: NextFunction) {
 				return;
 			} else if (waiting.id === client.id)
 				return client.close(CloseCodes.Error, "You are already in queue");
-			const game = createGameSession(waiting.id, client.id, false /* TODO: Maybe take into account user settings */, false, 100);
+			const game = createGameSession(waiting.id, client.id, true, false, 100);
 			waiting.send(buildMatchFound(game, client.id));
 			client.send(buildMatchFound(game, waiting.id));
 			client.close();

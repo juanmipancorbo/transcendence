@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import { friendApi, userApi } from "@/lib/api";
@@ -9,7 +8,6 @@ import type { PublicUser } from "@/types";
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const router = useRouter();
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [friends, setFriends] = useState<PublicUser[]>([]);
 
@@ -141,33 +139,7 @@ export default function ProfilePage() {
               <div className="flex gap-10">
                 {friends.length === 0
                   ? <p className="text-xs text-on-surface-variant italic">No friends yet.</p>
-                  : friends.map(friend => (
-                    <div
-                      key={friend.id}
-                      className="friend-entry flex-shrink-0"
-                      onClick={() => router.push(`/friend?id=${friend.id}`)}
-                    >
-                      <div className="friend-avatar">
-                        <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
-                          <span className="text-sm font-black" style={{ color: "var(--on-surface-variant)", fontFamily: "Space Grotesk, sans-serif" }}>
-                            {friend.username[0].toUpperCase()}
-                          </span>
-                        </div>
-                        <div className={`friend-status-dot ${friend.status}`} />
-                      </div>
-
-                      <div className="hidden sm:block">
-                        <div className="friend-name">{friend.username}</div>
-                        <div className="friend-status-label" style={{
-                          color: friend.status === "online" ? "var(--primary)"
-                               : friend.status === "busy"   ? "#d575ff"
-                               :                              "var(--outline-variant)"
-                        }}>
-                          {friend.status === "busy" ? "Busy" : friend.status === "online" ? "Online" : "Offline"}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                  : friends.map(friend => <FriendEntry key={friend.id} friend={friend} />)
                 }
               </div>
             </div>
@@ -185,5 +157,81 @@ export default function ProfilePage() {
         <div className="ambient-blob -bottom-[5%]  -left-[5%]  w-[40%] h-[40%] blur-[100px]" style={{ background: "rgba(172,138,255,0.03)" }} />
       </div>
     </ProtectedLayout>
+  );
+}
+
+function FriendEntry({ friend }: { friend: PublicUser }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pos) return;
+    function close() { setPos(null); }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [pos]);
+
+  function handleClick() {
+    if (pos) { setPos(null); return; }
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPos({ top: rect.top, left: rect.left });
+  }
+
+  const statusColor = friend.status === "online" ? "var(--primary)"
+                    : friend.status === "busy"   ? "#d575ff"
+                    :                              "var(--outline-variant)";
+  const statusLabel = friend.status === "busy" ? "Busy"
+                    : friend.status === "online" ? "Online"
+                    :                              "Offline";
+
+  return (
+    <div className="friend-entry flex-shrink-0" ref={ref} onClick={handleClick}>
+      <div className="friend-avatar">
+        <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
+          <span className="text-sm font-black" style={{ color: "var(--on-surface-variant)", fontFamily: "Space Grotesk, sans-serif" }}>
+            {friend.username[0].toUpperCase()}
+          </span>
+        </div>
+        <div className={`friend-status-dot ${friend.status}`} />
+      </div>
+
+      <div className="hidden sm:block">
+        <div className="friend-name">{friend.username}</div>
+        <div className="friend-status-label" style={{ color: statusColor }}>{statusLabel}</div>
+      </div>
+
+      {pos && (
+        <div
+          className="w-44 rounded-lg overflow-hidden z-50"
+          style={{
+            position: "fixed",
+            top: pos.top - 8,
+            left: pos.left,
+            transform: "translateY(-100%)",
+            background: "var(--surface-container-high)",
+            border: "1px solid rgba(72,71,77,0.3)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+          }}
+        >
+          <button
+            onClick={e => { e.stopPropagation(); setPos(null); window.open(`/friend?id=${friend.id}`, "_blank"); }}
+            className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors"
+            style={{ color: "var(--on-surface)" }}
+          >
+            View Profile ↗
+          </button>
+          {friend.status === "busy" && friend.currentGame && (
+            <button
+              onClick={e => { e.stopPropagation(); setPos(null); window.open(`/game?id=${friend.currentGame}`, "_blank"); }}
+              className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors"
+              style={{ color: "#d575ff" }}
+            >
+              Watch Game ↗
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

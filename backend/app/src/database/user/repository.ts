@@ -2,7 +2,7 @@ import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
 import { PublicUser, FullUser } from "@endpoints/users-response" 
 
-const PROFILE_DATA = ` id, username, email, avatar_url AS "avatarUrl", games_played AS "gamesPlayed", games_won AS "gamesWon", games_lost AS "gamesLost", xp, level`;
+const PROFILE_DATA = ` id, username, email, avatar_url AS "avatarUrl", current_game AS "currentGame", games_played AS "gamesPlayed", games_won AS "gamesWon", games_lost AS "gamesLost", xp, level`;
 
 // TEST Query DELETE in prod
 export async function selectUserTable(): Promise<FullUser[] | null> {
@@ -28,7 +28,7 @@ export async function selectProfile(userId: string): Promise<PublicUser | null>
   return (res.rows[0] ? { ...res.rows[0], status: "offline" } : null)
 }
 
-export async function updateUserGame(userId: string, gameId: string)
+export async function updateUserGame(userId: string, gameId: string | null)
 {
   await pool.query(sql`
     UPDATE users

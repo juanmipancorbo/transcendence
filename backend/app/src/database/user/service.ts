@@ -20,3 +20,7 @@ export async function updateUserGame(userId: string, gameId: string) {
     throw (new ApiError("User not found", 404));
   await Repo.updateUserGame(userId, gameId);
 }
+
+export async function clearUserGame(userId: string) {
+  await Repo.updateUserGame(userId, null);
+}

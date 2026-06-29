@@ -434,6 +434,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		opponentTimeLeftFormat,
 		myColor,
 		profiles,
+		spectators,
 		validSet,
 		messages,
 		newXp,

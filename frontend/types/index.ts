@@ -35,7 +35,7 @@ export interface User {
 	updatedAt: Date
 }
 
-export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "status" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
+export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 export interface LeaderboardEntry {
   rank: number;

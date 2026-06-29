@@ -7,7 +7,6 @@ import { BLACK, WHITE } from "@/types";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
-// TODO: Maybe visualize current spectators? listed in game.spectators, their profiles also in game.profiles
 
 
 export default function GamePage() {
@@ -22,6 +21,8 @@ export default function GamePage() {
     if (!id) router.push("/lobby");
   }, []);
 
+  const isSpectator = game.state !== null && game.myColor === 0;
+
   let username;
   let username1;
   let score;
@@ -34,19 +35,24 @@ export default function GamePage() {
     score1     = game.state?.scores.black ?? 0;
     opponentId = game.state?.players.black;
   } else {
+    // BLACK player or spectator — left = black, right = white
     username   = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
     username1  = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
     score      = game.state?.scores.black ?? 0;
     score1     = game.state?.scores.white ?? 0;
-    opponentId = game.state?.players.white;
+    opponentId = isSpectator ? undefined : game.state?.players.white;
   }
 
+
+  const joinErrorMsg = joinError?.includes("does not exist") ? "This game has already ended."
+                     : joinError?.includes("spectators")    ? "This game doesn't allow spectators."
+                     : joinError ?? "Unknown error";
 
   if (joinError) return (
     <ProtectedLayout activeRoute="/game">
       <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
         <p className="text-on-surface-variant text-sm">Could not connect to game</p>
-        <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinError}</p>
+        <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinErrorMsg}</p>
         <button onClick={() => router.push("/lobby")} className="btn-ghost">
           Back to Lobby
         </button>
@@ -88,7 +94,13 @@ export default function GamePage() {
           <div className="px-6 py-2 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
             <span className="font-headline font-bold text-primary tracking-tighter text-sm">
-              {game.state?.status === "FINISHED" ? "GAME OVER" : game.yourTurn ? "YOUR_TURN" : `${username1.toUpperCase()}_MOVING…`}
+              {game.state?.status === "FINISHED"
+                ? "GAME OVER"
+                : game.state?.status === "WAITING"
+                  ? "WAITING FOR PLAYERS…"
+                  : isSpectator
+                    ? `${(game.state?.currentTurn === BLACK ? username : username1).toUpperCase()}_MOVING…`
+                    : game.yourTurn ? "YOUR_TURN" : `${username1.toUpperCase()}_MOVING…`}
             </span>
           </div>
 
@@ -125,14 +137,20 @@ export default function GamePage() {
           </div>
 
           <div className="flex gap-4">
-            <button onClick={() => {
-				if (game.state?.status !== "FINISHED")
-					game.abandon();
-				router.push("/lobby");
-			}} className="btn-ghost danger">
-              <span className="material-symbols-outlined text-sm">close</span>
-              {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
-            </button>
+            {isSpectator ? (
+              <button onClick={() => router.push("/lobby")} className="btn-ghost">
+                Leave Game
+              </button>
+            ) : (
+              <button onClick={() => {
+                if (game.state?.status !== "FINISHED")
+                  game.abandon();
+                router.push("/lobby");
+              }} className="btn-ghost danger">
+                <span className="material-symbols-outlined text-sm">close</span>
+                {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
+              </button>
+            )}
           </div>
         </section>
 
@@ -155,7 +173,9 @@ export default function GamePage() {
             profiles={game.profiles}
             myId={game.state?.players[game.myColor === WHITE ? "white" : "black"] ?? ""}
             onSend={game.chat}
+            readOnly={isSpectator}
           />
+          <SpectatorList spectators={game.spectators} profiles={game.profiles} />
         </aside>
       </main>
 
@@ -311,11 +331,12 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
   );
 }
 
-function ChatPanel({ messages, profiles, myId, onSend }: {
+function ChatPanel({ messages, profiles, myId, onSend, readOnly = false }: {
   messages: Array<{ sender: string; message: string }>;
   profiles: Map<string, { username?: string }>;
   myId: string;
   onSend: (msg: string) => void;
+  readOnly?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -359,7 +380,9 @@ function ChatPanel({ messages, profiles, myId, onSend }: {
         <div ref={bottomRef} />
       </div>
 
-      <div className="flex gap-2 mt-1">
+      {readOnly
+        ? <p className="text-[10px] text-on-surface-variant/40 italic mt-1">Spectators cannot send messages</p>
+        : <div className="flex gap-2 mt-1">
         <input
           className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-2 py-1 outline-none border border-outline/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
           placeholder="Message…"
@@ -375,6 +398,25 @@ function ChatPanel({ messages, profiles, myId, onSend }: {
         >
           Send
         </button>
+      </div>}
+    </div>
+  );
+}
+
+function SpectatorList({ spectators, profiles }: {
+  spectators: string[];
+  profiles: Map<string, { username?: string }>;
+}) {
+  if (spectators.length === 0) return null;
+  return (
+    <div className="match-log flex flex-col gap-2">
+      <div className="match-log-title">Spectators ({spectators.length})</div>
+      <div className="flex flex-col gap-1">
+        {spectators.map(id => (
+          <p key={id} className="text-xs text-on-surface-variant">
+            {profiles.get(id)?.username ?? "…"}
+          </p>
+        ))}
       </div>
     </div>
   );

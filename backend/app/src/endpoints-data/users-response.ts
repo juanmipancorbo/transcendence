@@ -43,7 +43,7 @@ export interface GameData {
 	finished_at: Date | null
 };
 
-export type PublicUser = Pick<FullUser, "id" | "username" | "avatarUrl" | "status" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
+export type PublicUser = Pick<FullUser, "id" | "username" | "avatarUrl" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 export interface AuthResponse {
   user: PublicUser;

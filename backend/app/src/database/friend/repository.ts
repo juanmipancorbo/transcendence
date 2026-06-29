@@ -2,7 +2,7 @@ import { pool } from "@utils/pg-pool";
 import { sql } from "@utils/sql";
 import { PublicUser } from "@endpoints/users-response";
 
-const FRIEND_DATA = `id, username, email, avatar_url AS "avatarUrl", games_played AS "gamesPlayed", games_won AS "gamesWon", games_lost AS "gamesLost", xp, level`;
+const FRIEND_DATA = `id, username, email, avatar_url AS "avatarUrl", current_game AS "currentGame", games_played AS "gamesPlayed", games_won AS "gamesWon", games_lost AS "gamesLost", xp, level`;
 
 export async function insertFriendRequest(senderId: string, receiverId: string): Promise<void> {
 	await pool.query(sql`

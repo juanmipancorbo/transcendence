@@ -193,7 +193,15 @@ export default function FriendProfilePage() {
 
                   {/* Friend action */}
                   <div className="flex flex-col items-center md:items-start gap-2">
-                  <div className="flex justify-center md:justify-start gap-3">
+                  <div className="flex justify-center md:justify-start gap-3 flex-wrap">
+                    {profile.status === "busy" && profile.currentGame && (
+                      <button
+                        onClick={() => window.open(`/game?id=${profile.currentGame}`, "_blank")}
+                        className="profile-edit-btn"
+                      >
+                        Watch Game
+                      </button>
+                    )}
                     {relation === "none" && (
                       <button onClick={handleAddFriend} disabled={busy} className="profile-edit-btn">
                         Add Friend
