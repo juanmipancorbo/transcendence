@@ -84,9 +84,10 @@ export default function LoginPage() {
               <form className="space-y-6" onSubmit={handleSubmit}>
 
                 <div className="field-group">
-                  <label className="field-label">Pilot_Identity</label>
+                  <label htmlFor="login-email" className="field-label">Pilot_Identity</label>
                   <div className="field-wrap">
                     <input
+                      id="login-email"
                       className="field-input"
                       placeholder="EMAIL ADDRESS"
                       type="email"
@@ -99,9 +100,10 @@ export default function LoginPage() {
                 </div>
 
                 <div className="field-group">
-                  <label className="field-label">Access_Code</label>
+                  <label htmlFor="login-password" className="field-label">Access_Code</label>
                   <div className="field-wrap">
                     <input
+                      id="login-password"
                       className="field-input"
                       placeholder="PASSWORD"
                       type="password"

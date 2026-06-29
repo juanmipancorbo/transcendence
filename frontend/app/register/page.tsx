@@ -100,9 +100,10 @@ export default function RegisterPage() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               {FIELDS.map(({ key, label, type, placeholder }) => (
                 <div key={key} className="field-group">
-                  <label className="field-label">{label}</label>
+                  <label htmlFor={`register-${key}`} className="field-label">{label}</label>
                   <div className="field-wrap">
                     <input
+                      id={`register-${key}`}
                       type={type}
                       placeholder={placeholder}
                       className="field-input"
