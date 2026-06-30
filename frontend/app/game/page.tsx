@@ -43,7 +43,7 @@ export default function GamePage() {
 
 
   if (joinError) return (
-    <ProtectedLayout activeRoute="/game">
+    <ProtectedLayout>
       <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
         <p className="text-on-surface-variant text-sm">Could not connect to game</p>
         <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinError}</p>
@@ -55,7 +55,7 @@ export default function GamePage() {
   );
 
   return (
-    <ProtectedLayout activeRoute="/game">
+    <ProtectedLayout>
       <main className="max-w-screen-2xl mx-auto px-8 py-12 flex flex-col md:flex-row gap-12 min-h-[calc(100vh-100px)]">
 
         {/* My panel */}

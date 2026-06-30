@@ -2,7 +2,7 @@ import ProtectedLayout from "@/components/layout/ProtectedLayout";
 
 export default function TermsPage() {
   return (
-    <ProtectedLayout activeRoute="/terms">
+    <ProtectedLayout>
       <main className="p-12 min-h-screen">
         <div className="max-w-4xl mx-auto">
 

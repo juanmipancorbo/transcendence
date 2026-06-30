@@ -37,6 +37,15 @@ export interface User {
 
 export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "status" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
+// A single message in a 1-to-1 chat (mirrors the backend ChatMessage).
+export interface ChatMessage {
+  id: string;
+  chatId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface LeaderboardEntry {
   rank: number;
   user: PublicUser;

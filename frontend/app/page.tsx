@@ -34,7 +34,7 @@ export default function LobbyPage() {
   const xpProgress = user ? (user.xp % 1000) / 10 : 0;
 
   return (
-    <ProtectedLayout activeRoute="/lobby">
+    <ProtectedLayout>
       <div className="p-8">
         <div className="max-w-screen-xl mx-auto flex flex-col gap-8">
 

@@ -15,7 +15,7 @@ export default function LeaderboardPage() {
   }, []);
 
   return (
-    <ProtectedLayout activeRoute="/leaderboard">
+    <ProtectedLayout>
       <main className="px-12 py-10 max-w-screen-2xl">
 
         {/* Header */}
