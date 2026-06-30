@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, CellState, PublicUser } from "@/types";
+import { type GameState, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, CellState, PublicUser, GlobalProtocol } from "@/types";
 import { GameSocket } from "@/lib/ws/socket";
 import { WS_URL } from "@/lib/config";
 import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
@@ -24,7 +24,7 @@ export function useQueue() {
 				return;
 			}
 			socket.ondisconnect = _ => { setSocket(null); setInQueue(false); }
-			socket.on(PreGameProtocol.MatchFound, r => {
+			socket.on(GlobalProtocol.MatchFound, r => {
 				const id = r.readPrefixedUTF();
 
 				setSocket(null);

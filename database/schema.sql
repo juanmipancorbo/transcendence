@@ -251,3 +251,91 @@ CREATE TABLE IF NOT EXISTS friend_requests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_friend_requests_receiver_id ON friend_requests(receiver_id);
+
+-- Chats: one row per 1-to-1 conversation (unordered pair of users).
+-- The pair is stored canonically with person1_id < person2_id (see the trigger
+-- below) so a conversation between A and B is a single row regardless of which
+-- side opened it. Unlike friends, chats carry their own id so messages can
+-- reference the conversation directly. The CHECK + UNIQUE guarantee canonical
+-- ordering and uniqueness even for direct inserts.
+CREATE TABLE IF NOT EXISTS chats (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    person1_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    person2_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chats_no_self CHECK (person1_id <> person2_id),
+    CONSTRAINT chats_ordered CHECK (person1_id < person2_id),
+    CONSTRAINT chats_unique_pair UNIQUE (person1_id, person2_id)
+);
+
+-- Sort the ids before insert/update so person1_id is always smaller than
+-- person2_id, avoiding logically duplicate rows (A,B) and (B,A).
+CREATE OR REPLACE FUNCTION trg_order_chat()
+RETURNS TRIGGER AS $$
+BEGIN
+	IF NEW.person1_id > NEW.person2_id THEN
+		SELECT NEW.person2_id, NEW.person1_id INTO NEW.person1_id, NEW.person2_id;
+	END IF;
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS chats_order ON chats;
+CREATE TRIGGER chats_order
+BEFORE INSERT OR UPDATE ON chats
+FOR EACH ROW
+EXECUTE FUNCTION trg_order_chat();
+
+-- Fetch the chat between two users, creating it on first contact. Returns the
+-- chat id regardless of argument order. Handy for the websocket layer, which
+-- needs a chat id before it can store an incoming message.
+CREATE OR REPLACE FUNCTION get_or_create_chat(a UUID, b UUID)
+RETURNS UUID AS $$
+DECLARE chat_id UUID;
+BEGIN
+	SELECT id INTO chat_id FROM chats
+		WHERE person1_id = LEAST(a, b) AND person2_id = GREATEST(a, b);
+	IF chat_id IS NULL THEN
+		INSERT INTO chats (person1_id, person2_id)
+			VALUES (LEAST(a, b), GREATEST(a, b))
+			ON CONFLICT (person1_id, person2_id) DO NOTHING
+			RETURNING id INTO chat_id;
+		-- Lost the race to a concurrent insert: read the row the other tx made.
+		IF chat_id IS NULL THEN
+			SELECT id INTO chat_id FROM chats
+				WHERE person1_id = LEAST(a, b) AND person2_id = GREATEST(a, b);
+		END IF;
+	END IF;
+	RETURN chat_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Messages belonging to a chat. Directional via sender_id; the receiver is the
+-- other member of the chat. Deleting a chat (or either user) cascades here.
+CREATE TABLE IF NOT EXISTS messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Paginating a conversation walks messages of one chat newest-first.
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id_created_at ON messages(chat_id, created_at DESC);
+
+-- Store a message from sender to receiver in a single round-trip: resolve (or
+-- create) their chat, insert the message, and return the stored row. Lets the
+-- backend send a message with one query instead of three.
+CREATE OR REPLACE FUNCTION send_message(sender UUID, receiver UUID, body TEXT)
+RETURNS messages AS $$
+DECLARE
+	chat_id UUID;
+	msg     messages;
+BEGIN
+	chat_id := get_or_create_chat(sender, receiver);
+	INSERT INTO messages (chat_id, sender_id, content)
+		VALUES (chat_id, sender, body)
+		RETURNING * INTO msg;
+	RETURN msg;
+END;
+$$ LANGUAGE plpgsql;

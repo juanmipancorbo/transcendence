@@ -104,10 +104,19 @@ export interface MatchFoundPayload {
 }
 
 // ─── WebSocket protocol (mirrors backend protocol.ts) ────────────────────────
-export enum PreGameProtocol {
-	Error = 0,
-	MatchFound = 1,
-	MatchmakeError = 2
+
+export enum GlobalProtocol {
+	KeepAlive = 0,
+	JoinCasualQueue = 1,
+	LeaveQueue = 2,
+	FriendReqSend = 3,
+	FriendReqReject = 4,
+	FriendReqAccept = 5,
+	Chat = 6,
+	MatchFound = 7,
+	Info = 8,
+	Error = 9,
+	Notification = 10
 }
 
 export enum Protocol {

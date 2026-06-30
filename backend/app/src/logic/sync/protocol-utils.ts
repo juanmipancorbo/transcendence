@@ -38,6 +38,14 @@ export function buildFriendRequest(from: UUID): BufferSource {
 		.freeze();
 }
 
+export function buildFriendChatMessage(sender: UUID, message: string): BufferSource {
+	return build(GlobalProtocol.Chat)
+		.writePrefixedUTF(sender)
+		.writePrefixedUTF(message)
+		.writeUint32(Date.now())
+		.freeze();
+}
+
 // In-Game
 
 /**
