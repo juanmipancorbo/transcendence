@@ -23,7 +23,7 @@ export function MsgProvider({ children }: { children: React.ReactNode }) {
 	const message = (message: string, timeMs?: number) => {
 		window.clearTimeout(timer.current);
 		setMsg({ msg: message, show: true, isError: false });
-		timer.current = window.setTimeout(() => setMsg({ ...msg, show: false }), timeMs ?? 3000);
+		timer.current = window.setTimeout(() => setMsg({ ...msg, show: false }), timeMs ?? 3000)
 	};
 
 	const error = (message: string, timeMs?: number) => {
