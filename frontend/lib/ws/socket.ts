@@ -53,10 +53,6 @@ export class GameSocket {
 		}
 	}
 
-	setupGlobal(): void {
-
-	}
-
 	disconnect(code: number): void {
 		this.ws.onclose = () => {}; // Avoid ondisconnect being called twice just in case
 		this.ws.close(code);
