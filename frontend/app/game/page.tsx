@@ -9,7 +9,6 @@ import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
 // TODO: Maybe visualize current spectators? listed in game.spectators, their profiles also in game.profiles
 
-
 export default function GamePage() {
   const router = useRouter();
   const searchParams = useSearchParams();

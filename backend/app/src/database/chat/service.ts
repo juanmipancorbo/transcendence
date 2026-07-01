@@ -17,6 +17,6 @@ export async function readChatHistory(userId: string, otherId: string, limit?: n
 		throw (new ApiError("INVALID_CREDENTIAL", 400));
 	const chatId = await Repo.selectChatId(userId, otherId);
 	if (!chatId)
-		return [];
+		throw (new ApiError("NOT_FRIENDS", 404));
 	return Repo.selectChatHistory(chatId, limit ?? DEFAULT_LIMIT, before);
 }

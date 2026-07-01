@@ -6,7 +6,7 @@ import { getTokens, useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar  from "@/components/layout/TopBar";
 import { GameSocket } from "@/lib/ws/socket";
-import { WsContext } from "@/hooks/useWs";
+import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
 import { MsgProvider } from "@/hooks/useMsg";
 import MsgBox from "@/components/layout/MsgBox";
@@ -20,6 +20,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [chats] = useState<Map<string, Chat>>(new Map());
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -67,7 +68,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 	    <div className="ml-64 flex flex-col min-h-screen">
           <TopBar withSidebar />
           <main className="flex-1">
-		    <WsContext.Provider value={{ socket }}>
+		    <WsContext.Provider value={{ socket, chats }}>
 			  {children}
 		    </WsContext.Provider>
           </main>

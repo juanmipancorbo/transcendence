@@ -1,4 +1,4 @@
-import { Board, CellState, Protocol } from "@/types";
+import { Board, CellState, GlobalProtocol, Protocol } from "@/types";
 
 export class ByteWriter {
 	private dv: DataView;
@@ -115,6 +115,8 @@ export function build(id: number): ByteWriter {
 	return new ByteWriter().writeUint8(id);
 }
 
+// ----- Game -----
+
 export function buildReadyToGame(): Uint8Array {
 	return build(Protocol.Ready).freeze();
 }
@@ -128,6 +130,15 @@ export function buildConsumeTurn(row: number, col: number): Uint8Array {
 
 export function buildChat(message: string) {
 	return build(Protocol.ChatMessage)
+		.writePrefixedUTF(message)
+		.freeze();
+}
+
+// ----- Global -----
+
+export function buildFriendChat(to: string, message: string): Uint8Array {
+	return build(GlobalProtocol.Chat)
+		.writePrefixedUTF(to)
 		.writePrefixedUTF(message)
 		.freeze();
 }

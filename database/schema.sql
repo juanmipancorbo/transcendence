@@ -310,6 +310,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Eagerly create the (empty) chat between two users the moment they become
+-- friends, so a missing chat row can safely mean "these users were never
+-- friends" (e.g. for the chat history endpoint to reject on), instead of
+-- needing a separate friends lookup.
+CREATE OR REPLACE FUNCTION trg_create_chat_on_friendship()
+RETURNS TRIGGER AS $$
+BEGIN
+	PERFORM get_or_create_chat(NEW.user1_id, NEW.user2_id);
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS friends_create_chat ON friends;
+CREATE TRIGGER friends_create_chat
+AFTER INSERT ON friends
+FOR EACH ROW
+EXECUTE FUNCTION trg_create_chat_on_friendship();
+
 -- Messages belonging to a chat. Directional via sender_id; the receiver is the
 -- other member of the chat. Deleting a chat (or either user) cascades here.
 CREATE TABLE IF NOT EXISTS messages (

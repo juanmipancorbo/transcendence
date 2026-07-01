@@ -7,6 +7,7 @@ import { WS_URL } from "@/lib/config";
 import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
 import api from "@/lib/api";
 import { getTokens } from "./useAuth";
+import { useMsg } from "./useMsg";
 
 export type LogEntry =
 	| { type: 'move';    byMe: boolean; col: string; row: number; flips: number; turn: number }
@@ -75,6 +76,7 @@ function formatMs(ms: number) {
 
 export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const tokens = getTokens();
+	const { message, error } = useMsg();
 
 	const [socket, setSocket] = useState<GameSocket | null>(null);
 	const [state, setState] = useState<GameState | null>(null);
@@ -82,7 +84,6 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
 	const [spectators, setSpectators] = useState<string[]>([]);
 	const [profiles, setProfiles] = useState(new Map<string, PublicUser>());
-	const [gameMessage, setGameMessage] = useState();
 	const [timeLeftFormat, setTimeLeftFormat] = useState("");
 	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");
 	const [messages, setMessages] = useState<Array<{ sender: string, message: string }>>([]);
@@ -167,9 +168,9 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onOpponentAbandon(_: ByteReader) {
-		setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false });
+		message("Your opponent abandoned the game");
 		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
-		setYourTurn(false);   yourTurnRef.current = false;
+		setYourTurn(false);  yourTurnRef.current = false;
 		setOpponentTurn(false);
 		setState(prev => {
 			if (!prev) return prev;
@@ -189,7 +190,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onError(p: ByteReader) {
-		setGameMessage({ msg: p.readPrefixedUTF(), show: true, isError: true });
+		error(p.readPrefixedUTF());
 	}
 
 	function onBoardInit(p: ByteReader) {
@@ -281,7 +282,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onGameStart(_: ByteReader) {
-		setGameMessage({ msg: "The game has started", isError: false, show: true });
+		message("The game has started");
 		setState(prev => {
 			if (!prev) return prev;
 			const next = { ...prev, status: "ACTIVE" as GameStatus };
@@ -311,11 +312,11 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onNoMoves(_: ByteReader) {
-		setGameMessage({ msg: "You can't move so your opponent gets to move again", show: true, isError: false });
+		message("You can't move so your opponent gets to move again");
 	}
 
 	function onOpponentNoMoves(_: ByteReader) {
-		setGameMessage({ msg: "Your opponent can't move, so it's your turn again", show: true, isError: false });
+		message("Your opponent can't move, so it's your turn again");
 	}
 
 	function onNewXp(p: ByteReader) {
@@ -388,11 +389,6 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		});
 	}, [spectators, state]);
 
-	useEffect(() => {
-		if (!gameMessage.show) return;
-		setTimeout(() => setGameMessage({...gameMessage, show: false}), 2000);
-	}, [gameMessage]);
-
 	const makeMove = (row: number, col: number) => {
 		const state    = stateRef.current;
 		const yourTurn = yourTurnRef.current;
@@ -428,7 +424,6 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		socket,
 		state,
 		yourTurn,
-		gameMessage,
 		opponentTurn,
 		timeLeftFormat,
 		opponentTimeLeftFormat,
