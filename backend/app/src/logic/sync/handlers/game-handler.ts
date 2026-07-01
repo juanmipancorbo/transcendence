@@ -11,10 +11,10 @@ export enum Protocol {
 	ChatMessage = 3,
 	SpectatorJoin = 4,
 	SpectatorLeave = 5,
-	YourTurn = 6,
-	OpponentTurn = 7,
-	NoMoves = 8,
-	OpponentNoMoves = 9,
+	BlackTurn = 6,
+	WhiteTurn = 7,
+	BlackNoMoves = 8,
+	WhiteNoMoves = 9,
 	PlayerAbandon = 10,
 	OpponentAbandon = 11,
 	Board = 12,
@@ -34,7 +34,7 @@ function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlaye
 	game.consumeTurn(conn, pos);
 }
 
-function onReady(_: ByteReader, game: GameSession, conn: SessionPlayer) {
+function onReady(_: ByteReader, game: GameSession, _player: SessionPlayer, conn: Socket) {
 	game.playerReady(conn);
 }
 

@@ -10,22 +10,12 @@ export default function LobbyPage() {
 
   const { inQueue, joinQueue, leaveQueue } = useQueue();
   const [elapsed,  setElapsed]  = useState(0);
-  const router = useRouter();
 
   useEffect(() => {
     if (!inQueue) { setElapsed(0); return; }
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
   }, [inQueue]);
-
-  function matchFound(e: string | Error) {
-    if (e instanceof Error) {
-      console.error(e.message);
-	  return;
-	}
-	console.log(`Match found with id ${e}`);
-    router.push(`/game?id=${e}`);
-  }
 
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;

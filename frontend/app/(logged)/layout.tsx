@@ -9,10 +9,10 @@ import { GameSocket } from "@/lib/ws/socket";
 import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
 import { useMsg } from "@/hooks/useMsg";
-import { ByteReader } from "@/lib/ws/stream-utils";
+import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
 import { chatApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
-import { GlobalProtocol } from "@/types";
+import { GlobalProtocol, ProtocolCodes } from "@/types";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -102,7 +102,13 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // ------- WS Callbacks -------
   function onError(p: ByteReader) {
-    error(p.readPrefixedUTF());
+    const message = p.readPrefixedUTF();
+	const code = p.readUint8();
+    error(message);
+	if (code === ProtocolCodes.QueueFailed) {
+      setInQueue(false);
+      console.log("[Matchmaking] Left queue");
+	}
   }
 
   function onInfoMessage(p: ByteReader) {
@@ -111,9 +117,11 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   function onMatchFound(p: ByteReader) {
     const gameId = p.readPrefixedUTF();
-    const _opponent = p.readPrefixedUTF();
+    const _opponent = p.readPrefixedUTF(); // TODO: An animation or something maybe?
 
-    // TODO
+	setInQueue(false);
+    console.log(`Match found with id ${gameId}`);
+    router.push(`/game?id=${gameId}`);
   }
 
   function onFriendRequest(p: ByteReader) {
@@ -163,11 +171,15 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   }
 
   function joinQueue() {
-    
+    socket?.send(buildJoinQueue());
+	setInQueue(true);
+    console.log("[Matchmaking] Joined queue");
   }
 
   function leaveQueue() {
-
+    socket?.send(buildLeaveQueue());
+	setInQueue(false);
+    console.log("[Matchmaking] Left queue");
   }
   // ------- Ws Context Functions End -------
 

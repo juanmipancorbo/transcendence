@@ -162,3 +162,9 @@ export function buildFriendChat(to: string, message: string): Uint8Array {
 		.writePrefixedUTF(message)
 		.freeze();
 }
+
+export function buildJoinGame(gameId: string): Uint8Array {
+	return build(GlobalProtocol.JoinGame)
+		.writePrefixedUTF(gameId)
+		.freeze();
+}

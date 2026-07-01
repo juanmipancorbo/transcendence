@@ -4,7 +4,7 @@ import { Board, getValidMoves, Position, STATUS_ACTIVE } from "../game";
 import { GameSession, PositionUpdate } from "./session";
 
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
-import { Protocol as GlobalProtocol } from "./handlers/global-handler";
+import { Protocol as GlobalProtocol, ProtocolCodes } from "./handlers/global-handler";
 
 export function build(typeId: number): ByteWriter {
 	return new ByteWriter().writeUint8(typeId);
@@ -15,7 +15,7 @@ export function build(typeId: number): ByteWriter {
 export function buildError(message: string, code?: number): BufferSource {
 	return build(GlobalProtocol.Error)
 		.writePrefixedUTF(message)
-		.writeUint8(code ?? 0)
+		.writeUint8(code ?? ProtocolCodes.Generic)
 		.freeze();
 }
 
@@ -122,8 +122,8 @@ export function buildMoveUpdate(/*player: Player, move: Position, */updates: Pos
 	return writer.freeze();
 }
 
-export function buildYourTurn(moves: Position[], timeToLose: number): BufferSource {
-	const writer = build(GameProtocol.YourTurn)
+export function buildBlackTurn(moves: Position[], timeToLose: number): BufferSource {
+	const writer = build(GameProtocol.BlackTurn)
 		.writeInt32(timeToLose)
 		.writeUint32(moves.length);
 	moves.forEach(m => {
@@ -134,10 +134,26 @@ export function buildYourTurn(moves: Position[], timeToLose: number): BufferSour
 	return writer.freeze();
 }
 
-export function buildOpponentTurn(opponentTimeToLose: number): BufferSource {
-	return build(GameProtocol.OpponentTurn)
-		.writeInt32(opponentTimeToLose)
-		.freeze()
+export function buildWhiteTurn(moves: Position[], timeToLose: number): BufferSource {
+	const writer = build(GameProtocol.WhiteTurn)
+		.writeInt32(timeToLose)
+		.writeUint32(moves.length);
+	moves.forEach(m => {
+		writer.writeUint8(m.row);
+		writer.writeUint8(m.col);
+	});
+
+	return writer.freeze();
+}
+
+export function buildBlackNoMoves(): BufferSource {
+	return build(GameProtocol.BlackNoMoves)
+		.freeze();
+}
+
+export function buildWhiteNoMoves(): BufferSource {
+	return build(GameProtocol.WhiteNoMoves)
+		.freeze();
 }
 
 export function buildGameEnd(game: GameSession): BufferSource {

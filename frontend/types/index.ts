@@ -124,10 +124,17 @@ export enum GlobalProtocol {
 	FriendReqReject = 4,
 	FriendReqAccept = 5,
 	Chat = 6,
-	MatchFound = 7,
-	Info = 8,
-	Error = 9,
-	Notification = 10
+	JoinGame = 7,
+	MatchFound = 8,
+	Info = 9,
+	Error = 10,
+	Notification = 11
+}
+
+export enum ProtocolCodes {
+	Generic = 0,
+	FriendReqFailed = 1,
+	QueueFailed = 2
 }
 
 export enum Protocol {
@@ -137,10 +144,10 @@ export enum Protocol {
 	ChatMessage = 3,
 	SpectatorJoin = 4,
 	SpectatorLeave = 5,
-	YourTurn = 6,
-	OpponentTurn = 7,
-	NoMoves = 8,
-	OpponentNoMoves = 9,
+	BlackTurn = 6,
+	WhiteTurn = 7,
+	BlackNoMoves = 8,
+	WhiteNoMoves = 9,
 	PlayerAbandon = 10,
 	OpponentAbandon = 11,
 	Board = 12,
@@ -148,6 +155,7 @@ export enum Protocol {
 	MoveUpdate = 14,
 	GameStart = 15,
 	GameEnd = 16,
-	Error = 17,
-	XpUpdate = 18
+	XpUpdate = 17,
+	Error = 18,
+	FatalError = 19
 };

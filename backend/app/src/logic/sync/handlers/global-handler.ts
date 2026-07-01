@@ -26,6 +26,7 @@ export enum Protocol {
 export enum ProtocolCodes {
 	Generic = 0,
 	FriendReqFailed = 1,
+	QueueFailed = 2
 }
 
 export let waiting: Socket | null = null;
@@ -44,7 +45,7 @@ function onQueueCasual(_: ByteReader, conn: Socket) {
 		waiting = conn;
 		return;
 	} else if (waiting.id === conn.id)
-		return conn.close(CloseCodes.Error, "You are already in queue");
+		return conn.send(buildError("You are already in queue", ProtocolCodes.QueueFailed));
 	const game = createGameSession(waiting.id, conn.id, true /* TODO: Maybe take into account user settings */, false, 100);
 	const tmp = waiting;
 	waiting = null;

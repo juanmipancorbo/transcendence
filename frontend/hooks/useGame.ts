@@ -34,7 +34,6 @@ export function useQueue() {
 		});
 		setSocket(socket);
 		setInQueue(true);
-		console.log("[Matchmaking] Joined queue");
 	}
 
 	const leaveQueue = () => {

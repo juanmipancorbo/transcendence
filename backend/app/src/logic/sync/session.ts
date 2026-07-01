@@ -1,7 +1,7 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
 import { Socket } from "./socket";
-import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildXpUpdate, buildYourTurn } from "./protocol-utils";
+import { build, buildBlackNoMoves, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildSpectatorJoin, buildSpectatorLeave, buildWhiteNoMoves, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
 import { updateUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
@@ -73,6 +73,7 @@ export class GameSession {
 	timeLimit: number; // In seconds, -1 for unlimited
 	moves: PlayerMove[] = [];
 	messages: Message[] = [];
+	whenReadys: Map<Socket, () => void> = new Map();
 	startedAt?: number;
 	finishedAt?: number;
 
@@ -108,10 +109,10 @@ export class GameSession {
 				return;
 			}
 		}
-		this.broadcast(buildSpectatorJoin(conn.id));
 		const player = new SessionPlayer(conn.id, -1, this);
 		conn.player = player;
 		this.spectators.add(player);
+		this.whenReady(conn, () => this.broadcast(buildSpectatorJoin(conn.id)));
 	}
 
 	broadcast(buf: BufferSource) {
@@ -130,7 +131,7 @@ export class GameSession {
 		} else if (this.allowSpectators) {
 			this.joinGameAsSpec(conn);
 		} else return new Error("This game doesn't allow spectators");
-		conn.send(buildGameState(this, (conn.player as SessionPlayer).player as Player))
+		this.whenReady(conn, () => conn.send(buildGameState(this, (conn.player as SessionPlayer).player as Player)));
 	}
 
 	closeSession() {
@@ -138,6 +139,16 @@ export class GameSession {
 		this.blackPlayer.conn.forEach(c => c.close());
 		this.whitePlayer.conn.forEach(c => c.close());
 		this.spectators.forEach(s => s.conn.forEach(c => c.close()));
+	}
+
+	whenReady(conn: Socket, callback: () => void) {
+		const cb = this.whenReadys.get(conn);
+		if (cb) { // Avoid overwriting old callback and cause packet loss
+			this.whenReadys.set(conn, () => {
+				cb();
+				callback();
+			});
+		} else this.whenReadys.set(conn, callback);
 	}
 
 	// Determines the winner, if no winner is set it stops the game with a draw
@@ -156,9 +167,14 @@ export class GameSession {
 			.finally(() => this.closeSession());
 	}
 
-	playerReady(conn: SessionPlayer) {
-		if (!conn.ready) {
-			conn.ready = true;
+	playerReady(conn: Socket) {
+		const cb = this.whenReadys.get(conn);
+		if (cb) {
+			cb();
+			this.whenReadys.delete(conn);
+		}
+		if (conn.player && !conn.player.ready) {
+			conn.player.ready = true;
 			if (this.blackPlayer.ready && this.whitePlayer.ready) {
 				this.state.status = STATUS_ACTIVE;
 				this.broadcast(build(GameProtocol.GameStart).freeze());
@@ -204,9 +220,9 @@ export class GameSession {
 		// Send state updates to whole game
 		this.broadcast(buildMoveUpdate(updates));
 
-		const opponent = conn.player === BLACK ? this.whitePlayer : this.blackPlayer;
-		conn.send(build(GameProtocol.OpponentNoMoves).freeze());
-		opponent.send(build(GameProtocol.NoMoves).freeze());
+		if (conn.player === this.state.currentTurn) {
+			this.broadcast(conn.player === BLACK ? buildWhiteNoMoves() : buildBlackNoMoves());
+		}
 		addGameMovement(this.id, conn.id, pos).catch(e => console.error(e));
 		if (this.timeLimit !== -1)
 			setUserTimeLeft(this.id, conn.id, conn.timeLeft).catch(e => console.error(e));
@@ -219,7 +235,6 @@ export class GameSession {
 			this.reportFinished();
 		else if (this.state.currentTurn === BLACK) {
 			let timeToLose = -1;
-			this.whitePlayer.send(buildOpponentTurn(this.whitePlayer.timeLeft));
 
 			if (this.timeLimit !== -1) {
 				timeToLose = this.blackPlayer.timeLeft;
@@ -232,10 +247,9 @@ export class GameSession {
 				}, this.blackPlayer.timeLeft);
 			}
 
-			this.blackPlayer.send(buildYourTurn(getValidMoves(this.state.board, BLACK), timeToLose));
+			this.broadcast(buildBlackTurn(getValidMoves(this.state.board, BLACK), timeToLose));
 		} else if (this.state.currentTurn === WHITE) {
 			let timeToLose;
-			this.blackPlayer.send(buildOpponentTurn(this.blackPlayer.timeLeft));
 
 			if (this.timeLimit !== -1) {
 				timeToLose = this.whitePlayer.timeLeft;
@@ -247,7 +261,7 @@ export class GameSession {
 				}, this.whitePlayer.timeLeft);
 			} else timeToLose = -1;
 
-			this.whitePlayer.send(buildYourTurn(getValidMoves(this.state.board, WHITE), timeToLose));
+			this.broadcast(buildWhiteTurn(getValidMoves(this.state.board, WHITE), timeToLose));
 		}
 	}
 
