@@ -8,6 +8,7 @@ import TopBar  from "@/components/layout/TopBar";
 import { GameSocket } from "@/lib/ws/socket";
 import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
+import { useMsg } from "@/hooks/useMsg";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -16,9 +17,10 @@ interface ProtectedLayoutProps {
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
+  const { message, error } = useMsg();
   const [socket, setSocket] = useState<GameSocket | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [chats] = useState<Map<string, Chat>>(new Map());
+  const [fatalError, setFatalError] = useState<string | null>(null);
+  const [chats, setChats] = useState<Map<string, Chat>>(new Map());
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -28,18 +30,18 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 	const tokens = getTokens();
 	if (!socket && isAuthenticated && tokens) {
       const sock = new GameSocket(WS_URL + "/ws/create", tokens.accessToken, (e) => {
-		if (e) return setError(`Connection error: ${e.message}`);
+		if (e) return setFatalError(`Connection error: ${e.message}`);
 		setSocket(sock);
 	  });
 	}
   }, [isAuthenticated, isLoading, router]);
 
-  if (error) {
+  if (fatalError) {
     return (
       <div className="dark min-h-screen bg-background text-on-surface flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-          <p className="mt-4 label-micro">{error}</p>
+          <p className="mt-4 label-micro">{fatalError}</p>
         </div>
       </div>
     );
