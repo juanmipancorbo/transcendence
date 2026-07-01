@@ -99,6 +99,12 @@ export function buildGameError(message: string): BufferSource {
 		.freeze();
 }
 
+export function buildGameFatalError(message: string): BufferSource {
+	return build(GameProtocol.FatalError)
+		.writePrefixedUTF(message)
+		.freeze();
+}
+
 export function buildBoard(board: Board) {
 	return build(GameProtocol.Board)
 		.writeBoard(board)

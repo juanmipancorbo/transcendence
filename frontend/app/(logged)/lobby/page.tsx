@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueue } from "@/hooks/useGame";
 import { useRouter } from "next/navigation";
@@ -34,7 +33,7 @@ export default function LobbyPage() {
   const xpProgress = user ? (user.xp % 1000) / 10 : 0;
 
   return (
-    <ProtectedLayout>
+    <>
       <div className="p-8">
         <div className="max-w-screen-xl mx-auto flex flex-col gap-8">
 
@@ -109,7 +108,7 @@ export default function LobbyPage() {
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "GLOBAL_RANK", value: `#${/*TODO user?.rank ?? */0}`,   color: "text-primary" },
+              { label: "GLOBAL_RANK", value: `#${/*TODO: user?.rank ?? */0}`,   color: "text-primary" },
               { label: "WINS",        value: user?.gamesWon ?? 0,          color: "text-secondary" },
               { label: "LOSSES",      value: user?.gamesLost ?? 0,        color: "text-on-surface-variant" },
               { label: "WIN_RATE",    value: `${user ? Math.round(user.gamesWon / (user.gamesWon + user.gamesLost) * 100) : 0}%`, color: "text-tertiary" },
@@ -122,6 +121,6 @@ export default function LobbyPage() {
           </div>
         </div>
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

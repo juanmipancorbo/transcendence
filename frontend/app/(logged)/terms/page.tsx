@@ -1,8 +1,6 @@
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
-
 export default function TermsPage() {
   return (
-    <ProtectedLayout>
+    <>
       <main className="p-12 min-h-screen">
         <div className="max-w-4xl mx-auto">
 
@@ -193,6 +191,6 @@ export default function TermsPage() {
         <div className="ambient-blob -top-[10%] -right-[5%] w-[600px] h-[600px] bg-violet-600/5 blur-[120px]" />
         <div className="ambient-blob -bottom-[20%] -left-[10%] w-[800px] h-[800px] bg-primary/5 blur-[150px]" />
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

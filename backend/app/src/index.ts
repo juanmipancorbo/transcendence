@@ -4,7 +4,7 @@ import { router as routerUser } from "@databaseAccess/user/router";
 import { router as routerAuth } from "@databaseAccess/auth/router";
 import { router as routerFriend } from "@databaseAccess/friend/router";
 import { router as routerChat } from "@databaseAccess/chat/router";
-import { join, joinMiddl, create } from "./websockets";
+import { create } from "./websockets";
 import { errorHandler } from "./middleware/error-middleware";
 
 const { app } = expressWs(express());
@@ -36,8 +36,6 @@ app.use((req, res, next) => {
 
 // WebSockets endpoints.
 // do not make a router as express-ws with routers is a pain
-app.use("/ws/join", joinMiddl);
-app.ws("/ws/join", join);
 app.ws("/ws/create", create);
 
 // Healthcheck to see if server is up

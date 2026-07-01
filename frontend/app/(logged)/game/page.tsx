@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useGame, type LogEntry } from "@/hooks/useGame";
 import { BLACK, WHITE } from "@/types";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -42,19 +41,17 @@ export default function GamePage() {
 
 
   if (joinError) return (
-    <ProtectedLayout>
-      <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
-        <p className="text-on-surface-variant text-sm">Could not connect to game</p>
-        <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinError}</p>
-        <button onClick={() => router.push("/lobby")} className="btn-ghost">
-          Back to Lobby
-        </button>
-      </main>
-    </ProtectedLayout>
+    <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
+      <p className="text-on-surface-variant text-sm">Could not connect to game</p>
+      <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinError}</p>
+      <button onClick={() => router.push("/lobby")} className="btn-ghost">
+        Back to Lobby
+      </button>
+    </main>
   );
 
   return (
-    <ProtectedLayout>
+    <>
       <main className="max-w-screen-2xl mx-auto px-8 py-12 flex flex-col md:flex-row gap-12 min-h-[calc(100vh-100px)]">
 
         {/* My panel */}
@@ -162,7 +159,7 @@ export default function GamePage() {
         <div className="ambient-blob top-[10%] left-[5%] w-96 h-96 bg-primary/5 blur-[120px]" />
         <div className="ambient-blob bottom-[10%] right-[5%] w-96 h-96 bg-tertiary/5 blur-[120px]" />
       </div>
-    </ProtectedLayout>
+    </>
   );
 }
 

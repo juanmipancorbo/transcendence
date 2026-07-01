@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import { friendApi, userApi } from "@/lib/api";
 import type { PublicUser } from "@/types";
@@ -50,7 +49,7 @@ export default function ProfilePage() {
   const victories     = profile?.gamesWon ?? user?.gamesWon ?? 0;
 
   return (
-    <ProtectedLayout>
+    <>
       <main className="flex-grow p-12 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-12">
 
@@ -184,6 +183,6 @@ export default function ProfilePage() {
         <div className="ambient-blob -top-[10%] -right-[10%] w-[50%] h-[50%] blur-[120px]" style={{ background: "rgba(0,238,252,0.03)"   }} />
         <div className="ambient-blob -bottom-[5%]  -left-[5%]  w-[40%] h-[40%] blur-[100px]" style={{ background: "rgba(172,138,255,0.03)" }} />
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

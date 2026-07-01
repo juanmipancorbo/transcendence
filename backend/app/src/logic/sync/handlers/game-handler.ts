@@ -22,8 +22,9 @@ export enum Protocol {
 	MoveUpdate = 14,
 	GameStart = 15,
 	GameEnd = 16,
-	Error = 17,
-	XpUpdate = 18
+	XpUpdate = 17,
+	Error = 18,
+	FatalError = 19
 };
 
 function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlayer) {

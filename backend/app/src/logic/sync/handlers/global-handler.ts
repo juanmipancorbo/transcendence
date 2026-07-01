@@ -1,9 +1,9 @@
 import { RawData } from "ws";
 import { ByteReader } from "../stream-utils/reader";
 import { CloseCodes, getSocksById, Socket } from "../socket";
-import { createGameSession } from "../session";
+import { createGameSession, SESSIONS } from "../session";
 import gameHandler from "./game-handler";
-import { buildError, buildFriendChatMessage, buildFriendRequest, buildInfoMessage, buildMatchFound } from "../protocol-utils";
+import { buildError, buildFriendChatMessage, buildFriendRequest, buildGameFatalError, buildInfoMessage, buildMatchFound } from "../protocol-utils";
 import { declineFriendRequest, sendFriendRequest } from "@databaseAccess/friend/service";
 import { UUID } from "node:crypto";
 import { addChatMessage } from "@databaseAccess/chat/service";
@@ -16,10 +16,11 @@ export enum Protocol {
 	FriendReqReject = 4,
 	FriendReqAccept = 5,
 	Chat = 6,
-	MatchFound = 7,
-	Info = 8,
-	Error = 9,
-	Notification = 10
+	JoinGame = 7,
+	MatchFound = 8,
+	Info = 9,
+	Error = 10,
+	Notification = 11
 }
 
 export enum ProtocolCodes {
@@ -137,6 +138,26 @@ function onChat(p: ByteReader, conn: Socket) {
 	}
 }
 
+function onJoinGame(p: ByteReader, conn: Socket) {
+	const gameId = p.readPrefixedUTF();
+	conn.handler = gameHandler;
+	conn.status = "busy";
+	const game = SESSIONS.get(gameId as UUID);
+	if (!game) {
+		conn.handler = handler;
+		conn.status = "online";
+		conn.send(buildGameFatalError("Game doesn't exist"));
+		return;
+	}
+
+	const res = game.joinGame(conn);
+	if (res instanceof Error) {
+		conn.handler = handler;
+		conn.status = "online";
+		conn.send(buildGameFatalError("This game doesn't allow spectators"));
+	}
+}
+
 const callbacks: Array<(read: ByteReader, sock: Socket) => void> = [];
 
 callbacks[Protocol.KeepAlive] = onKeepAlive;
@@ -146,6 +167,7 @@ callbacks[Protocol.FriendReqSend] = onFriendRequestSend;
 callbacks[Protocol.FriendReqReject] = onFriendRequestReject;
 callbacks[Protocol.FriendReqAccept] = onFriendRequestAccept;
 callbacks[Protocol.Chat] = onChat;
+callbacks[Protocol.JoinGame] = onJoinGame;
 
 export default function handler(data: RawData, conn: Socket) {
 	const reader = new ByteReader(data);
