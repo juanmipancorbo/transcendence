@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
+import { MsgProvider } from "@/hooks/useMsg";
+import MsgBox from "@/components/layout/MsgBox";
 
 export const metadata: Metadata = {
   title: "FT_TRANSCENDANCE | Reversi Arena",
@@ -16,7 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-background text-on-surface antialiased">
         <AuthProvider>
-          {children}
+          <MsgProvider>
+            {children}
+            <MsgBox />
+          </MsgProvider>
         </AuthProvider>
       </body>
     </html>

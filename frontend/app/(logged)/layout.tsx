@@ -8,8 +8,6 @@ import TopBar  from "@/components/layout/TopBar";
 import { GameSocket } from "@/lib/ws/socket";
 import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
-import { MsgProvider } from "@/hooks/useMsg";
-import MsgBox from "@/components/layout/MsgBox";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -64,7 +62,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   return (
     <div className="dark min-h-screen bg-background text-on-surface">
-	  <MsgProvider>
 	    <div className="ml-64 flex flex-col min-h-screen">
           <TopBar withSidebar />
           <main className="flex-1">
@@ -73,8 +70,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 		    </WsContext.Provider>
           </main>
         </div>
-		<MsgBox />
-	  </MsgProvider>
       <Sidebar />
     </div>
   );

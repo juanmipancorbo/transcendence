@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 	else console.warn(`${FAILURE_COLOR}[${res.statusCode}] ${req.method} ${req.path} latency=${Math.round(after - before)}ms${RESET_COLOR}`);
 });
 
-// WebSockets endpoints.
+// WebSockets endpoint(s).
 // do not make a router as express-ws with routers is a pain
 app.ws("/ws/create", create);
 
