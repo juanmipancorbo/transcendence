@@ -50,19 +50,6 @@ function onQueueCasual(_: ByteReader, conn: Socket) {
 	waiting = null;
 	tmp.send(buildMatchFound(game, conn.id));
 	conn.send(buildMatchFound(game, tmp.id));
-	const res = game.joinGame(conn);
-	if (res instanceof Error) {
-		conn.send(buildError(`Failed to join game: ${res.message}`));
-		return;
-	}
-	conn.handler = gameHandler;
-
-	const resOther = game.joinGame(tmp);
-	if (resOther instanceof Error) {
-		tmp.send(buildError(`Failed to join game: ${resOther.message}`));
-		return;
-	}
-	tmp.handler = gameHandler;
 }
 
 function onQueueLeave(_: ByteReader, conn: Socket) {

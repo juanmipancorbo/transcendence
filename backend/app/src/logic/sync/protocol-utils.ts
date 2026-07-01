@@ -42,7 +42,6 @@ export function buildFriendChatMessage(sender: UUID, message: string): BufferSou
 	return build(GlobalProtocol.Chat)
 		.writePrefixedUTF(sender)
 		.writePrefixedUTF(message)
-		.writeUint32(Date.now())
 		.freeze();
 }
 

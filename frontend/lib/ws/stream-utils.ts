@@ -136,6 +136,26 @@ export function buildChat(message: string) {
 
 // ----- Global -----
 
+export function buildJoinQueue(): Uint8Array {
+	return build(GlobalProtocol.JoinCasualQueue).freeze();
+}
+
+export function buildLeaveQueue(): Uint8Array {
+	return build(GlobalProtocol.LeaveQueue).freeze();
+}
+
+export function buildFriendRequest(receiverId: string): Uint8Array {
+	return build(GlobalProtocol.FriendReqSend)
+		.writePrefixedUTF(receiverId)
+		.freeze();
+}
+
+export function buildFriendRequestReject(senderId: string): Uint8Array {
+	return build(GlobalProtocol.FriendReqReject)
+		.writePrefixedUTF(senderId)
+		.freeze();
+}
+
 export function buildFriendChat(to: string, message: string): Uint8Array {
 	return build(GlobalProtocol.Chat)
 		.writePrefixedUTF(to)

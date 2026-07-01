@@ -1,31 +1,27 @@
 "use client";
 
-import { chatApi } from "@/lib/api";
 import { GameSocket } from "@/lib/ws/socket";
-import { ChatMessage } from "@/types";
+import { ByteReader } from "@/lib/ws/stream-utils";
+import { SChatMessage } from "@/types";
 import { createContext, useContext } from "react";
-import { getTokens } from "./useAuth";
 
-export class Chat {
+export interface Chat {
 	friendId: string;
 	chatId: string;
-	messages: ChatMessage[] =  [];
-
-	constructor(friendId: string, chatId: string) {
-		this.friendId = friendId;
-		this.chatId = chatId;
-	}
-
-	async loadMoreMessages() {
-		const before = this.messages.length ? new Date(this.messages[this.messages.length - 1].createdAt) : new Date();
-		const data = await chatApi.getHistory(getTokens()!.accessToken, this.friendId, { before: before.toISOString(), limit: 50 });
-		this.messages.push(...data);
-	}
+	messages: SChatMessage[];
+	isFinal: boolean;
+	loadMoreMessages: () => Promise<void>;
 }
 
 interface WsContextValue {
 	socket: GameSocket,
-	chats: Map<string, Chat> // Friend id, chat
+	chats: Map<string, Chat>, // Friend id, chat
+	globalHandler: ((p: ByteReader) => void)[],
+	inQueue: boolean,
+	openChat: (friendId: string) => void,
+	closeChat: () => void,
+	joinQueue: () => void,
+	leaveQueue: () => void
 }
 
 export const WsContext = createContext<WsContextValue | null>(null);

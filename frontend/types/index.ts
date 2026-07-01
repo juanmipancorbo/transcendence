@@ -46,6 +46,8 @@ export interface ChatMessage {
   createdAt: string;
 }
 
+export type SChatMessage = Pick<ChatMessage, "senderId" | "content" | "createdAt">;
+
 export interface LeaderboardEntry {
   rank: number;
   user: PublicUser;

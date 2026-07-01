@@ -67,10 +67,6 @@ export class GameSocket {
 		if (this.isConnected) this.ws.send(payload);
 	}
 
-	on(typeId: number, listener: (payload: ByteReader) => void) {
-		this.handlers[typeId] = listener;
-	}
-
 	get isConnected(): boolean {
 		return this.ws.readyState === WebSocket.OPEN;
 	}

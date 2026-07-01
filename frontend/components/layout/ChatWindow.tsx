@@ -8,82 +8,43 @@ import { userApi } from "@/lib/api";
 import { buildFriendChat } from "@/lib/ws/stream-utils";
 import { PublicUser } from "@/types";
 
-const HISTORY_PAGE_SIZE = 50;
-
 interface ChatWindowProps {
-	friendId: string;
+	chat: Chat;
 	onClose: () => void;
 }
 
-export default function ChatWindow({ friendId, onClose }: ChatWindowProps) {
-	const { socket, chats } = useWs();
+export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
+	const { socket } = useWs();
 	const { error } = useMsg();
 	const { user } = useAuth();
 
-	const [ready, setReady] = useState(false);
 	const [friend, setFriend] = useState<PublicUser | null>(null);
 	const [collapsed, setCollapsed] = useState(false);
 	const [draft, setDraft] = useState("");
 	const [loadingHistory, setLoadingHistory] = useState(false);
-	const [hasMore, setHasMore] = useState(true);
 
 	const bottomRef = useRef<HTMLDivElement>(null);
 
-	// chats is expected to live as state on the layout, so any message it receives
-	// (history load, live incoming, our own sends) is just read straight from here.
-	const chat = chats.get(friendId);
-	const messages = chat?.messages ?? [];
+	const messages = chat.messages;
+	const hasMore = !chat.isFinal;
 
-	// Fetch the friend's profile for the header, and make sure a Chat exists in the
-	// shared cache, loading its first page of history if it hasn't been fetched yet.
-	// There's no separate friendship check: the backend rejects history requests for
-	// a non-friend, and that rejection is what tells us not to open this window.
+	// The Chat itself carries no profile info, so the header still needs its own
+	// fetch for the friend's username/avatar/status.
 	useEffect(() => {
 		let cancelled = false;
-		setReady(false);
-
-		userApi.getProfile(friendId).then(p => { if (!cancelled) setFriend(p); }).catch(() => {});
-
-		let target = chats.get(friendId);
-		if (!target) {
-			target = new Chat(friendId, "");
-			chats.set(friendId, target);
-		}
-
-		if (target.messages.length > 0) {
-			setReady(true);
-			return () => { cancelled = true; };
-		}
-
-		setLoadingHistory(true);
-		target.loadMoreMessages()
-			.then(() => {
-				if (cancelled) return;
-				setHasMore(target!.messages.length >= HISTORY_PAGE_SIZE);
-				setReady(true);
-			})
-			.catch(err => {
-				if (cancelled) return;
-				const notFriends = err instanceof Error && err.message === "NOT_FRIENDS";
-				error(notFriends ? "You can only chat with friends" : "Could not open this chat");
-				onClose();
-			})
-			.finally(() => { if (!cancelled) setLoadingHistory(false); });
-
+		userApi.getProfile(chat.friendId).then(p => { if (!cancelled) setFriend(p); }).catch(() => {});
 		return () => { cancelled = true; };
-	}, [friendId]);
+	}, [chat.friendId]);
 
 	useEffect(() => {
 		if (!collapsed) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages[0]?.id, collapsed]);
+	}, [messages[0]?.createdAt, collapsed]);
 
 	async function loadMore() {
-		if (!chat || loadingHistory) return;
-		const before = chat.messages.length;
+		if (loadingHistory) return;
 		setLoadingHistory(true);
 		try {
 			await chat.loadMoreMessages();
-			setHasMore(chat.messages.length - before >= HISTORY_PAGE_SIZE);
 		} catch {
 			error("Could not load older messages");
 		} finally {
@@ -93,20 +54,16 @@ export default function ChatWindow({ friendId, onClose }: ChatWindowProps) {
 
 	function send() {
 		const text = draft.trim();
-		if (!text || !chat || !user) return;
+		if (!text || !user) return;
 
-		socket.send(buildFriendChat(friendId, text));
+		socket.send(buildFriendChat(chat.friendId, text));
 		chat.messages.unshift({
-			id: crypto.randomUUID(),
-			chatId: chat.chatId,
 			senderId: user.id,
 			content: text,
 			createdAt: new Date().toISOString(),
 		});
 		setDraft("");
 	}
-
-	if (!ready) return null;
 
 	const ordered = [...messages].reverse();
 
@@ -166,10 +123,10 @@ export default function ChatWindow({ friendId, onClose }: ChatWindowProps) {
 							? <p className="text-xs text-on-surface-variant italic text-center m-auto">
 									{loadingHistory ? "Loading…" : "No messages yet…"}
 								</p>
-							: ordered.map(m => {
+							: ordered.map((m, i) => {
 									const isMe = m.senderId === user?.id;
 									return (
-										<div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+										<div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
 											<span
 												className={`max-w-[75%] break-words rounded-xl px-3 py-2 text-xs ${
 													isMe
