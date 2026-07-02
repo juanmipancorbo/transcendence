@@ -5,9 +5,9 @@ import { sql } from "@utils/sql";
 export async function insertGame(gameId: string, whiteId: string, blackId: string, friendly: boolean, time: number, allowSpectators: boolean):
     Promise<void> {
   await pool.query(sql`
-    INSERT INTO games (gameId, white_player_id, black_player_id, time_left_white, time_left_black, friendly, allow_spectators)
-      VALUES ($1, $2, $3, $4, $5, $6)
-  `, [gameId, whiteId, blackId, time, time, friendly, allowSpectators]);
+    INSERT INTO games (id, white_player_id, black_player_id, time_left_white, time_left_black, friendly, allow_spectators)
+      VALUES ($1, $2, $3, $4, $4, $5, $6)
+  `, [gameId, whiteId, blackId, time, friendly, allowSpectators]);
 }
 
 export async function selectGame(gameId: string): Promise<GameData | null> {
