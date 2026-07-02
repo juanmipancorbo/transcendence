@@ -76,7 +76,6 @@ export class GameSession {
 	timeLimit: number; // In seconds, -1 for unlimited
 	moves: PlayerMove[] = [];
 	messages: Message[] = [];
-	whenReadys: Map<Socket, () => void> = new Map();
 	startedAt?: number;
 	finishedAt?: number;
 	blackAbandonTimer?: NodeJS.Timeout;
@@ -136,24 +135,14 @@ export class GameSession {
 		} else if (this.allowSpectators) {
 			this.joinGameAsSpec(conn);
 		} else return new Error("This game doesn't allow spectators");
-		this.whenReady(conn, () => conn.send(buildGameState(this, (conn.player as SessionPlayer).player as Player)));
+		conn.send(buildGameState(this, (conn.player as SessionPlayer).player as Player));
 	}
 
 	closeSession() {
 		SESSIONS.delete(this.id);
-		this.blackPlayer.conn.forEach(c => c.close());
-		this.whitePlayer.conn.forEach(c => c.close());
-		this.spectators.forEach(s => s.conn.forEach(c => c.close()));
-	}
-
-	whenReady(conn: Socket, callback: () => void) {
-		const cb = this.whenReadys.get(conn);
-		if (cb) { // Avoid overwriting old callback and cause packet loss
-			this.whenReadys.set(conn, () => {
-				cb();
-				callback();
-			});
-		} else this.whenReadys.set(conn, callback);
+		this.blackPlayer.conn.forEach(c => { c.handler = globalHandler; });
+		this.whitePlayer.conn.forEach(c => { c.handler = globalHandler; });
+		this.spectators.forEach(s => s.conn.forEach(c => { c.handler = globalHandler; }));
 	}
 
 	// Determines the winner, if no winner is set it stops the game with a draw
@@ -173,11 +162,6 @@ export class GameSession {
 	}
 
 	playerReady(conn: Socket) {
-		const cb = this.whenReadys.get(conn);
-		if (cb) {
-			cb();
-			this.whenReadys.delete(conn);
-		}
 		if (conn.player && !conn.player.ready) {
 			conn.player.ready = true;
 			if (this.blackPlayer.ready && this.whitePlayer.ready) {

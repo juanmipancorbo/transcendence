@@ -62,6 +62,8 @@ export function useGame(id: string) {
 	const myColorRef  = useRef<PlayerColor | 0>(0);
 	const turnCountRef = useRef(0);
 
+	console.log(state);
+
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
 
@@ -348,6 +350,7 @@ export function useGame(id: string) {
 
 		// Game socket setup start
 		const callbacks: ((p: ByteReader) => void)[] = [];
+
 		callbacks[Protocol.State] = onStateInit;
 		callbacks[Protocol.BlackAbandon], onBlackAbandon;
 		callbacks[Protocol.WhiteAbandon], onWhiteAbandon;
@@ -369,6 +372,8 @@ export function useGame(id: string) {
 		callbacks[Protocol.GameEnd] = onGameEnd;
 		callbacks[Protocol.ChatMessage] = onChatMessage;
 		callbacks[Protocol.XpUpdate] = onXpUpdate;
+
+		socket.handlers = callbacks;
 		// Game socket setup end
 
 		socket.send(buildReadyToGame()); // Notify the backend this player is ready
