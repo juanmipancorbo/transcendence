@@ -41,8 +41,6 @@ export function useGame(id: string) {
 	const { user } = useAuth();
 	const router = useRouter();
 
-	closeChat();
-
 	const [state, setState] = useState<GameState | null>(null);
 	const [spectators, setSpectators] = useState<string[]>([]);
 	const [profiles, setProfiles] = useState(new Map<string, PublicUser>());
@@ -61,8 +59,6 @@ export function useGame(id: string) {
 	const stateRef    = useRef<GameState | null>(null);
 	const myColorRef  = useRef<PlayerColor | 0>(0);
 	const turnCountRef = useRef(0);
-
-	console.log(state);
 
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
@@ -254,7 +250,7 @@ export function useGame(id: string) {
 			}, 300);
 		}
 		const validMoves: Array<[number, number]> = [];
-		const len = p.readUint32();          // backend writes Uint32
+		const len = p.readUint32();
 		for (let i = 0; i < len; i++)
 			validMoves.push([p.readUint8(), p.readUint8()]);
 
@@ -346,6 +342,7 @@ export function useGame(id: string) {
 	useEffect(() => {
 		let cancelled = false;
 
+		closeChat();
 		socket.send(buildJoinGame(id));
 
 		// Game socket setup start
@@ -416,7 +413,6 @@ export function useGame(id: string) {
 
 	const makeMove = (row: number, col: number) => {
 		const state    = stateRef.current;
-		const yourTurn = yourTurnRef.current;
 
 		if (!state)                    { console.log("makeMove blocked: no state");      return; }
 		if (state.status !== "ACTIVE") { console.log("makeMove blocked: not ACTIVE");    return; }

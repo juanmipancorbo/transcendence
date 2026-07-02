@@ -6,6 +6,7 @@ import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from
 import { updateUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 import { clearTimeout } from "timers";
+import globalHandler from "./handlers/global-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
@@ -116,7 +117,7 @@ export class GameSession {
 		const player = new SessionPlayer(conn.id, -1, this);
 		conn.player = player;
 		this.spectators.add(player);
-		this.whenReady(conn, () => this.broadcast(buildSpectatorJoin(conn.id)));
+		this.broadcast(buildSpectatorJoin(conn.id));
 	}
 
 	broadcast(buf: BufferSource) {
