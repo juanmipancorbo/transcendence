@@ -44,6 +44,18 @@ export default function GamePage() {
   }
 
 
+  const gameResultLabel = (() => {
+    if (game.state?.status !== "FINISHED") return null;
+    const winner = game.state.winner;
+    if (!winner) return "DRAW";
+    if (isSpectator) {
+      const winnerId = winner === BLACK ? game.state.players.black : game.state.players.white;
+      const winnerName = game.profiles.get(winnerId)?.username ?? "Player";
+      return winnerName.toUpperCase() + "_WINS";
+    }
+    return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
+  })();
+
   const joinErrorMsg = joinError?.includes("does not exist") ? "This game has already ended."
                      : joinError?.includes("spectators")    ? "This game doesn't allow spectators."
                      : joinError ?? "Unknown error";
@@ -95,7 +107,7 @@ export default function GamePage() {
             <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
             <span className="font-headline font-bold text-primary tracking-tighter text-sm">
               {game.state?.status === "FINISHED"
-                ? "GAME OVER"
+                ? gameResultLabel
                 : game.state?.status === "WAITING"
                   ? "WAITING FOR PLAYERS…"
                   : isSpectator
