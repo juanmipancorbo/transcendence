@@ -66,6 +66,11 @@ function getScores(board: Board) {
 	return scores;
 }
 
+function getScoreState(board: Board) {
+	const scores = getScores(board);
+	return { black: scores[0], white: scores[1] };
+}
+
 function formatMs(ms: number) {
 	const totalSeconds = Math.floor(ms / 1000);
 	const minutes = Math.floor(totalSeconds / 60);
@@ -133,13 +138,13 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			}
 		}
 
-		const scores = getScores(board);
+		const scores = getScoreState(board);
 		setState({
 			id,
 			currentTurn: currentTurn ? currentTurn as PlayerColor : null,
 			status, board,
 			players: { black, white },
-			scores: { black: scores[0], white: scores[1] },
+			scores,
 			validMoves,
 			startedAt,
 			allowSpectators,
@@ -150,7 +155,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			currentTurn: currentTurn ? currentTurn as PlayerColor : null,
 			status, board,
 			players: { black, white },
-			scores: { black: scores[0], white: scores[1] },
+			scores,
 			validMoves,
 			startedAt,
 			allowSpectators,
@@ -197,7 +202,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 
 		setState(prev => {
 			if (!prev) return prev;
-			return { ...prev, board};
+			return { ...prev, board, scores: getScoreState(board) };
 		});
 	}
 
@@ -234,7 +239,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			const board = prev.board.map(row => [...row]);
 			for (const u of updates)
 				board[u.row][u.col] = u.content;
-			const next = { ...prev, board };
+			const next = { ...prev, board, scores: getScoreState(board) };
 			stateRef.current = next;
 			return next;
 		});
