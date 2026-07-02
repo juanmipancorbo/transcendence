@@ -12,9 +12,7 @@ export default function GamePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const [joinError, setJoinError] = useState<string | null>(null);
-  const onJoin = useCallback((e?: Error) => { if (e) setJoinError(e.message); }, []);
-  const game = useGame(id ?? "", onJoin);
+  const game = useGame(id ?? "");
 
   useEffect(() => {
     if (!id) router.push("/lobby");
@@ -39,17 +37,6 @@ export default function GamePage() {
     opponentId = game.state?.players.white;
   }
 
-
-  if (joinError) return (
-    <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
-      <p className="text-on-surface-variant text-sm">Could not connect to game</p>
-      <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinError}</p>
-      <button onClick={() => router.push("/lobby")} className="btn-ghost">
-        Back to Lobby
-      </button>
-    </main>
-  );
-
   return (
     <>
       <main className="max-w-screen-2xl mx-auto px-8 py-12 flex flex-col md:flex-row gap-12 min-h-[calc(100vh-100px)]">
@@ -64,8 +51,8 @@ export default function GamePage() {
             accentClass="border-primary"
             scoreColorClass="text-primary"
             glowColor="#8ff5ff"
-            isMyTurn={game.yourTurn}
-            timeLeft={game.timeLeftFormat}
+            isMyTurn={game.yourTurn ?? false}
+            timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -142,8 +129,8 @@ export default function GamePage() {
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
             glowColor="#d575ff"
-            isMyTurn={game.opponentTurn}
-            timeLeft={game.opponentTimeLeftFormat}
+            isMyTurn={game.yourTurn === false}
+            timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
             userId={opponentId}
           />
           <ChatPanel

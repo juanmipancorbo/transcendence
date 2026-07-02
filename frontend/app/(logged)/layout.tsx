@@ -127,7 +127,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   function onFriendRequest(p: ByteReader) {
     const from = p.readPrefixedUTF();
 
-    // TODO
+    // TODO: Notification maybe
   }
 
   function onFriendChatMessage(p: ByteReader) {
@@ -163,7 +163,17 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // ------- Ws Context Functions -------
   function openChat(friendId: string) {
-
+    const newChats = new Map(chats);
+	const chat: Chat = {
+		friendId: friendId,
+		chatId: friendId,
+		isFinal: false,
+		loadMoreMessages: () => loadMoreMessages(friendId),
+		messages: []
+	}
+	newChats.set(friendId, chat);
+	setChats(newChats);
+	setActiveChat(chat);
   }
 
   function closeChat() {

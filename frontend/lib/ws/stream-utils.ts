@@ -128,10 +128,18 @@ export function buildConsumeTurn(row: number, col: number): Uint8Array {
 		.freeze();
 }
 
-export function buildChat(message: string) {
+export function buildChat(message: string): Uint8Array {
 	return build(Protocol.ChatMessage)
 		.writePrefixedUTF(message)
 		.freeze();
+}
+
+export function buildAbandon(): Uint8Array {
+	return build(Protocol.Abandon).freeze();
+}
+
+export function buildDisconnect(): Uint8Array {
+	return build(Protocol.Disconnect).freeze();
 }
 
 // ----- Global -----

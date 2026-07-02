@@ -50,7 +50,6 @@ function onChat(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
 }
 
 function onPlayerAbandon(_: ByteReader, game: GameSession, _player: SessionPlayer, sock: Socket) {
-    sock.abandonedExplicitly = true
     game.playerAbandon(sock);
 }
 

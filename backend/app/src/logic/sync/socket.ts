@@ -59,7 +59,6 @@ export class Socket {
 	pollTimeout?: NodeJS.Timeout;
 	id: UUID;
 	authenticated: boolean;
-	abandonedExplicitly: boolean = false;
 	player?: SessionPlayer; // Only set if the user is in a game, to avoid map lookups
 	ws: WebSocket;
 	status: "offline" | "online" | "busy" = "offline";
