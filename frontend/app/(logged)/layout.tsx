@@ -39,8 +39,20 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 		if (e) return setFatalError(`Connection error: ${e.message}`);
 		setSocket(sock);
 	  });
+	  sock.ondisconnect = () => {
+		router.refresh();
+	  }
 	}
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    if (activeChat) {
+      setActiveChat(prev => {
+        const newChat = chats.get(prev?.friendId ?? "");
+        return newChat ?? null;
+	  });
+	}
+  }, [chats]);
 
   if (fatalError) {
     return (
@@ -90,15 +102,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (!isAuthenticated) {
     return <></>;
   }
-
-  useEffect(() => {
-    if (activeChat) {
-      setActiveChat(prev => {
-        const newChat = chats.get(prev?.friendId ?? "");
-        return newChat ?? null;
-	  });
-	}
-  }, [chats]);
 
   // ------- WS Callbacks -------
   function onError(p: ByteReader) {

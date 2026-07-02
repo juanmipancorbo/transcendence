@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueue } from "@/hooks/useGame";
-import { useRouter } from "next/navigation";
+import { useWs } from "@/hooks/useWs";
 
 export default function LobbyPage() {
   const { user } = useAuth();
+  const { inQueue, joinQueue, leaveQueue } = useWs();
 
-  const { inQueue, joinQueue, leaveQueue } = useQueue();
   const [elapsed,  setElapsed]  = useState(0);
 
   useEffect(() => {
@@ -41,7 +40,7 @@ export default function LobbyPage() {
               <div className="mt-8 flex gap-4 w-full md:w-auto">
                 {!inQueue ? (
                   <button
-                    onClick={() => joinQueue(matchFound)}
+                    onClick={() => joinQueue()}
                     className="btn-find-match"
                   >
                     FIND MATCH

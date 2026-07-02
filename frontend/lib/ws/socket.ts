@@ -33,11 +33,9 @@ export class GameSocket {
 				router.refresh();
 			};
 			this.ws.onclose = e => {
-				const router = useRouter();
 				console.log(e);
 				if (this.ondisconnect)
 					this.ondisconnect(e.code === CloseCodes.Error ? new Error(e.reason) : undefined);
-				router.refresh();
 			}
 			this.send(new ByteWriter(60).writeUint8(0).writePrefixedUTF(this.token).freeze()); // Authenticate
 			onConnect();
