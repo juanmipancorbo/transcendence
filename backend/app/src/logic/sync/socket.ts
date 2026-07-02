@@ -78,11 +78,8 @@ export class Socket {
 		this.ws.onclose = () => {
 			if (waiting && waiting.id === this.id)
 				unsetQuickplay();
-			if (this.player) {
-				if (this.abandonedExplicitly)
-					this.player.game.playerAbandon(this);
-				else this.player.game.playerDisconnect(this);
-			}
+			if (this.player)
+				this.player.game.playerDisconnect(this);
 			unregisterSocket(this);
 		}
 
