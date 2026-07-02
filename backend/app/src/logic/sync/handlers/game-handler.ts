@@ -15,16 +15,22 @@ export enum Protocol {
 	WhiteTurn = 7,
 	BlackNoMoves = 8,
 	WhiteNoMoves = 9,
-	PlayerAbandon = 10,
-	OpponentAbandon = 11,
-	Board = 12,
-	State = 13,
-	MoveUpdate = 14,
-	GameStart = 15,
-	GameEnd = 16,
-	XpUpdate = 17,
-	Error = 18,
-	FatalError = 19
+	BlackAbandon = 10,
+	WhiteAbandon = 11,
+	BlackDisconnect = 12,
+	WhiteDisconnect = 13,
+	BlackReconnect = 14,
+	WhiteReconnect = 15,
+	Abandon = 16,
+	Disconnect = 17,
+	Board = 18,
+	State = 19,
+	MoveUpdate = 20,
+	GameStart = 21,
+	GameEnd = 22,
+	XpUpdate = 23,
+	Error = 24,
+	FatalError = 25
 };
 
 function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
@@ -42,9 +48,14 @@ function onChat(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
 	const message = reader.readPrefixedUTF();
 	game.chat(conn, message);
 }
+
 function onPlayerAbandon(_: ByteReader, game: GameSession, _player: SessionPlayer, sock: Socket) {
     sock.abandonedExplicitly = true
     game.playerAbandon(sock);
+}
+
+function onPlayerDisconnect(_: ByteReader, game: GameSession, _player: SessionPlayer, conn: Socket) {
+	game.playerDisconnect(conn);
 }
 
 const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlayer, sock: Socket) => void> = [];
@@ -52,7 +63,8 @@ const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlay
 callbacks[Protocol.ConsumeTurn] = onConsumeTurn;
 callbacks[Protocol.Ready] = onReady;
 callbacks[Protocol.ChatMessage] = onChat;
-callbacks[Protocol.PlayerAbandon] = onPlayerAbandon;
+callbacks[Protocol.Abandon] = onPlayerAbandon;
+callbacks[Protocol.Disconnect] = onPlayerDisconnect;
 
 export default function handler(data: RawData, conn: Socket) {
 	const reader = new ByteReader(data);

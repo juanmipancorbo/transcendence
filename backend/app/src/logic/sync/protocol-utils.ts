@@ -76,8 +76,32 @@ export function buildGameState(game: GameSession, as: number): BufferSource {
 	return w.freeze();
 }
 
-export function buildOpponentAbandon() {
-	return build(GameProtocol.OpponentAbandon).freeze();
+export function buildBlackAbandon() {
+	return build(GameProtocol.BlackAbandon).freeze();
+}
+
+export function buildWhiteAbandon() {
+	return build(GameProtocol.WhiteAbandon).freeze();
+}
+
+export function buildBlackDisconnect(reconnectTimeMs: number) {
+	return build(GameProtocol.BlackDisconnect)
+		.writeUint32(reconnectTimeMs)
+		.freeze();
+}
+
+export function buildWhiteDisconnect(reconnectTimeMs: number) {
+	return build(GameProtocol.WhiteDisconnect)
+		.writeUint32(reconnectTimeMs)
+		.freeze();
+}
+
+export function buildBlackReconnected() {
+	return build(GameProtocol.BlackReconnect).freeze();
+}
+
+export function buildWhiteReconnected() {
+	return build(GameProtocol.WhiteReconnect).freeze();
 }
 
 export function buildSpectatorJoin(specId: UUID): BufferSource {

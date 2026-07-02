@@ -1,12 +1,15 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
 import { Socket } from "./socket";
-import { build, buildBlackNoMoves, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildSpectatorJoin, buildSpectatorLeave, buildWhiteNoMoves, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
+import { build, buildBlackAbandon, buildBlackDisconnect, buildBlackNoMoves, buildBlackReconnected, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildSpectatorJoin, buildSpectatorLeave, buildWhiteAbandon, buildWhiteDisconnect, buildWhiteNoMoves, buildWhiteReconnected, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
 import { updateUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
+import { clearTimeout } from "timers";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
+
+const RECONNECT_TIME_MS = 60000;
 
 /**
 * @content the new content
@@ -76,6 +79,8 @@ export class GameSession {
 	whenReadys: Map<Socket, () => void> = new Map();
 	startedAt?: number;
 	finishedAt?: number;
+	blackAbandonTimer?: NodeJS.Timeout;
+	whiteAbandonTimer?: NodeJS.Timeout;
 
 	constructor(
 		id: UUID,
@@ -182,6 +187,17 @@ export class GameSession {
 				this.nextTurn();
 			}
 		}
+		if (this.state.status === "ACTIVE") {
+			if (this.blackAbandonTimer && this.blackPlayer.id === conn.id) {
+				clearTimeout(this.blackAbandonTimer);
+				this.blackAbandonTimer = undefined;
+				this.broadcast(buildBlackReconnected());
+			} else if (this.whiteAbandonTimer && this.whitePlayer.id === conn.id) {
+				clearTimeout(this.whiteAbandonTimer);
+				this.whiteAbandonTimer = undefined;
+				this.broadcast(buildWhiteReconnected());
+			}
+		}
 	}
 
 	chat(sender: SessionPlayer, msg: string) {
@@ -269,9 +285,9 @@ export class GameSession {
 		if (this.state.status !== "FINISHED") {
 			this.state = abandonGame(this.state, conn.id);
 			if (this.blackPlayer.id === conn.id)
-				this.whitePlayer.send(buildOpponentAbandon())
+				this.broadcast(buildBlackAbandon());
 			else if (this.whitePlayer.id === conn.id)
-				this.blackPlayer.send(buildOpponentAbandon())
+				this.broadcast(buildWhiteAbandon())
 			this.reportFinished();
 		}
 	}
@@ -301,9 +317,13 @@ export class GameSession {
 			}
 		}
 
-		let player = this.blackPlayer.id === conn.id ? this.blackPlayer : this.whitePlayer.id === conn.id ? this.whitePlayer : null;
-		if (player && player.conn.delete(conn) && player.conn.size === 0)
-			this.abandon(conn);
+		if (conn.id === this.blackPlayer.id && this.blackPlayer.conn.delete(conn) && this.blackPlayer.conn.size === 0) {
+			this.broadcast(buildBlackDisconnect(RECONNECT_TIME_MS));
+			this.blackAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
+		} else if (conn.id === this.whitePlayer.id && this.whitePlayer.conn.delete(conn) && this.whitePlayer.conn.size === 0) {
+			this.broadcast(buildWhiteDisconnect(RECONNECT_TIME_MS));
+			this.whiteAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
+		}
 	}
 }
 
