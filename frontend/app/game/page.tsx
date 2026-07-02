@@ -74,10 +74,10 @@ export default function GamePage() {
 
   return (
     <ProtectedLayout activeRoute="/game">
-      <main className="max-w-screen-2xl mx-auto px-8 py-12 flex flex-col md:flex-row gap-12 min-h-[calc(100vh-100px)]">
+      <main className="max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col xl:flex-row gap-8 xl:gap-12 min-h-[calc(100vh-100px)]">
 
         {/* My panel */}
-        <aside className="w-full md:w-72 flex flex-col gap-6 order-2 md:order-1">
+        <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-2 xl:order-1">
           <PlayerPanel
             name={username}
             label={username.toUpperCase()}
@@ -101,7 +101,7 @@ export default function GamePage() {
         </aside>
 
         {/* Board */}
-        <section className="flex-1 flex flex-col items-center justify-center gap-8 order-1 md:order-2">
+        <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2">
           {/* Turn banner */}
           <div className="px-6 py-2 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
@@ -117,10 +117,10 @@ export default function GamePage() {
           </div>
 
           {/* Grid */}
-          <div className="relative">
-            <div className="absolute -inset-4 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
-            <div className="relative bg-surface-container-high p-4 rounded-xl shadow-2xl">
-              <div className="grid grid-cols-8 gap-[2px] bg-surface-container-highest p-[2px]">
+          <div className="relative w-full max-w-[min(32rem,calc(100vw-2rem))] xl:max-w-[32rem]">
+            <div className="absolute -inset-3 sm:-inset-4 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
+            <div className="relative w-full aspect-square bg-surface-container-high p-2 sm:p-3 md:p-4 rounded-xl shadow-2xl">
+              <div className="grid grid-cols-8 gap-[2px] bg-surface-container-highest p-[2px] w-full h-full">
                 {game.state && game.state.board.map((row, r) =>
                   row.map((cell, c) => {
                     const key     = `${r},${c}`;
@@ -129,7 +129,7 @@ export default function GamePage() {
                       <div
                         key={key}
                         onClick={() => { if (isValid) game.makeMove(r, c); }}
-                        className={`w-12 h-12 md:w-14 md:h-14 bg-surface-container-low flex items-center justify-center transition-all ${isValid ? "cursor-pointer hover:bg-surface-container-high" : ""}`}
+                        className={`aspect-square min-w-0 min-h-0 bg-surface-container-low flex items-center justify-center transition-all ${isValid ? "cursor-pointer hover:bg-surface-container-high" : ""}`}
                       >
                         {cell === BLACK && (
                           <div className="w-3/4 h-3/4 rounded-full bg-on-surface shadow-[0_0_10px_rgba(255,255,255,0.15)]" />
@@ -167,7 +167,7 @@ export default function GamePage() {
         </section>
 
         {/* Opponent panel + Chat */}
-        <aside className="w-full md:w-72 flex flex-col gap-6 order-3">
+        <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-3">
           <PlayerPanel
             name={username1}
             label={username1.toUpperCase()}
