@@ -143,9 +143,18 @@ export class GameSession {
 		SESSIONS.delete(this.id);
 		clearUserGame(this.blackPlayer.id).catch(e => console.error(e));
 		clearUserGame(this.whitePlayer.id).catch(e => console.error(e));
-		this.blackPlayer.conn.forEach(c => { c.handler = globalHandler; });
-		this.whitePlayer.conn.forEach(c => { c.handler = globalHandler; });
-		this.spectators.forEach(s => s.conn.forEach(c => { c.handler = globalHandler; }));
+		this.blackPlayer.conn.forEach(c => {
+			c.handler = globalHandler;
+			c.status = "online";
+		});
+		this.whitePlayer.conn.forEach(c => {
+			c.handler = globalHandler;
+			c.status = "online";
+		});
+		this.spectators.forEach(s => s.conn.forEach(c => {
+			c.handler = globalHandler;
+			c.status = "online";
+		}));
 	}
 
 	// Determines the winner, if no winner is set it stops the game with a draw
