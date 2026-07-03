@@ -46,7 +46,7 @@ function onQueueCasual(_: ByteReader, conn: Socket) {
 		return;
 	} else if (waiting.id === conn.id)
 		return conn.send(buildError("You are already in queue", ProtocolCodes.QueueFailed));
-	const game = createGameSession(waiting.id, conn.id, true /* TODO: Maybe take into account user settings */, false, 100);
+	const game = createGameSession(waiting.id, conn.id, true /* TODO: Maybe take into account user settings */, false, 180);
 	const tmp = waiting;
 	waiting = null;
 	tmp.send(buildMatchFound(game, conn.id));
