@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { leaderboardApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import type { LeaderboardEntry } from "@/types";
@@ -15,7 +14,7 @@ export default function LeaderboardPage() {
   }, []);
 
   return (
-    <ProtectedLayout activeRoute="/leaderboard">
+    <>
       <main className="px-12 py-10 max-w-screen-2xl">
 
         {/* Header */}
@@ -105,6 +104,6 @@ export default function LeaderboardPage() {
       <div className="ambient-layer">
         <div className="ambient-blob -top-[10%] -right-[10%] w-[50%] h-[50%] bg-primary/5 blur-[120px]" />
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

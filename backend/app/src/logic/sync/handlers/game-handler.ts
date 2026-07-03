@@ -11,19 +11,26 @@ export enum Protocol {
 	ChatMessage = 3,
 	SpectatorJoin = 4,
 	SpectatorLeave = 5,
-	YourTurn = 6,
-	OpponentTurn = 7,
-	NoMoves = 8,
-	OpponentNoMoves = 9,
-	PlayerAbandon = 10,
-	OpponentAbandon = 11,
-	Board = 12,
-	State = 13,
-	MoveUpdate = 14,
-	GameStart = 15,
-	GameEnd = 16,
-	Error = 17,
-	XpUpdate = 18
+	BlackTurn = 6,
+	WhiteTurn = 7,
+	BlackNoMoves = 8,
+	WhiteNoMoves = 9,
+	BlackAbandon = 10,
+	WhiteAbandon = 11,
+	BlackDisconnect = 12,
+	WhiteDisconnect = 13,
+	BlackReconnect = 14,
+	WhiteReconnect = 15,
+	Abandon = 16,
+	Disconnect = 17,
+	Board = 18,
+	State = 19,
+	MoveUpdate = 20,
+	GameStart = 21,
+	GameEnd = 22,
+	XpUpdate = 23,
+	Error = 24,
+	FatalError = 25
 };
 
 function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
@@ -33,7 +40,7 @@ function onConsumeTurn(reader: ByteReader, game: GameSession, conn: SessionPlaye
 	game.consumeTurn(conn, pos);
 }
 
-function onReady(_: ByteReader, game: GameSession, conn: SessionPlayer) {
+function onReady(_: ByteReader, game: GameSession, _player: SessionPlayer, conn: Socket) {
 	game.playerReady(conn);
 }
 
@@ -41,9 +48,13 @@ function onChat(reader: ByteReader, game: GameSession, conn: SessionPlayer) {
 	const message = reader.readPrefixedUTF();
 	game.chat(conn, message);
 }
+
 function onPlayerAbandon(_: ByteReader, game: GameSession, _player: SessionPlayer, sock: Socket) {
-    sock.abandonedExplicitly = true
     game.playerAbandon(sock);
+}
+
+function onPlayerDisconnect(_: ByteReader, game: GameSession, _player: SessionPlayer, conn: Socket) {
+	game.playerDisconnect(conn);
 }
 
 const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlayer, sock: Socket) => void> = [];
@@ -51,7 +62,8 @@ const callbacks: Array<(read: ByteReader, game: GameSession, player: SessionPlay
 callbacks[Protocol.ConsumeTurn] = onConsumeTurn;
 callbacks[Protocol.Ready] = onReady;
 callbacks[Protocol.ChatMessage] = onChat;
-callbacks[Protocol.PlayerAbandon] = onPlayerAbandon;
+callbacks[Protocol.Abandon] = onPlayerAbandon;
+callbacks[Protocol.Disconnect] = onPlayerDisconnect;
 
 export default function handler(data: RawData, conn: Socket) {
 	const reader = new ByteReader(data);

@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   // Required for the slim Docker runner stage
   output: "standalone",
 
+  reactStrictMode: false,
+
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "localhost" },

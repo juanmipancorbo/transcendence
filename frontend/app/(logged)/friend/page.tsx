@@ -143,7 +143,7 @@ export default function FriendProfilePage() {
   const victories     = profile?.gamesWon ?? 0;
 
   return (
-    <ProtectedLayout activeRoute="">
+    <ProtectedLayout>
       <main className="flex-grow p-12 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-12">
 
