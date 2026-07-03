@@ -53,9 +53,8 @@ export function useGame(id: string) {
 		if (!state?.validMoves) return new Set<string>();
 		return new Set(state.validMoves.map(([r, c]) => `${r},${c}`));
 	}, [state?.validMoves]);
-	const yourTurn = useMemo(() => state && state.status === "ACTIVE" && myColor === state.currentTurn, [state?.currentTurn, myColor, state?.status]);
+	const yourTurn = state !== null && state.status === "ACTIVE" && myColor === state.currentTurn;
 
-	const yourTurnRef = useRef<boolean>(false);
 	const stateRef    = useRef<GameState | null>(null);
 	const myColorRef  = useRef<PlayerColor | 0>(0);
 	const turnCountRef = useRef(0);
@@ -125,7 +124,6 @@ export function useGame(id: string) {
 	function onBlackAbandon(_: ByteReader) {
 		if (myColor === BLACK) {
 			message("You abandoned the game!");
-			socket.handlers = globalHandler;
 			router.push("/lobby");
 			return;
 		} else message("Black abandoned the game");
@@ -141,7 +139,6 @@ export function useGame(id: string) {
 	function onWhiteAbandon(_: ByteReader) {
 		if (myColor === WHITE) {
 			message("You abandoned the game!");
-			socket.handlers = globalHandler;
 			router.push("/lobby");
 			return;
 		} else message("White abandoned the game");
@@ -187,7 +184,6 @@ export function useGame(id: string) {
 
 	function onFatalError(p: ByteReader) {
 		error(p.readPrefixedUTF());
-		socket.handlers = globalHandler;
 		router.push("/lobby");
 	}
 
@@ -220,7 +216,7 @@ export function useGame(id: string) {
 			const turn = ++turnCountRef.current;
 			setLog(prev => [{
 				type: 'move',
-				byMe: yourTurnRef.current,
+				byMe: yourTurn,
 				col: String.fromCharCode(65 + placed.col),
 				row: placed.row + 1,
 				flips: updates.length - 1,
@@ -260,7 +256,6 @@ export function useGame(id: string) {
 			stateRef.current = next;
 			return next;
 		});
-		yourTurnRef.current = myColor === BLACK;
 	}
 
 	function onWhiteTurn(p: ByteReader) {
@@ -284,7 +279,6 @@ export function useGame(id: string) {
 			stateRef.current = next;
 			return next;
 		});
-		yourTurnRef.current = myColor === WHITE;
 	}
 
 	function onBlackNoMoves() {
@@ -311,7 +305,6 @@ export function useGame(id: string) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
-		yourTurnRef.current = false;
 		setState(prev => {
 			if (!prev) return prev;
 			return {
@@ -340,8 +333,6 @@ export function useGame(id: string) {
 	// --- Handler functions end ---
 
 	useEffect(() => {
-		let cancelled = false;
-
 		closeChat();
 		socket.send(buildJoinGame(id));
 
@@ -349,12 +340,12 @@ export function useGame(id: string) {
 		const callbacks: ((p: ByteReader) => void)[] = [];
 
 		callbacks[Protocol.State] = onStateInit;
-		callbacks[Protocol.BlackAbandon], onBlackAbandon;
-		callbacks[Protocol.WhiteAbandon], onWhiteAbandon;
-		callbacks[Protocol.BlackDisconnect], onBlackDisconnect;
-		callbacks[Protocol.WhiteDisconnect], onWhiteDisconnect;
-		callbacks[Protocol.BlackReconnect], onBlackReconnect;
-		callbacks[Protocol.WhiteReconnect], onWhiteReconnect;
+		callbacks[Protocol.BlackAbandon] = onBlackAbandon;
+		callbacks[Protocol.WhiteAbandon] = onWhiteAbandon;
+		callbacks[Protocol.BlackDisconnect] = onBlackDisconnect;
+		callbacks[Protocol.WhiteDisconnect] = onWhiteDisconnect;
+		callbacks[Protocol.BlackReconnect] = onBlackReconnect;
+		callbacks[Protocol.WhiteReconnect] = onWhiteReconnect;
 		callbacks[Protocol.SpectatorJoin] = onSpectatorJoin;
 		callbacks[Protocol.SpectatorLeave] = onSpectatorLeave;
 		callbacks[Protocol.Error] = onError;
@@ -376,9 +367,9 @@ export function useGame(id: string) {
 		socket.send(buildReadyToGame()); // Notify the backend this player is ready
 
 		return () => {
-			cancelled = true;
-			if (state?.status === "ACTIVE")
+			if (stateRef.current?.status === "ACTIVE")
 				socket.send(buildDisconnect());
+			console.log("Unmounted?????");
 			socket.handlers = globalHandler;
 		};
 	}, []);
@@ -406,7 +397,6 @@ export function useGame(id: string) {
 			for (const user of u)
 				newProfiles.set(user.id, user);
 
-			console.log(newProfiles);
 			setProfiles(newProfiles);
 		});
 	}, [spectators, state]);
@@ -432,8 +422,6 @@ export function useGame(id: string) {
 		setLog(prev => [{ type: 'abandon', byMe: true }, ...prev]);
 		window.clearInterval(whiteTimer);
 		window.clearInterval(blackTimer);
-		yourTurnRef.current = false;
-		socket.handlers = globalHandler;
 		router.push("/lobby")
 	};
 

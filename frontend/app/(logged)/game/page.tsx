@@ -37,9 +37,6 @@ export default function GamePage() {
     opponentId = game.state?.players.white;
   }
 
-  console.log("Current turn: " + game.state?.currentTurn);
-  console.log("You: " + game.myColor);
-
   return (
     <>
       <main className="max-w-screen-2xl mx-auto px-8 py-12 flex flex-col md:flex-row gap-12 min-h-[calc(100vh-100px)]">
