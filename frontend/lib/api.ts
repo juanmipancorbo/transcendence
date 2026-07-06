@@ -253,9 +253,9 @@ export const friendApi = {
 //   Leaderboard
 
 export const leaderboardApi = {
-  /** TODO: GET /api/leaderboard */
-  getTop: async (_limit = 50): Promise<LeaderboardEntry[]> => {
-    return Promise.reject(new Error("getTop not yet implemented"));
+  getTop: async (limit = 50): Promise<LeaderboardEntry[]> => {
+    const res = await apiFetch<{ success: boolean; data: LeaderboardEntry[] }>(`/leaderboard?limit=${limit}`);
+    return res.data;
   },
 };
 
