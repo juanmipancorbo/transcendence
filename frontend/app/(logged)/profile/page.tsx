@@ -16,8 +16,13 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   useEffect(() => {
-    const token = getTokens()?.accessToken;
-    if (token) friendApi.getProfiles(token).then(setFriends).catch(() => {});
+    function fetchFriends() {
+      const token = getTokens()?.accessToken;
+      if (token) friendApi.getProfiles(token).then(setFriends).catch(() => {});
+    }
+    fetchFriends();
+    window.addEventListener("focus", fetchFriends);
+    return () => window.removeEventListener("focus", fetchFriends);
   }, []);
 
   const [bio, setBio] = useState("");
@@ -165,7 +170,10 @@ function FriendEntry({ friend }: { friend: PublicUser }) {
 
   useEffect(() => {
     if (!pos) return;
-    function close() { setPos(null); }
+    function close(e: MouseEvent) {
+      if (ref.current?.contains(e.target as Node)) return;
+      setPos(null);
+    }
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [pos]);

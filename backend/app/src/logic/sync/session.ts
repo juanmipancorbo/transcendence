@@ -115,6 +115,7 @@ export class GameSession {
 			}
 		}
 		const player = new SessionPlayer(conn.id, -1, this);
+		player.conn.add(conn);
 		conn.player = player;
 		this.spectators.add(player);
 		this.broadcast(buildSpectatorJoin(conn.id));
@@ -136,7 +137,7 @@ export class GameSession {
 		} else if (this.allowSpectators) {
 			this.joinGameAsSpec(conn);
 		} else return new Error("This game doesn't allow spectators");
-		conn.send(buildGameState(this, (conn.player as SessionPlayer).player as Player));
+		conn.send(buildGameState(this, (conn.player as SessionPlayer).player ?? 0));
 	}
 
 	closeSession() {
@@ -176,10 +177,11 @@ export class GameSession {
 	playerReady(conn: Socket) {
 		if (conn.player && !conn.player.ready) {
 			conn.player.ready = true;
-			if (this.blackPlayer.ready && this.whitePlayer.ready) {
+			const isPlayer = conn.player === this.blackPlayer || conn.player === this.whitePlayer;
+			if (isPlayer && this.blackPlayer.ready && this.whitePlayer.ready) {
 				this.state.status = STATUS_ACTIVE;
 				this.broadcast(build(GameProtocol.GameStart).freeze());
-				this.startedAt = Date.now();
+				this.startedAt = Math.floor(Date.now() / 1000);
 				this.nextTurn();
 			}
 		}
@@ -193,6 +195,10 @@ export class GameSession {
 				this.whiteAbandonTimer = undefined;
 				this.broadcast(buildWhiteReconnected());
 			}
+		}
+		const isSpectator = conn.player !== this.blackPlayer && conn.player !== this.whitePlayer;
+		if (conn.player && isSpectator) {
+			conn.send(buildGameState(this, 0));
 		}
 	}
 
@@ -294,6 +300,9 @@ export class GameSession {
 			if (spec.id === conn.id && spec.conn.has(conn)) {
 				this.broadcast(buildSpectatorLeave(spec.id));
 				this.spectators.delete(spec);
+				conn.handler = globalHandler;
+				conn.status = "online";
+				conn.player = undefined;
 				return;
 			}
 		}
@@ -309,6 +318,9 @@ export class GameSession {
 					this.spectators.delete(spec);
 				}
 				spec.conn.delete(conn);
+				conn.handler = globalHandler;
+				conn.status = "online";
+				conn.player = undefined;
 				return;
 			}
 		}
@@ -335,6 +347,7 @@ export function createGameSession(
 	timeLimit: number
 ): GameSession {
 	const game: GameSession = new GameSession(randomUUID(), createInitialGameState(), black, white, allowSpectators, friendly, timeLimit);
+	SESSIONS.set(game.id, game);
 	createGame({
 		gameId: game.id,
 		whiteId: white,
@@ -342,11 +355,10 @@ export function createGameSession(
 		timeLimit: game.timeLimit,
 		allowSpectators: game.allowSpectators,
 		friendly
-	}).catch(e => console.error(e));
-
-	SESSIONS.set(game.id, game);
-	updateUserGame(white, game.id).catch(e => console.error(e));
-	updateUserGame(black, game.id).catch(e => console.error(e));
+	}).then(() => Promise.all([
+		updateUserGame(white, game.id),
+		updateUserGame(black, game.id),
+	])).catch(e => console.error(e));
 
 return game;
 }

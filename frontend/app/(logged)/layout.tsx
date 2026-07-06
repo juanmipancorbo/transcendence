@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/Sidebar";
@@ -55,7 +55,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     }
   }, [chats]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (socket) {
       // ------- WS Callbacks -------
       function onError(p: ByteReader) {
