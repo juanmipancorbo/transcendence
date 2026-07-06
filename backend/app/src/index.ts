@@ -3,6 +3,7 @@ import expressWs from "express-ws";
 import { router as routerUser } from "@databaseAccess/user/router";
 import { router as routerAuth } from "@databaseAccess/auth/router";
 import { router as routerFriend } from "@databaseAccess/friend/router";
+import { router as routerLeaderboard } from "@databaseAccess/leaderboard/router";
 import { join, joinMiddl, quickplay } from "./websockets";
 import { errorHandler } from "./middleware/error-middleware";
 
@@ -55,6 +56,7 @@ app.listen(port, _ => {
 app.use("/users", routerUser)
 app.use("/auth", routerAuth)
 app.use("/friends", routerFriend)
+app.use("/leaderboard", routerLeaderboard)
 
 // Error Handler (has to be last one)
 app.use(errorHandler);
