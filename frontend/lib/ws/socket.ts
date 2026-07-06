@@ -1,5 +1,6 @@
 import { Protocol } from "@/types";
 import { build, ByteReader, ByteWriter } from "./stream-utils";
+import { useRouter } from "next/navigation";
 
 export enum CloseCodes {
 	Error = 4444,
@@ -7,8 +8,8 @@ export enum CloseCodes {
 
 export class GameSocket {
 	private ws: WebSocket;
-	private handlers: ((p: ByteReader) => void)[] = [];
 	private token: string;
+	handlers: ((p: ByteReader) => void)[] = [];
 	url: string;
 	ondisconnect?: (e?: Error) => void;
 
@@ -24,9 +25,12 @@ export class GameSocket {
 		this.ws.onerror = e => onConnect(new Error(`${e}`));
 		this.ws.onopen = _ => {
 			this.ws.onerror = e => {
+				const router = useRouter();
+				console.log(e);
 				this.ws.onclose = () => {}; // Avoid ondisconnect being called twice
 				if (this.ondisconnect)
 					this.ondisconnect(new Error(`${e}`));
+				router.refresh();
 			};
 			this.ws.onclose = e => {
 				console.log(e);
@@ -54,18 +58,11 @@ export class GameSocket {
 	}
 
 	disconnect(code: number): void {
-		this.ws.onclose = () => {}; // Avoid ondisconnect being called twice just in case
 		this.ws.close(code);
-		if (this.ondisconnect)
-			this.ondisconnect();
 	}
 
 	send(payload: Uint8Array): void {
 		if (this.isConnected) this.ws.send(payload);
-	}
-
-	on(typeId: number, listener: (payload: ByteReader) => void) {
-		this.handlers[typeId] = listener;
 	}
 
 	get isConnected(): boolean {

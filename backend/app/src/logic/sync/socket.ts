@@ -1,8 +1,8 @@
 import { randomUUID, UUID } from "node:crypto";
 import { type SessionPlayer } from "./session";
 import { WebSocket, RawData, MessageEvent } from "ws";
-import { unsetQuickplay, waiting } from "../../websockets";
 import { PublicUser } from "@endpoints/users-response";
+import { unsetQuickplay, waiting } from "./handlers/global-handler";
 
 export enum CloseCodes {
 	Error = 4444,
@@ -13,15 +13,44 @@ function handle(e: MessageEvent, sock: Socket) {
 		sock.handler(e.data as RawData, sock);
 }
 
-const map = new Map<UUID, Socket>();
+const connectedUsers = new Map<UUID, Set<Socket>>();
 
-export function registerSocket(sock: Socket) { map.set(sock.id, sock); }
-export function getSockById(id: UUID): Socket | undefined { return map.get(id); }
+export function registerSocket(sock: Socket) {
+	const set = connectedUsers.get(sock.id);
+	if (set) {
+		set.add(sock);
+	} else {
+		const newSet = new Set<Socket>();
+		newSet.add(sock);
+		connectedUsers.set(sock.id, newSet);
+	}
+}
+
+export function unregisterSocket(sock: Socket) {
+	const sockSet = getSocksById(sock.id);
+	if (!sockSet)
+		return;
+
+	sockSet.delete(sock);
+	if (sockSet.size === 0)
+		connectedUsers.delete(sock.id);
+}
+
+export function getSocksById(id: UUID): Set<Socket> | undefined { return connectedUsers.get(id); }
 
 export function injectStatus(...users: PublicUser[]) {
 	for (const user of users) {
-		const sock = getSockById(user.id);
-		user.status = sock?.status ?? "offline";
+		const sock = getSocksById(user.id);
+		if (sock) {
+			let busy = false;
+			for (const client of sock) {
+				if (client.status === "busy") {
+					busy = true;
+					break;
+				}
+			}
+			user.status = busy ? "busy" : "online";
+		} else user.status = "offline";
 	}
 }
 
@@ -30,7 +59,6 @@ export class Socket {
 	pollTimeout?: NodeJS.Timeout;
 	id: UUID;
 	authenticated: boolean;
-	abandonedExplicitly: boolean = false;
 	player?: SessionPlayer; // Only set if the user is in a game, to avoid map lookups
 	ws: WebSocket;
 	status: "offline" | "online" | "busy" = "offline";
@@ -50,13 +78,9 @@ export class Socket {
 		this.ws.onclose = () => {
 			if (waiting && waiting.id === this.id)
 				unsetQuickplay();
-			if (this.player) {
-				if (this.abandonedExplicitly)
-					this.player.game.playerAbandon(this);
-				else
-					this.player.game.playerDisconnect(this);
-			}
-			map.delete(this.id);
+			if (this.player)
+				this.player.game.playerDisconnect(this);
+			unregisterSocket(this);
 		}
 
 		this.ws.onerror = (_) => {
@@ -64,7 +88,7 @@ export class Socket {
 				unsetQuickplay();
 			if (this.player)
 				this.player.game.playerDisconnect(this);
-			map.delete(this.id);
+			unregisterSocket(this);
 		}
 	}
 

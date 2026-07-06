@@ -4,7 +4,8 @@ import { router as routerUser } from "@databaseAccess/user/router";
 import { router as routerAuth } from "@databaseAccess/auth/router";
 import { router as routerFriend } from "@databaseAccess/friend/router";
 import { router as routerLeaderboard } from "@databaseAccess/leaderboard/router";
-import { join, joinMiddl, quickplay } from "./websockets";
+import { router as routerChat } from "@databaseAccess/chat/router";
+import { create } from "./websockets";
 import { errorHandler } from "./middleware/error-middleware";
 
 const { app } = expressWs(express());
@@ -34,11 +35,9 @@ app.use((req, res, next) => {
 	else console.warn(`${FAILURE_COLOR}[${res.statusCode}] ${req.method} ${req.path} latency=${Math.round(after - before)}ms${RESET_COLOR}`);
 });
 
-// WebSockets endpoints.
+// WebSockets endpoint(s).
 // do not make a router as express-ws with routers is a pain
-app.use("/play/join", joinMiddl);
-app.ws("/play/quickplay", quickplay);
-app.ws("/play/join", join);
+app.ws("/ws/create", create);
 
 // Healthcheck to see if server is up
 app.get('/health', (_req, res) => {
@@ -57,6 +56,7 @@ app.use("/users", routerUser)
 app.use("/auth", routerAuth)
 app.use("/friends", routerFriend)
 app.use("/leaderboard", routerLeaderboard)
+app.use("/chats", routerChat)
 
 // Error Handler (has to be last one)
 app.use(errorHandler);

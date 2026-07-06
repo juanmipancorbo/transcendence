@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueue } from "@/hooks/useGame";
-import { useRouter } from "next/navigation";
+import { useWs } from "@/hooks/useWs";
 
 export default function LobbyPage() {
   const { user } = useAuth();
+  const { inQueue, joinQueue, leaveQueue } = useWs();
 
-  const { inQueue, joinQueue, leaveQueue } = useQueue();
   const [elapsed,  setElapsed]  = useState(0);
-  const router = useRouter();
 
   useEffect(() => {
     if (!inQueue) { setElapsed(0); return; }
@@ -19,22 +16,13 @@ export default function LobbyPage() {
     return () => clearInterval(t);
   }, [inQueue]);
 
-  function matchFound(e: string | Error) {
-    if (e instanceof Error) {
-      console.error(e.message);
-	  return;
-	}
-	console.log(`Match found with id ${e}`);
-    router.push(`/game?id=${e}`);
-  }
-
   const fmt = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
 
   const xpProgress = user ? (user.xp % 1000) / 10 : 0;
 
   return (
-    <ProtectedLayout activeRoute="/lobby">
+    <>
       <div className="p-8">
         <div className="max-w-screen-xl mx-auto flex flex-col gap-8">
 
@@ -52,7 +40,7 @@ export default function LobbyPage() {
               <div className="mt-8 flex gap-4 w-full md:w-auto">
                 {!inQueue ? (
                   <button
-                    onClick={() => joinQueue(matchFound)}
+                    onClick={() => joinQueue()}
                     className="btn-find-match"
                   >
                     FIND MATCH
@@ -122,6 +110,6 @@ export default function LobbyPage() {
           </div>
         </div>
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

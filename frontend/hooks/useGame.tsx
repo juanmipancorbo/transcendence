@@ -1,56 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type GameState, PreGameProtocol, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, CellState, PublicUser } from "@/types";
-import { GameSocket } from "@/lib/ws/socket";
-import { WS_URL } from "@/lib/config";
-import { build, buildChat, buildConsumeTurn, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
+import { type GameState, BLACK, Protocol, WHITE, PlayerColor, GameStatus, Board, CellState, PublicUser } from "@/types";
+import { build, buildChat, buildConsumeTurn, buildDisconnect, buildJoinGame, buildReadyToGame, ByteReader } from "@/lib/ws/stream-utils";
 import api from "@/lib/api";
-import { getTokens } from "./useAuth";
+import { useMsg } from "./useMsg";
+import { useWs } from "./useWs";
+import { useRouter } from "next/navigation";
+import { useAuth } from "./useAuth";
+import { levelFromXp } from "@/lib/levels";
 
 export type LogEntry =
 	| { type: 'move';    byMe: boolean; col: string; row: number; flips: number; turn: number }
 	| { type: 'abandon'; byMe: boolean }
-
-export function useQueue() {
-	const [inQueue, setInQueue] = useState(false);
-	const [socket, setSocket] = useState<GameSocket | null>(null);
-	const tokens = getTokens();
-
-	function joinQueue(callback: (foundGame: string | Error) => void) {
-		const socket = new GameSocket(WS_URL + "/play/quickplay", tokens ? tokens.accessToken : "", (e) => {
-			if (e) {
-				callback(e);
-				return;
-			}
-			socket.ondisconnect = _ => { setSocket(null); setInQueue(false); }
-			socket.on(PreGameProtocol.MatchFound, r => {
-				const id = r.readPrefixedUTF();
-
-				setSocket(null);
-				callback(id);
-			})
-		});
-		setSocket(socket);
-		setInQueue(true);
-		console.log("[Matchmaking] Joined queue");
-	}
-
-	const leaveQueue = () => {
-		if (socket && inQueue) {
-			setInQueue(false);
-			socket.disconnect(1000);
-			console.log("[Matchmaking] Left queue");
-		}
-	}
-
-	return {
-		joinQueue,
-		leaveQueue,
-		socket,
-		inQueue
-	}
-}
 
 function getScores(board: Board) {
 	const scores = [0, 0];
@@ -78,38 +40,35 @@ function formatMs(ms: number) {
 	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export function useGame(id: string, onJoin: (err?: Error) => void) {
-	const tokens = getTokens();
+export function useGame(id: string) {
+	const { socket, globalHandler, closeChat } = useWs();
+	const { message, error } = useMsg();
+	const { user } = useAuth();
+	const router = useRouter();
 
-	const [socket, setSocket] = useState<GameSocket | null>(null);
 	const [state, setState] = useState<GameState | null>(null);
-	const [yourTurn, setYourTurn] = useState<boolean>(false);
-	const [opponentTurn, setOpponentTurn] = useState<boolean>(false);
 	const [spectators, setSpectators] = useState<string[]>([]);
 	const [profiles, setProfiles] = useState(new Map<string, PublicUser>());
-	const [gameMessage, setGameMessage] = useState({ msg: "", show: false, isError: false });
-	const [timeLeftFormat, setTimeLeftFormat] = useState("");
-	const [opponentTimeLeftFormat, setOpponentTimeLeftFormat] = useState("");
+	const [blackTimeLeftFormat, setBlackTimeLeftFormat] = useState("");
+	const [whiteTimeLeftFormat, setWhiteTimeLeftFormat] = useState("");
 	const [messages, setMessages] = useState<Array<{ sender: string, message: string }>>([]);
 	const [myColor, setMyColor] = useState<PlayerColor | 0>(0);
 	const [log, setLog] = useState<LogEntry[]>([]);
-	const [newXp, setNewXp] = useState(-1);
 	const validSet = useMemo(() => {
 		if (!state?.validMoves) return new Set<string>();
 		return new Set(state.validMoves.map(([r, c]) => `${r},${c}`));
 	}, [state?.validMoves]);
+	const yourTurn = state !== null && state.status === "ACTIVE" && myColor === state.currentTurn;
 
-	const socketRef   = useRef<GameSocket | null>(null);
-	const yourTurnRef = useRef<boolean>(false);
 	const stateRef    = useRef<GameState | null>(null);
 	const myColorRef  = useRef<PlayerColor | 0>(0);
 	const turnCountRef = useRef(0);
 
-	let timer: number | undefined;
-	let opponentTimer: number | undefined;
+	let blackTimer: number | undefined;
+	let whiteTimer: number | undefined;
 
 	// --- Handler functions start ---
-	function onStateInit(payload: ByteReader, socket: GameSocket) {
+	function onStateInit(payload: ByteReader) {
 		const id = payload.readPrefixedUTF();
 		const board = payload.readBoard();
 		const as = payload.readUint8() as PlayerColor | 0;
@@ -128,8 +87,6 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			startedAt = payload.readUint32();
 			if (as === BLACK || as === WHITE) {
 				const yourTurn = currentTurn === as;
-				setYourTurn(yourTurn);  yourTurnRef.current = yourTurn;
-				setOpponentTurn(!yourTurn);
 				if (yourTurn) {
 					const len = payload.readUint8();
 					for (let i = 0; i < len; ++i)
@@ -164,24 +121,57 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		setMyColor(as);  myColorRef.current = as;
 		if (timeLimit !== -1) {
 			const format = formatMs(timeLimit);
-			setTimeLeftFormat(format);
-			setOpponentTimeLeftFormat(format);
+			setBlackTimeLeftFormat(format);
+			setWhiteTimeLeftFormat(format);
 		}
-
-		socket.send(buildReadyToGame()); // Notify the backend this player is ready
 	}
 
-	function onOpponentAbandon(_: ByteReader) {
-		setGameMessage({ msg: "Your opponent abandoned the game", show: true, isError: false });
+	function onBlackAbandon(_: ByteReader) {
+		if (myColor === BLACK) {
+			message("You abandoned the game!");
+			router.push("/lobby");
+			return;
+		} else message("Black abandoned the game");
 		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
-		setYourTurn(false);   yourTurnRef.current = false;
-		setOpponentTurn(false);
 		setState(prev => {
 			if (!prev) return prev;
-			const next = { ...prev, status: "FINISHED" as GameStatus, winner: myColorRef.current as PlayerColor };
+			const next = { ...prev, status: "FINISHED" as GameStatus, winner: WHITE as PlayerColor };
 			stateRef.current = next;
 			return next;
 		});
+	}
+
+	function onWhiteAbandon(_: ByteReader) {
+		if (myColor === WHITE) {
+			message("You abandoned the game!");
+			router.push("/lobby");
+			return;
+		} else message("White abandoned the game");
+		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
+		setState(prev => {
+			if (!prev) return prev;
+			const next = { ...prev, status: "FINISHED" as GameStatus, winner: BLACK as PlayerColor };
+			stateRef.current = next;
+			return next;
+		});
+	}
+
+	function onBlackDisconnect(p: ByteReader) {
+		const time = p.readUint32();
+		message(`Black disconnected, they have ${time / 1000} seconds to reconnect or it will count as an abandon`);
+	}
+
+	function onWhiteDisconnect(p: ByteReader) {
+		const time = p.readUint32();
+		message(`White disconnected, they have ${time / 1000} seconds to reconnect or it will count as an abandon`);
+	}
+
+	function onBlackReconnect(_: ByteReader) {
+		message("Black reconnected!");
+	}
+
+	function onWhiteReconnect(_: ByteReader) {
+		message("White reconnected!");
 	}
 
 	function onSpectatorJoin(p: ByteReader) {
@@ -194,7 +184,12 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onError(p: ByteReader) {
-		setGameMessage({ msg: p.readPrefixedUTF(), show: true, isError: true });
+		error(p.readPrefixedUTF());
+	}
+
+	function onFatalError(p: ByteReader) {
+		error(p.readPrefixedUTF());
+		router.push("/lobby");
 	}
 
 	function onBoardInit(p: ByteReader) {
@@ -207,8 +202,8 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 	}
 
 	function onMoveUpdate(p: ByteReader) {
-		window.clearInterval(timer);
-		window.clearInterval(opponentTimer);
+		window.clearInterval(blackTimer);
+		window.clearInterval(whiteTimer);
 
 		const length = p.readUint32();
 		const updates: { content: CellState; row: number; col: number }[] = [];
@@ -226,7 +221,7 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			const turn = ++turnCountRef.current;
 			setLog(prev => [{
 				type: 'move',
-				byMe: yourTurnRef.current,
+				byMe: yourTurn,
 				col: String.fromCharCode(65 + placed.col),
 				row: placed.row + 1,
 				flips: updates.length - 1,
@@ -245,14 +240,37 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		});
 	}
 
-	function onYourTurn(p: ByteReader) {
+	function onBlackTurn(p: ByteReader) {
 		let timeLeft = p.readInt32();
 
 		if (timeLeft !== -1) {
-			setTimeLeftFormat(formatMs(timeLeft));
-			timer = window.setInterval(() => {
+			setBlackTimeLeftFormat(formatMs(timeLeft));
+			blackTimer = window.setInterval(() => {
 				timeLeft -= 300;
-				setTimeLeftFormat(formatMs(timeLeft));
+				setBlackTimeLeftFormat(formatMs(timeLeft));
+			}, 300);
+		}
+		const validMoves: Array<[number, number]> = [];
+		const len = p.readUint32();
+		for (let i = 0; i < len; i++)
+			validMoves.push([p.readUint8(), p.readUint8()]);
+
+		setState(prev => {
+			if (!prev) return prev;
+			const next = { ...prev, validMoves, currentTurn: BLACK as PlayerColor };
+			stateRef.current = next;
+			return next;
+		});
+	}
+
+	function onWhiteTurn(p: ByteReader) {
+		let timeLeft = p.readInt32();
+
+		if (timeLeft !== -1) {
+			setWhiteTimeLeftFormat(formatMs(timeLeft));
+			whiteTimer = window.setInterval(() => {
+				timeLeft -= 300;
+				setWhiteTimeLeftFormat(formatMs(timeLeft));
 			}, 300);
 		}
 		const validMoves: Array<[number, number]> = [];
@@ -262,31 +280,26 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 
 		setState(prev => {
 			if (!prev) return prev;
-			const next = { ...prev, validMoves};
+			const next = { ...prev, validMoves, currentTurn: WHITE as PlayerColor };
 			stateRef.current = next;
 			return next;
 		});
-		setYourTurn(true);   yourTurnRef.current = true;
-		setOpponentTurn(false);
 	}
 
-	function onOpponentTurn(p: ByteReader) {
-		let timeLeft = p.readInt32();
+	function onBlackNoMoves() {
+		if (myColor === BLACK)
+			message("You don't have any moves available, so your opponent moves again");
+		else message("Black doesn't have any moves available");
+	}
 
-		if (timeLeft !== -1) {
-			setOpponentTimeLeftFormat(formatMs(timeLeft));
-			opponentTimer = window.setInterval(() => {
-				timeLeft -= 300;
-				setOpponentTimeLeftFormat(formatMs(timeLeft));
-			}, 300);
-		}
-
-		setYourTurn(false);   yourTurnRef.current = false;
-		setOpponentTurn(true);
+	function onWhiteNoMoves() {
+		if (myColor === WHITE)
+			message("You don't have any moves available, so your opponent moves again");
+		else message("White doesn't have any moves available");
 	}
 
 	function onGameStart(_: ByteReader) {
-		setGameMessage({ msg: "The game has started", isError: false, show: true });
+		message("The game has started");
 		setState(prev => {
 			if (!prev) return prev;
 			const next = { ...prev, status: "ACTIVE" as GameStatus };
@@ -297,8 +310,6 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
-		setYourTurn(false);   yourTurnRef.current = false;
-		setOpponentTurn(false);
 		setState(prev => {
 			if (!prev) return prev;
 			return {
@@ -309,59 +320,62 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 		});
 	}
 
+	function onXpUpdate(p: ByteReader) {
+		const newXp = p.readUint32();
+		if (user) {
+			user.xp = newXp;
+			user.level = levelFromXp(newXp);
+
+			// TODO: Something like an animation or whatever for xp gained / leveled up
+		}
+	}
+
 	function onChatMessage(p: ByteReader) {
 		const senderId = p.readPrefixedUTF();
 		const message = p.readPrefixedUTF();
-		setMessages(prev =>[...prev, { sender: senderId, message: message }]);
-	}
-
-	function onNoMoves(_: ByteReader) {
-		setGameMessage({ msg: "You can't move so your opponent gets to move again", show: true, isError: false });
-	}
-
-	function onOpponentNoMoves(_: ByteReader) {
-		setGameMessage({ msg: "Your opponent can't move, so it's your turn again", show: true, isError: false });
-	}
-
-	function onNewXp(p: ByteReader) {
-		const newXp = p.readUint32();
-		setNewXp(newXp);
+		setMessages(prev => [...prev, { sender: senderId, message: message }]);
 	}
 	// --- Handler functions end ---
 
 	useEffect(() => {
-		let cancelled = false;
-		const socket = new GameSocket(WS_URL + `/play/join?gameId=${id}`, tokens ? tokens.accessToken : "", (e) => {
-			if (cancelled) return;
-			if (e) {
-				onJoin(e);
-				return;
-			}
-
-			setSocket(socket); socketRef.current = socket;
-			onJoin();
-		});
+		closeChat();
+		socket.send(buildJoinGame(id));
 
 		// Game socket setup start
-		socket.on(Protocol.State, payload => onStateInit(payload, socket));
-		socket.on(Protocol.OpponentAbandon, onOpponentAbandon);
-		socket.on(Protocol.SpectatorJoin, onSpectatorJoin);
-		socket.on(Protocol.SpectatorLeave, onSpectatorLeave);
-		socket.on(Protocol.Error, onError);
-		socket.on(Protocol.Board, onBoardInit);
-		socket.on(Protocol.MoveUpdate, onMoveUpdate);
-		socket.on(Protocol.YourTurn, onYourTurn);
-		socket.on(Protocol.OpponentTurn, onOpponentTurn);
-		socket.on(Protocol.GameStart, onGameStart);
-		socket.on(Protocol.GameEnd, onGameEnd);
-		socket.on(Protocol.ChatMessage, onChatMessage);
-		socket.on(Protocol.NoMoves, onNoMoves);
-		socket.on(Protocol.OpponentNoMoves, onOpponentNoMoves);
-		socket.on(Protocol.XpUpdate, onNewXp);
+		const callbacks: ((p: ByteReader) => void)[] = [];
+
+		callbacks[Protocol.State] = onStateInit;
+		callbacks[Protocol.BlackAbandon] = onBlackAbandon;
+		callbacks[Protocol.WhiteAbandon] = onWhiteAbandon;
+		callbacks[Protocol.BlackDisconnect] = onBlackDisconnect;
+		callbacks[Protocol.WhiteDisconnect] = onWhiteDisconnect;
+		callbacks[Protocol.BlackReconnect] = onBlackReconnect;
+		callbacks[Protocol.WhiteReconnect] = onWhiteReconnect;
+		callbacks[Protocol.SpectatorJoin] = onSpectatorJoin;
+		callbacks[Protocol.SpectatorLeave] = onSpectatorLeave;
+		callbacks[Protocol.Error] = onError;
+		callbacks[Protocol.FatalError] = onFatalError;
+		callbacks[Protocol.Board] = onBoardInit;
+		callbacks[Protocol.MoveUpdate] = onMoveUpdate;
+		callbacks[Protocol.BlackTurn] = onBlackTurn;
+		callbacks[Protocol.WhiteTurn] = onWhiteTurn;
+		callbacks[Protocol.BlackNoMoves] = onBlackNoMoves;
+		callbacks[Protocol.WhiteNoMoves] = onWhiteNoMoves;
+		callbacks[Protocol.GameStart] = onGameStart;
+		callbacks[Protocol.GameEnd] = onGameEnd;
+		callbacks[Protocol.ChatMessage] = onChatMessage;
+		callbacks[Protocol.XpUpdate] = onXpUpdate;
+
+		socket.handlers = callbacks;
 		// Game socket setup end
+
+		socket.send(buildReadyToGame()); // Notify the backend this player is ready
+
 		return () => {
-			cancelled = true;
-			socket.disconnect(1000);
+			if (stateRef.current?.status === "ACTIVE")
+				socket.send(buildDisconnect());
+			console.log("Unmounted?????");
+			socket.handlers = globalHandler;
 		};
 	}, []);
 
@@ -388,61 +402,45 @@ export function useGame(id: string, onJoin: (err?: Error) => void) {
 			for (const user of u)
 				newProfiles.set(user.id, user);
 
-			console.log(newProfiles);
 			setProfiles(newProfiles);
 		});
 	}, [spectators, state]);
 
-	useEffect(() => {
-		if (!gameMessage.show) return;
-		setTimeout(() => setGameMessage({...gameMessage, show: false}), 2000);
-	}, [gameMessage]);
-
 	const makeMove = (row: number, col: number) => {
 		const state    = stateRef.current;
-		const yourTurn = yourTurnRef.current;
-		const socket   = socketRef.current;
 
 		if (!state)                    { console.log("makeMove blocked: no state");      return; }
 		if (state.status !== "ACTIVE") { console.log("makeMove blocked: not ACTIVE");    return; }
 		if (!yourTurn)                 { console.log("makeMove blocked: not your turn"); return; }
 
 		console.log("Move sent row:", row, "col:", col);
-		socket?.send(buildConsumeTurn(row, col));
+		socket.send(buildConsumeTurn(row, col));
 	};
 	
 
 	const chat = (message: string) => {
-		socket?.send(buildChat(message));
+		socket.send(buildChat(message));
 	};
 
 	const abandon = () => {
-		socketRef.current?.send(build(Protocol.PlayerAbandon).freeze());
+		socket.send(build(Protocol.Abandon).freeze());
 		setLog(prev => [{ type: 'abandon', byMe: true }, ...prev]);
-		setSocket(prev => {
-			prev?.disconnect(1000);
-			return null;
-		});
-		window.clearInterval(timer);
-		window.clearInterval(opponentTimer);
-		setYourTurn(false);   yourTurnRef.current = false;
-		setOpponentTurn(false);
+		window.clearInterval(whiteTimer);
+		window.clearInterval(blackTimer);
+		router.push("/lobby")
 	};
 
 	return {
 		socket,
 		state,
 		yourTurn,
-		gameMessage,
-		opponentTurn,
-		timeLeftFormat,
-		opponentTimeLeftFormat,
+		blackTimeLeftFormat,
+		whiteTimeLeftFormat,
 		myColor,
 		profiles,
 		spectators,
 		validSet,
 		messages,
-		newXp,
 		makeMove,
 		chat,
 		abandon,

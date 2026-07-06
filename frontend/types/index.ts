@@ -37,6 +37,17 @@ export interface User {
 
 export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
+// A single message in a 1-to-1 chat (mirrors the backend ChatMessage).
+export interface ChatMessage {
+  id: string;
+  chatId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
+export type SChatMessage = Pick<ChatMessage, "senderId" | "content" | "createdAt">;
+
 export interface LeaderboardEntry {
   rank: number;
   user: PublicUser;
@@ -104,10 +115,26 @@ export interface MatchFoundPayload {
 }
 
 // ─── WebSocket protocol (mirrors backend protocol.ts) ────────────────────────
-export enum PreGameProtocol {
-	Error = 0,
-	MatchFound = 1,
-	MatchmakeError = 2
+
+export enum GlobalProtocol {
+	KeepAlive = 0,
+	JoinCasualQueue = 1,
+	LeaveQueue = 2,
+	FriendReqSend = 3,
+	FriendReqReject = 4,
+	FriendReqAccept = 5,
+	Chat = 6,
+	JoinGame = 7,
+	MatchFound = 8,
+	Info = 9,
+	Error = 10,
+	Notification = 11
+}
+
+export enum ProtocolCodes {
+	Generic = 0,
+	FriendReqFailed = 1,
+	QueueFailed = 2
 }
 
 export enum Protocol {
@@ -117,17 +144,24 @@ export enum Protocol {
 	ChatMessage = 3,
 	SpectatorJoin = 4,
 	SpectatorLeave = 5,
-	YourTurn = 6,
-	OpponentTurn = 7,
-	NoMoves = 8,
-	OpponentNoMoves = 9,
-	PlayerAbandon = 10,
-	OpponentAbandon = 11,
-	Board = 12,
-	State = 13,
-	MoveUpdate = 14,
-	GameStart = 15,
-	GameEnd = 16,
-	Error = 17,
-	XpUpdate = 18
+	BlackTurn = 6,
+	WhiteTurn = 7,
+	BlackNoMoves = 8,
+	WhiteNoMoves = 9,
+	BlackAbandon = 10,
+	WhiteAbandon = 11,
+	BlackDisconnect = 12,
+	WhiteDisconnect = 13,
+	BlackReconnect = 14,
+	WhiteReconnect = 15,
+	Abandon = 16,
+	Disconnect = 17,
+	Board = 18,
+	State = 19,
+	MoveUpdate = 20,
+	GameStart = 21,
+	GameEnd = 22,
+	XpUpdate = 23,
+	Error = 24,
+	FatalError = 25
 };

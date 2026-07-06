@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import { friendApi, userApi } from "@/lib/api";
 import type { PublicUser } from "@/types";
@@ -17,8 +16,13 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   useEffect(() => {
-    const token = getTokens()?.accessToken;
-    if (token) friendApi.getProfiles(token).then(setFriends).catch(() => {});
+    function fetchFriends() {
+      const token = getTokens()?.accessToken;
+      if (token) friendApi.getProfiles(token).then(setFriends).catch(() => {});
+    }
+    fetchFriends();
+    window.addEventListener("focus", fetchFriends);
+    return () => window.removeEventListener("focus", fetchFriends);
   }, []);
 
   const [bio, setBio] = useState("");
@@ -48,7 +52,7 @@ export default function ProfilePage() {
   const victories     = profile?.gamesWon ?? user?.gamesWon ?? 0;
 
   return (
-    <ProtectedLayout activeRoute="/profile">
+    <>
       <main className="flex-grow p-12 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-12">
 
@@ -156,7 +160,7 @@ export default function ProfilePage() {
         <div className="ambient-blob -top-[10%] -right-[10%] w-[50%] h-[50%] blur-[120px]" style={{ background: "rgba(0,238,252,0.03)"   }} />
         <div className="ambient-blob -bottom-[5%]  -left-[5%]  w-[40%] h-[40%] blur-[100px]" style={{ background: "rgba(172,138,255,0.03)" }} />
       </div>
-    </ProtectedLayout>
+    </>
   );
 }
 
@@ -166,7 +170,10 @@ function FriendEntry({ friend }: { friend: PublicUser }) {
 
   useEffect(() => {
     if (!pos) return;
-    function close() { setPos(null); }
+    function close(e: MouseEvent) {
+      if (ref.current?.contains(e.target as Node)) return;
+      setPos(null);
+    }
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [pos]);

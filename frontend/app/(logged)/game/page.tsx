@@ -1,21 +1,17 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import { useGame, type LogEntry } from "@/hooks/useGame";
 import { BLACK, WHITE } from "@/types";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
 
-
 export default function GamePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const [joinError, setJoinError] = useState<string | null>(null);
-  const onJoin = useCallback((e?: Error) => { if (e) setJoinError(e.message); }, []);
-  const game = useGame(id ?? "", onJoin);
+  const game = useGame(id ?? "");
 
   useEffect(() => {
     if (!id) router.push("/lobby");
@@ -43,7 +39,6 @@ export default function GamePage() {
     opponentId = isSpectator ? undefined : game.state?.players.white;
   }
 
-
   const gameResultLabel = (() => {
     if (game.state?.status !== "FINISHED") return null;
     const winner = game.state.winner;
@@ -56,24 +51,8 @@ export default function GamePage() {
     return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
   })();
 
-  const joinErrorMsg = joinError?.includes("does not exist") ? "This game has already ended."
-                     : joinError?.includes("spectators")    ? "This game doesn't allow spectators."
-                     : joinError ?? "Unknown error";
-
-  if (joinError) return (
-    <ProtectedLayout activeRoute="/game">
-      <main className="flex-1 flex flex-col items-center justify-center gap-6 min-h-[calc(100vh-100px)]">
-        <p className="text-on-surface-variant text-sm">Could not connect to game</p>
-        <p className="text-xs font-mono" style={{ color: "rgba(239,68,68,0.7)" }}>{joinErrorMsg}</p>
-        <button onClick={() => router.push("/lobby")} className="btn-ghost">
-          Back to Lobby
-        </button>
-      </main>
-    </ProtectedLayout>
-  );
-
   return (
-    <ProtectedLayout activeRoute="/game">
+    <>
       <main className="max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col xl:flex-row gap-8 xl:gap-12 min-h-[calc(100vh-100px)]">
 
         {/* My panel */}
@@ -86,8 +65,8 @@ export default function GamePage() {
             accentClass="border-primary"
             scoreColorClass="text-primary"
             glowColor="#8ff5ff"
-            isMyTurn={game.yourTurn}
-            timeLeft={game.timeLeftFormat}
+            isMyTurn={game.yourTurn ?? false}
+            timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -176,8 +155,8 @@ export default function GamePage() {
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
             glowColor="#d575ff"
-            isMyTurn={game.opponentTurn}
-            timeLeft={game.opponentTimeLeftFormat}
+            isMyTurn={game.yourTurn === false}
+            timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
             userId={opponentId}
           />
           <ChatPanel
@@ -195,7 +174,7 @@ export default function GamePage() {
         <div className="ambient-blob top-[10%] left-[5%] w-96 h-96 bg-primary/5 blur-[120px]" />
         <div className="ambient-blob bottom-[10%] right-[5%] w-96 h-96 bg-tertiary/5 blur-[120px]" />
       </div>
-    </ProtectedLayout>
+    </>
   );
 }
 

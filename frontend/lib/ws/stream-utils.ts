@@ -1,4 +1,4 @@
-import { Board, CellState, Protocol } from "@/types";
+import { Board, CellState, GlobalProtocol, Protocol } from "@/types";
 
 export class ByteWriter {
 	private dv: DataView;
@@ -115,6 +115,8 @@ export function build(id: number): ByteWriter {
 	return new ByteWriter().writeUint8(id);
 }
 
+// ----- Game -----
+
 export function buildReadyToGame(): Uint8Array {
 	return build(Protocol.Ready).freeze();
 }
@@ -126,8 +128,51 @@ export function buildConsumeTurn(row: number, col: number): Uint8Array {
 		.freeze();
 }
 
-export function buildChat(message: string) {
+export function buildChat(message: string): Uint8Array {
 	return build(Protocol.ChatMessage)
 		.writePrefixedUTF(message)
+		.freeze();
+}
+
+export function buildAbandon(): Uint8Array {
+	return build(Protocol.Abandon).freeze();
+}
+
+export function buildDisconnect(): Uint8Array {
+	return build(Protocol.Disconnect).freeze();
+}
+
+// ----- Global -----
+
+export function buildJoinQueue(): Uint8Array {
+	return build(GlobalProtocol.JoinCasualQueue).freeze();
+}
+
+export function buildLeaveQueue(): Uint8Array {
+	return build(GlobalProtocol.LeaveQueue).freeze();
+}
+
+export function buildFriendRequest(receiverId: string): Uint8Array {
+	return build(GlobalProtocol.FriendReqSend)
+		.writePrefixedUTF(receiverId)
+		.freeze();
+}
+
+export function buildFriendRequestReject(senderId: string): Uint8Array {
+	return build(GlobalProtocol.FriendReqReject)
+		.writePrefixedUTF(senderId)
+		.freeze();
+}
+
+export function buildFriendChat(to: string, message: string): Uint8Array {
+	return build(GlobalProtocol.Chat)
+		.writePrefixedUTF(to)
+		.writePrefixedUTF(message)
+		.freeze();
+}
+
+export function buildJoinGame(gameId: string): Uint8Array {
+	return build(GlobalProtocol.JoinGame)
+		.writePrefixedUTF(gameId)
 		.freeze();
 }

@@ -1,5 +1,5 @@
 
-import type { User, LeaderboardEntry, PublicUser } from "@/types";
+import type { User, LeaderboardEntry, PublicUser, ChatMessage } from "@/types";
 import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
@@ -250,6 +250,31 @@ export const friendApi = {
 	}
 };
 
+// Chat
+
+export const chatApi = {
+	/** Conversation history with another user, newest message first.
+	 *  `before` is a cursor (a message's createdAt) for fetching older pages. */
+	getHistory: async (
+		accessToken: string,
+		userId: string,
+		opts?: { limit?: number; before?: string },
+	): Promise<ChatMessage[]> => {
+		const params = new URLSearchParams();
+		if (opts?.limit !== undefined) params.set("limit", String(opts.limit));
+		if (opts?.before !== undefined) params.set("before", opts.before);
+		const query = params.toString();
+		const res = await apiFetch<{ success: boolean, data: ChatMessage[] }>(
+			`/chats/${userId}${query ? `?${query}` : ""}`, {
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": `Bearer ${accessToken}`
+				}
+			});
+		return res.data;
+	},
+};
+
 //   Leaderboard
 
 export const leaderboardApi = {
@@ -259,4 +284,4 @@ export const leaderboardApi = {
   },
 };
 
-export default { auth: authApi, user: userApi, friend: friendApi, leaderboard: leaderboardApi };
+export default { auth: authApi, user: userApi, friend: friendApi, chat: chatApi, leaderboard: leaderboardApi };

@@ -1,12 +1,16 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
 import { Socket } from "./socket";
-import { build, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildOpponentAbandon, buildOpponentTurn, buildSpectatorJoin, buildSpectatorLeave, buildXpUpdate, buildYourTurn } from "./protocol-utils";
+import { build, buildBlackAbandon, buildBlackDisconnect, buildBlackNoMoves, buildBlackReconnected, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildSpectatorJoin, buildSpectatorLeave, buildWhiteAbandon, buildWhiteDisconnect, buildWhiteNoMoves, buildWhiteReconnected, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
 import { updateUserGame, clearUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
+import { clearTimeout } from "timers";
+import globalHandler from "./handlers/global-handler";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
+
+const RECONNECT_TIME_MS = 60000;
 
 /**
 * @content the new content
@@ -75,6 +79,8 @@ export class GameSession {
 	messages: Message[] = [];
 	startedAt?: number;
 	finishedAt?: number;
+	blackAbandonTimer?: NodeJS.Timeout;
+	whiteAbandonTimer?: NodeJS.Timeout;
 
 	constructor(
 		id: UUID,
@@ -108,10 +114,11 @@ export class GameSession {
 				return;
 			}
 		}
-		this.broadcast(buildSpectatorJoin(conn.id));
 		const player = new SessionPlayer(conn.id, -1, this);
+		player.conn.add(conn);
 		conn.player = player;
 		this.spectators.add(player);
+		this.broadcast(buildSpectatorJoin(conn.id));
 	}
 
 	broadcast(buf: BufferSource) {
@@ -130,16 +137,25 @@ export class GameSession {
 		} else if (this.allowSpectators) {
 			this.joinGameAsSpec(conn);
 		} else return new Error("This game doesn't allow spectators");
-		conn.send(buildGameState(this, (conn.player as SessionPlayer).player as Player))
+		conn.send(buildGameState(this, (conn.player as SessionPlayer).player ?? 0));
 	}
 
 	closeSession() {
 		SESSIONS.delete(this.id);
 		clearUserGame(this.blackPlayer.id).catch(e => console.error(e));
 		clearUserGame(this.whitePlayer.id).catch(e => console.error(e));
-		this.blackPlayer.conn.forEach(c => c.close());
-		this.whitePlayer.conn.forEach(c => c.close());
-		this.spectators.forEach(s => s.conn.forEach(c => c.close()));
+		this.blackPlayer.conn.forEach(c => {
+			c.handler = globalHandler;
+			c.status = "online";
+		});
+		this.whitePlayer.conn.forEach(c => {
+			c.handler = globalHandler;
+			c.status = "online";
+		});
+		this.spectators.forEach(s => s.conn.forEach(c => {
+			c.handler = globalHandler;
+			c.status = "online";
+		}));
 	}
 
 	// Determines the winner, if no winner is set it stops the game with a draw
@@ -158,15 +174,31 @@ export class GameSession {
 			.finally(() => this.closeSession());
 	}
 
-	playerReady(conn: SessionPlayer) {
-		if (!conn.ready) {
-			conn.ready = true;
-			if (this.blackPlayer.ready && this.whitePlayer.ready) {
+	playerReady(conn: Socket) {
+		if (conn.player && !conn.player.ready) {
+			conn.player.ready = true;
+			const isPlayer = conn.player === this.blackPlayer || conn.player === this.whitePlayer;
+			if (isPlayer && this.blackPlayer.ready && this.whitePlayer.ready) {
 				this.state.status = STATUS_ACTIVE;
 				this.broadcast(build(GameProtocol.GameStart).freeze());
-				this.startedAt = Date.now();
+				this.startedAt = Math.floor(Date.now() / 1000);
 				this.nextTurn();
 			}
+		}
+		if (this.state.status === "ACTIVE") {
+			if (this.blackAbandonTimer && this.blackPlayer.id === conn.id) {
+				clearTimeout(this.blackAbandonTimer);
+				this.blackAbandonTimer = undefined;
+				this.broadcast(buildBlackReconnected());
+			} else if (this.whiteAbandonTimer && this.whitePlayer.id === conn.id) {
+				clearTimeout(this.whiteAbandonTimer);
+				this.whiteAbandonTimer = undefined;
+				this.broadcast(buildWhiteReconnected());
+			}
+		}
+		const isSpectator = conn.player !== this.blackPlayer && conn.player !== this.whitePlayer;
+		if (conn.player && isSpectator) {
+			conn.send(buildGameState(this, 0));
 		}
 	}
 
@@ -206,9 +238,9 @@ export class GameSession {
 		// Send state updates to whole game
 		this.broadcast(buildMoveUpdate(updates));
 
-		const opponent = conn.player === BLACK ? this.whitePlayer : this.blackPlayer;
-		conn.send(build(GameProtocol.OpponentNoMoves).freeze());
-		opponent.send(build(GameProtocol.NoMoves).freeze());
+		if (conn.player === this.state.currentTurn) {
+			this.broadcast(conn.player === BLACK ? buildWhiteNoMoves() : buildBlackNoMoves());
+		}
 		addGameMovement(this.id, conn.id, pos).catch(e => console.error(e));
 		if (this.timeLimit !== -1)
 			setUserTimeLeft(this.id, conn.id, conn.timeLeft).catch(e => console.error(e));
@@ -221,7 +253,6 @@ export class GameSession {
 			this.reportFinished();
 		else if (this.state.currentTurn === BLACK) {
 			let timeToLose = -1;
-			this.whitePlayer.send(buildOpponentTurn(this.whitePlayer.timeLeft));
 
 			if (this.timeLimit !== -1) {
 				timeToLose = this.blackPlayer.timeLeft;
@@ -234,10 +265,9 @@ export class GameSession {
 				}, this.blackPlayer.timeLeft);
 			}
 
-			this.blackPlayer.send(buildYourTurn(getValidMoves(this.state.board, BLACK), timeToLose));
+			this.broadcast(buildBlackTurn(getValidMoves(this.state.board, BLACK), timeToLose));
 		} else if (this.state.currentTurn === WHITE) {
 			let timeToLose;
-			this.blackPlayer.send(buildOpponentTurn(this.blackPlayer.timeLeft));
 
 			if (this.timeLimit !== -1) {
 				timeToLose = this.whitePlayer.timeLeft;
@@ -249,7 +279,7 @@ export class GameSession {
 				}, this.whitePlayer.timeLeft);
 			} else timeToLose = -1;
 
-			this.whitePlayer.send(buildYourTurn(getValidMoves(this.state.board, WHITE), timeToLose));
+			this.broadcast(buildWhiteTurn(getValidMoves(this.state.board, WHITE), timeToLose));
 		}
 	}
 
@@ -257,9 +287,9 @@ export class GameSession {
 		if (this.state.status !== "FINISHED") {
 			this.state = abandonGame(this.state, conn.id);
 			if (this.blackPlayer.id === conn.id)
-				this.whitePlayer.send(buildOpponentAbandon())
+				this.broadcast(buildBlackAbandon());
 			else if (this.whitePlayer.id === conn.id)
-				this.blackPlayer.send(buildOpponentAbandon())
+				this.broadcast(buildWhiteAbandon())
 			this.reportFinished();
 		}
 	}
@@ -270,6 +300,9 @@ export class GameSession {
 			if (spec.id === conn.id && spec.conn.has(conn)) {
 				this.broadcast(buildSpectatorLeave(spec.id));
 				this.spectators.delete(spec);
+				conn.handler = globalHandler;
+				conn.status = "online";
+				conn.player = undefined;
 				return;
 			}
 		}
@@ -285,13 +318,20 @@ export class GameSession {
 					this.spectators.delete(spec);
 				}
 				spec.conn.delete(conn);
+				conn.handler = globalHandler;
+				conn.status = "online";
+				conn.player = undefined;
 				return;
 			}
 		}
 
-		let player = this.blackPlayer.id === conn.id ? this.blackPlayer : this.whitePlayer.id === conn.id ? this.whitePlayer : null;
-		if (player && player.conn.delete(conn) && player.conn.size === 0)
-			this.abandon(conn);
+		if (conn.id === this.blackPlayer.id && this.blackPlayer.conn.delete(conn) && this.blackPlayer.conn.size === 0) {
+			this.broadcast(buildBlackDisconnect(RECONNECT_TIME_MS));
+			this.blackAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
+		} else if (conn.id === this.whitePlayer.id && this.whitePlayer.conn.delete(conn) && this.whitePlayer.conn.size === 0) {
+			this.broadcast(buildWhiteDisconnect(RECONNECT_TIME_MS));
+			this.whiteAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
+		}
 	}
 }
 
@@ -307,6 +347,7 @@ export function createGameSession(
 	timeLimit: number
 ): GameSession {
 	const game: GameSession = new GameSession(randomUUID(), createInitialGameState(), black, white, allowSpectators, friendly, timeLimit);
+	SESSIONS.set(game.id, game);
 	createGame({
 		gameId: game.id,
 		whiteId: white,
@@ -314,11 +355,10 @@ export function createGameSession(
 		timeLimit: game.timeLimit,
 		allowSpectators: game.allowSpectators,
 		friendly
-	}).catch(e => console.error(e));
-
-	SESSIONS.set(game.id, game);
-	updateUserGame(white, game.id).catch(e => console.error(e));
-	updateUserGame(black, game.id).catch(e => console.error(e));
+	}).then(() => Promise.all([
+		updateUserGame(white, game.id),
+		updateUserGame(black, game.id),
+	])).catch(e => console.error(e));
 
 return game;
 }
