@@ -232,9 +232,10 @@
   .lb-row {
     @apply grid grid-cols-12 px-8 py-6 items-center transition-all relative;
   }
-  .lb-row-even     { background-color: var(--surface-container); }
-  .lb-row-odd      { background-color: var(--surface-container-low); }
-  .lb-row-odd:hover { background-color: var(--surface-container-high); }
+  .lb-row-even       { background-color: var(--surface-container); }
+  .lb-row-odd        { background-color: var(--surface-container-low); }
+  .lb-row-odd:hover  { background-color: var(--surface-container-high); }
+  .lb-row-even:hover { background-color: var(--surface-container-high); }
   .lb-row-me {
     background: rgba(143, 245, 255, 0.07);
     outline: 1px solid rgba(143, 245, 255, 0.2);
@@ -255,6 +256,15 @@
     color: var(--on-surface-variant);
     font-family: 'Space Grotesk', sans-serif;
   }
+  .lb-level-badge {
+    @apply text-xs font-bold px-1.5 py-0.5 rounded;
+    background-color: var(--surface-container-highest);
+    color: var(--on-surface-variant);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+  }
+
   .lb-win-bar-track {
     @apply w-full h-1 mb-1;
     background-color: var(--surface-container-low);

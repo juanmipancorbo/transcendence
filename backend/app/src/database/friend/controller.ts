@@ -10,19 +10,19 @@ export async function getFriends(req: Request, res: Response) {
 
 export async function getFriendProfiles(req: Request, res: Response) {
 	const data = await Service.readFriendProfiles(req.userId!);
-	injectStatus(...data);
+	injectStatus(data);
 	res.status(200).json({ success: true, data });
 }
 
 export async function getIncomingRequests(req: Request, res: Response) {
 	const data = await Service.readIncomingRequests(req.userId!);
-	injectStatus(...data);
+	injectStatus(data);
 	res.status(200).json({ success: true, data });
 }
 
 export async function getOutgoingRequests(req: Request, res: Response) {
 	const data = await Service.readOutgoingRequests(req.userId!);
-	injectStatus(...data);
+	injectStatus(data);
 	res.status(200).json({ success: true, data });
 }
 

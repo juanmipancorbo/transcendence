@@ -38,7 +38,7 @@ export function unregisterSocket(sock: Socket) {
 
 export function getSocksById(id: UUID): Set<Socket> | undefined { return connectedUsers.get(id); }
 
-export function injectStatus(...users: PublicUser[]) {
+export function injectStatus(users: PublicUser[]) {
 	for (const user of users) {
 		const sock = getSocksById(user.id);
 		if (sock) {
