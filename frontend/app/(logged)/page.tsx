@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWs } from "@/hooks/useWs";
+import { useGlobalRank } from "@/hooks/useGlobalRank";
 
 export default function LobbyPage() {
   const { user } = useAuth();
@@ -20,6 +21,9 @@ export default function LobbyPage() {
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
 
   const xpProgress = user ? (user.xp % 1000) / 10 : 0;
+  const globalRank = useGlobalRank(user?.id);
+  const totalGames = (user?.gamesWon ?? 0) + (user?.gamesLost ?? 0);
+  const winRate = totalGames > 0 ? Math.round(((user?.gamesWon ?? 0) / totalGames) * 100) : 0;
 
   return (
     <div className="p-8">
@@ -93,10 +97,10 @@ export default function LobbyPage() {
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "GLOBAL_RANK", value: `#${/*TODO user?.rank ?? */0}`,   color: "text-primary" },
+            { label: "GLOBAL_RANK", value: globalRank ? `#${globalRank}` : "#--", color: "text-primary" },
             { label: "WINS",        value: user?.gamesWon ?? 0,          color: "text-secondary" },
             { label: "LOSSES",      value: user?.gamesLost ?? 0,        color: "text-on-surface-variant" },
-            { label: "WIN_RATE",    value: `${user ? Math.round(user.gamesWon / (user.gamesWon + user.gamesLost) * 100) : 0}%`, color: "text-tertiary" },
+            { label: "WIN_RATE",    value: `${winRate}%`, color: "text-tertiary" },
           ].map(({ label, value, color }) => (
             <div key={label} className="stat-card">
               <div className={`stat-card-value ${color}`}>{value}</div>
