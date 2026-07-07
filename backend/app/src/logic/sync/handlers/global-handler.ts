@@ -127,13 +127,7 @@ function onChat(p: ByteReader, conn: Socket) {
 }
 
 function onJoinGame(p: ByteReader, conn: Socket) {
-	if (conn.status === "busy") {
-		conn.send(buildGameFatalError("Cannot join a game while in queue"));
-		return;
-	}
 	const gameId = p.readPrefixedUTF();
-	conn.handler = gameHandler;
-	conn.status = "busy";
 	const game = SESSIONS.get(gameId as UUID);
 	if (!game) {
 		conn.handler = handler;
@@ -141,6 +135,15 @@ function onJoinGame(p: ByteReader, conn: Socket) {
 		conn.send(buildGameFatalError("Game doesn't exist"));
 		return;
 	}
+
+	const isQueuedPlayer = game.whitePlayer.id === conn.id || game.blackPlayer.id === conn.id;
+	if (conn.status === "busy" && !isQueuedPlayer) {
+		conn.send(buildGameFatalError("Cannot join a game while in queue"));
+		return;
+	}
+
+	conn.handler = gameHandler;
+	conn.status = "busy";
 
 	const res = game.joinGame(conn);
 	if (res instanceof Error) {
