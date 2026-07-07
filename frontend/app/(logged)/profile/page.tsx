@@ -27,6 +27,14 @@ export default function ProfilePage() {
 
   const [bio, setBio] = useState("");
 
+  useEffect(() => {
+    if (!user?.id) {
+      setBio("");
+      return;
+    }
+    setBio(localStorage.getItem(`profile-bio:${user.id}`) ?? "");
+  }, [user?.id]);
+
   const [editing,   setEditing]   = useState(false);
   const [draftName, setDraftName] = useState("");
   const [draftBio,  setDraftBio]  = useState("");
@@ -38,7 +46,10 @@ export default function ProfilePage() {
   }
 
   function handleSave() {
-    setBio(draftBio);
+    const nextBio = draftBio.trim();
+    setBio(nextBio);
+    if (user?.id)
+      localStorage.setItem(`profile-bio:${user.id}`, nextBio);
     userApi.updateProfile(user?.id ?? "", { username: draftName }).catch(() => {});
     setEditing(false);
   }
@@ -94,12 +105,11 @@ export default function ProfilePage() {
 
               {editing ? (
                 <textarea
-                  className="profile-edit-input mb-4 resize-none h-20"
+                  className="profile-edit-textarea mb-4 resize-none h-20"
                   value={draftBio}
                   onChange={e => setDraftBio(e.target.value)}
                   maxLength={160}
                   placeholder="Short bio…"
-                  style={{ fontSize: "0.95rem", fontWeight: 400, fontStyle: "normal" }}
                 />
               ) : (
                 <p className="profile-bio">{bio || <span className="text-on-surface-variant/40 italic">No bio yet.</span>}</p>

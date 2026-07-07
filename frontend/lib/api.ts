@@ -135,9 +135,17 @@ export const userApi = {
     return res.data;
   },
 
-  /** TODO: PATCH /api/users/:id */
-  updateProfile: async (_userId: string, _data: Partial<User>): Promise<boolean> => {
-    return Promise.reject(new Error("updateProfile not yet implemented"));
+  updateProfile: async (_userId: string, data: Partial<User>): Promise<boolean> => {
+    if (!data.username)
+      return true;
+
+    const tokens = getTokens();
+    await apiFetch<{ success: boolean; data: null }>("/users/username", {
+      method: "PATCH",
+      headers: tokens?.accessToken ? { "Authorization": `Bearer ${tokens.accessToken}` } : undefined,
+      body: JSON.stringify({ username: data.username }),
+    });
+    return true;
   },
 };
 

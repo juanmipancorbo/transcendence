@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
-  { href: "/lobby",       label: "Lobby",      icon: "sports_esports" },
-  { href: "/leaderboard", label: "Leaderboard", icon: "leaderboard"    },
-  { href: "/profile",     label: "Profile",     icon: "person_search"  },
-  { href: "/terms",       label: "Policy",      icon: "gavel"          },
+  { href: "/lobby",       label: "Play"     },
+  { href: "/leaderboard", label: "Rankings" },
+  { href: "/profile",     label: "Profile"  },
+  { href: "/terms",       label: "Terms"    },
 ];
 
 export default function Sidebar() {
@@ -19,7 +19,7 @@ export default function Sidebar() {
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[#0e0e13] flex flex-col py-10 z-50"
            style={{ boxShadow: "20px 0 60px -15px rgba(40,0,103,0.1)" }}>
       <nav className="flex-grow flex flex-col">
-        {NAV_ITEMS.map(({ href, label, icon }) => {
+        {NAV_ITEMS.map(({ href, label }) => {
           const active = pathname.startsWith(href);
           return (
             <Link
@@ -31,12 +31,6 @@ export default function Sidebar() {
                   : "text-slate-600 py-4 px-6 hover:bg-slate-800/50 hover:text-white transition-all flex items-center gap-4 font-headline text-xs font-bold tracking-[0.2em] uppercase"
               }
             >
-              <span
-                className="material-symbols-outlined"
-                style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                {icon}
-              </span>
               {label}
             </Link>
           );
