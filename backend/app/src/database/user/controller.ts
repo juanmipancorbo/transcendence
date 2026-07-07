@@ -5,7 +5,7 @@ import { injectStatus } from "@gameLogic/sync/socket";
 
 export async function getProfile(req: Request<ProfileReq>, res: Response) {
 	const data = await Service.readProfile(req.params.id);
-	injectStatus(data);
+	injectStatus([data]);
 	res.status(200).json({ success: true, data});
 }
 
