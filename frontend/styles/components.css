@@ -531,4 +531,15 @@
     font-family: 'Space Grotesk', sans-serif;
     width: 100%;
   }
+
+  .profile-edit-textarea {
+    @apply p-3 outline-none rounded text-base leading-relaxed;
+    background-color: var(--surface-container-low);
+    color: var(--on-surface);
+    border: 1px solid var(--outline-variant);
+    border-bottom: 2px solid var(--primary);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 400;
+    width: 100%;
+  }
 }
