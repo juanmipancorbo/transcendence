@@ -42,7 +42,7 @@ export async function reportFinishedGame(gameId: string, winner: string | null):
   const res = await pool.query(sql`
 	SELECT report_game($1, $2) as xp
   `, [gameId, winner]);
-  return res.rows[0] ?? null;
+  return res.rows[0]?.xp ?? null;
 }
 
 export async function updateGameWinner(gameId: string, winnerId: string)
