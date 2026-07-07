@@ -127,6 +127,10 @@ function onChat(p: ByteReader, conn: Socket) {
 }
 
 function onJoinGame(p: ByteReader, conn: Socket) {
+	if (conn.status === "busy") {
+		conn.send(buildGameFatalError("Cannot join a game while in queue"));
+		return;
+	}
 	const gameId = p.readPrefixedUTF();
 	conn.handler = gameHandler;
 	conn.status = "busy";
@@ -142,7 +146,7 @@ function onJoinGame(p: ByteReader, conn: Socket) {
 	if (res instanceof Error) {
 		conn.handler = handler;
 		conn.status = "online";
-		conn.send(buildGameFatalError("This game doesn't allow spectators"));
+		conn.send(buildGameFatalError(res.message));
 	}
 }
 

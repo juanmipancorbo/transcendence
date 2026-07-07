@@ -128,6 +128,8 @@ export class GameSession {
 	}
 
 	joinGame(conn: Socket): void | Error {
+		if (this.state.status === STATUS_FINISHED || this.state.status === STATUS_ABANDONED)
+			return new Error("Game has already ended");
 		if (this.whitePlayer.id === conn.id) {
 			this.whitePlayer.conn.add(conn);
 			conn.player = this.whitePlayer;
