@@ -131,7 +131,7 @@ export function useGame(id: string) {
 			message("You abandoned the game!");
 			router.push("/lobby");
 			return;
-		} else message("Black abandoned the game");
+		} else message("Blue abandoned the game");
 		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
 		setState(prev => {
 			if (!prev) return prev;
@@ -158,7 +158,7 @@ export function useGame(id: string) {
 
 	function onBlackDisconnect(p: ByteReader) {
 		const time = p.readUint32();
-		message(`Black disconnected, they have ${time / 1000} seconds to reconnect or it will count as an abandon`);
+		message(`Blue disconnected, they have ${time / 1000} seconds to reconnect or it will count as an abandon`);
 	}
 
 	function onWhiteDisconnect(p: ByteReader) {
@@ -167,7 +167,7 @@ export function useGame(id: string) {
 	}
 
 	function onBlackReconnect(_: ByteReader) {
-		message("Black reconnected!");
+		message("Blue reconnected!");
 	}
 
 	function onWhiteReconnect(_: ByteReader) {
@@ -289,7 +289,7 @@ export function useGame(id: string) {
 	function onBlackNoMoves() {
 		if (myColor === BLACK)
 			message("You don't have any moves available, so your opponent moves again");
-		else message("Black doesn't have any moves available");
+		else message("Blue doesn't have any moves available");
 	}
 
 	function onWhiteNoMoves() {
