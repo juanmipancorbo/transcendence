@@ -18,6 +18,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   }
 
   const token = authHeader.substring(7);
+  console.log(token);
 
   try {
     const payload = tokenUtils.verifyAccessToken(token);

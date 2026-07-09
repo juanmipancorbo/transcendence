@@ -107,6 +107,20 @@
     box-shadow: 0 0 35px rgba(0, 238, 252, 0.5);
   }
 
+  /* Secondary CTA — dark fill, outline border, sized like btn-primary (OAuth) */
+  .btn-secondary {
+    @apply w-full py-4 font-bold tracking-[0.3em] rounded-lg transition-all active:scale-[0.98] uppercase flex items-center justify-center gap-3;
+    background-color: var(--surface-container-high);
+    color: var(--on-surface-variant);
+    border: 1px solid var(--outline-variant);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .btn-secondary:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(0, 238, 252, 0.15);
+  }
+
   /* Ghost button — dark fill, outline border */
   .btn-ghost {
     @apply px-6 py-3 font-bold text-xs tracking-widest uppercase flex items-center gap-2 transition-all;

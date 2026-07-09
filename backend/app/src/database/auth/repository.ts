@@ -20,9 +20,19 @@ const USER_DATA = `
 export async function insertUser(email: string, username: string, password: string)
 {
   await pool.query(sql`
-    INSERT INTO users (email, username, password_hash)
-      VALUES ($1, $2, $3)
+    INSERT INTO users (email, username, password_hash, account_host)
+      VALUES ($1, $2, $3, 'local')
   `, [email, username, password]);
+}
+
+export async function insertUserGoogle(email: string, username: string): Promise<FullUser>
+{
+  const ret = await pool.query(sql`
+    INSERT INTO users (email, username, account_host)
+      VALUES ($1, $2, 'google')
+      RETURNING ${USER_DATA}
+  `, [email, username]);
+  return ({ ...ret.rows[0], status: "offline" });
 }
 
 export async function selectAuthUser(email: string): Promise<AuthUser | null>
@@ -49,6 +59,15 @@ export async function selectFullUserById(id: string): Promise<FullUser | null>
     SELECT ${USER_DATA} FROM users
       WHERE id = $1
   `, [id]);
+  return (ret.rows[0] ? { ...ret.rows[0], status: "offline" } : null);
+}
+
+export async function selectFullUserByEmail(email: string): Promise<FullUser | null>
+{
+  const ret = await pool.query(sql`
+    SELECT ${USER_DATA} FROM users
+      WHERE email = $1
+  `, [email]);
   return (ret.rows[0] ? { ...ret.rows[0], status: "offline" } : null);
 }
 

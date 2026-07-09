@@ -88,6 +88,18 @@ export const authApi = {
     };
   },
 
+  loginGoogle: async (code: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
+    const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/google/login", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    });
+    return {
+      accessToken: res.data.accessToken,
+      refreshToken: res.data.refreshToken,
+      user: res.data.user,
+    };
+  },
+
   register: async (email: string, username: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
     const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/auth/register", {
       method: "POST",

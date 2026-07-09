@@ -12,6 +12,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginGoogle: (code: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -51,6 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginGoogle = async (code: string) => {
+	  setIsLoading(true);
+	  try {
+		  const { accessToken, refreshToken } = await authApi.loginGoogle(code);
+		  setTokens({ accessToken, refreshToken });
+		  const userData = await authApi.me(accessToken);
+		  setUser(userData);
+	  } finally {
+		  setIsLoading(false);
+	  }
+  }
+
   const register = async (email: string, username: string, password: string) => {
     setIsLoading(true);
     try {
@@ -83,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: user !== null,
         login,
+		loginGoogle,
         register,
         logout,
       }}

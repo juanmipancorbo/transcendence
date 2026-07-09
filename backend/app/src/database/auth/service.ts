@@ -1,7 +1,7 @@
 import * as argon2 from "argon2"
 import * as Repo from "./repository"
 import { DatabaseError } from "pg";
-import { AuthUser, FullUser } from "@endpoints/users-response";
+import { AuthUser, FullUser, PublicUser } from "@endpoints/users-response";
 import { tokenUtils, TokenPayload } from "@utils/jwt-utils";
 import { createHash } from 'crypto';
 import { ApiError } from "@utils/error";
@@ -28,7 +28,14 @@ export async function loginUser(input: {email: string, password: string}): Promi
   return (user)
 }
 
-export async function generateTokens(user: AuthUser) {
+export async function loginUserGoogle(email: string, username: string): Promise<FullUser> {
+	const user = await Repo.selectFullUserByEmail(email);
+	if (!user)
+		return await Repo.insertUserGoogle(email, username);
+	return user;
+}
+
+export async function generateTokens(user: AuthUser | FullUser) {
   const payload: TokenPayload = {
     id: user.id,
     email: user.email,

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI } from "@/lib/config";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,6 +43,20 @@ export default function LoginPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }
+  }
+
+  function googleLogin() {
+    const state = window.crypto.randomUUID();
+    document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Lax`;
+
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      response_type: "code",
+      scope: "openid email profile",
+      state,
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   }
 
   return (
@@ -123,8 +138,19 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <button type="submit" className="btn-primary mt-8" disabled={isLoading ? true : false}>
+                <button type="submit" className="btn-primary mt-8" disabled={isLoading}>
                   {isLoading ? "Initializing..." : "Initialize_Login"}
+                </button>
+
+                <div className="flex items-center gap-4">
+                  <div className="h-px flex-1 bg-outline-variant/20" />
+                  <span className="label-micro">or</span>
+                  <div className="h-px flex-1 bg-outline-variant/20" />
+                </div>
+
+                <button onClick={googleLogin} type="button" className="btn-secondary" disabled={isLoading}>
+                  <img src="/google.svg" alt="" className="w-5 h-5" />
+                  Google_Login
                 </button>
               </form>
 
@@ -140,7 +166,6 @@ export default function LoginPage() {
               </p>
             </div>
           </div>
-
         </div>
       </main>
     </div>

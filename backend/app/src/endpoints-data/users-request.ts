@@ -37,3 +37,9 @@ export const LoginReqSchema = z.strictObject({
 })
 
 export type LoginReq = z.infer<typeof LoginReqSchema>;
+
+export const GoogleLoginReqSchema = z.strictObject({
+  code: z.string()
+});
+
+export type GoogleLoginReq = z.infer<typeof GoogleLoginReqSchema>;
