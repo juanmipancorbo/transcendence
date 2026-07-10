@@ -28,12 +28,8 @@ export default function ProfilePage() {
   const [bio, setBio] = useState("");
 
   useEffect(() => {
-    if (!user?.id) {
-      setBio("");
-      return;
-    }
-    setBio(localStorage.getItem(`profile-bio:${user.id}`) ?? "");
-  }, [user?.id]);
+    setBio(profile?.bio ?? "");
+  }, [profile?.bio]);
 
   const [editing,   setEditing]   = useState(false);
   const [draftName, setDraftName] = useState("");
@@ -48,9 +44,7 @@ export default function ProfilePage() {
   function handleSave() {
     const nextBio = draftBio.trim();
     setBio(nextBio);
-    if (user?.id)
-      localStorage.setItem(`profile-bio:${user.id}`, nextBio);
-    userApi.updateProfile(user?.id ?? "", { username: draftName }).catch(() => {});
+    userApi.updateProfile(user?.id ?? "", { username: draftName, bio: nextBio }).catch(() => {});
     setEditing(false);
   }
 

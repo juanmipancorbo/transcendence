@@ -7,6 +7,7 @@ const PROFILE_DATA = `
   username,
   email,
   avatar_url AS "avatarUrl",
+  bio,
   current_game AS "currentGame",
   games_played AS "gamesPlayed",
   games_won AS "gamesWon",
@@ -26,6 +27,13 @@ export async function updateUsername(userId: string, newUsername: string): Promi
 	const res = await pool.query(sql`
 		UPDATE users SET username = $1 WHERE id = $2
 	`, [newUsername, userId]);
+	return res.rowCount != 0;
+}
+
+export async function updateBio(userId: string, bio: string): Promise<boolean> {
+	const res = await pool.query(sql`
+		UPDATE users SET bio = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2
+	`, [bio, userId]);
 	return res.rowCount != 0;
 }
 

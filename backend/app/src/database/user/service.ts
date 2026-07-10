@@ -14,6 +14,10 @@ export async function updateUsername(userId: string, newUsername: string): Promi
 	return Repo.updateUsername(userId, newUsername);
 }
 
+export async function updateBio(userId: string, bio: string): Promise<boolean> {
+	return Repo.updateBio(userId, bio);
+}
+
 export async function updateUserGame(userId: string, gameId: string) {
   const user = await Repo.selectProfile(userId);
   if (!user)

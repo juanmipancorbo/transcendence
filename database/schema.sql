@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users(
     password_hash TEXT,
 	account_host TEXT NOT NULL DEFAULT 'local',
     avatar_url TEXT DEFAULT NULL,
+    bio VARCHAR(160) NOT NULL DEFAULT '',
     current_game UUID DEFAULT NULL,
     games_played INTEGER DEFAULT 0,
     games_won INTEGER DEFAULT 0,
@@ -14,6 +15,11 @@ CREATE TABLE IF NOT EXISTS users(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+DO $$ BEGIN
+	ALTER TABLE users
+		ADD COLUMN IF NOT EXISTS bio VARCHAR(160) NOT NULL DEFAULT '';
+END $$;
 
 DO $$ BEGIN
 	CREATE TYPE move AS (row smallint, col smallint, player smallint);

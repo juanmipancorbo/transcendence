@@ -187,7 +187,7 @@ export default function FriendProfilePage() {
                   </div>
 
                   <p className="profile-bio mb-4">
-                    <span className="text-on-surface-variant/40 italic">No bio yet.</span>
+                    {profile.bio || <span className="text-on-surface-variant/40 italic">No bio yet.</span>}
                   </p>
 
                   {/* Friend action */}

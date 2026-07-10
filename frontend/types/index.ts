@@ -24,6 +24,7 @@ export interface User {
 	username: string,
 	email: string,
 	avatarUrl?: string,
+	bio: string,
 	status: "offline" | "online" | "busy",
 	currentGame?: string,
 	gamesPlayed: number,
@@ -35,7 +36,7 @@ export interface User {
 	updatedAt: Date
 }
 
-export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
+export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "bio" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 // A single message in a 1-to-1 chat (mirrors the backend ChatMessage).
 export interface ChatMessage {
