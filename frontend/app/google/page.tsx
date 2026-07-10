@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMsg } from "@/hooks/useMsg";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackContent() {
 	const router = useRouter();
 	const params = useSearchParams();
 	const { loginGoogle } = useAuth();
@@ -53,5 +53,19 @@ export default function GoogleCallbackPage() {
 				</div>
 			</main>
 		</div>
+	);
+}
+
+export default function GoogleCallbackPage() {
+	return (
+		<Suspense fallback={
+			<div className="page-root">
+				<main className="relative z-10 min-h-screen flex items-center justify-center px-6">
+					<div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+				</main>
+			</div>
+		}>
+			<GoogleCallbackContent />
+		</Suspense>
 	);
 }

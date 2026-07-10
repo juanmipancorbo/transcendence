@@ -148,15 +148,25 @@ export const userApi = {
   },
 
   updateProfile: async (_userId: string, data: Partial<User>): Promise<boolean> => {
-    if (!data.username)
-      return true;
-
     const tokens = getTokens();
-    await apiFetch<{ success: boolean; data: null }>("/users/username", {
-      method: "PATCH",
-      headers: tokens?.accessToken ? { "Authorization": `Bearer ${tokens.accessToken}` } : undefined,
-      body: JSON.stringify({ username: data.username }),
-    });
+    const headers = tokens?.accessToken ? { "Authorization": `Bearer ${tokens.accessToken}` } : undefined;
+
+    if (data.username) {
+      await apiFetch<{ success: boolean; data: null }>("/users/username", {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ username: data.username }),
+      });
+    }
+
+    if (data.bio !== undefined) {
+      await apiFetch<{ success: boolean; data: null }>("/users/bio", {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ bio: data.bio }),
+      });
+    }
+
     return true;
   },
 };

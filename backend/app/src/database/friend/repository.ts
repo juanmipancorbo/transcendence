@@ -7,6 +7,7 @@ const FRIEND_DATA = `
   username,
   email,
   avatar_url AS "avatarUrl",
+  bio,
   current_game AS "currentGame",
   games_played AS "gamesPlayed",
   games_won AS "gamesWon",

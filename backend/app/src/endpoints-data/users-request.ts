@@ -15,6 +15,12 @@ export const FullUserReqSchema = z.strictObject({
 
 export type FullUserReq = z.infer<typeof FullUserReqSchema>;
 
+export const UpdateBioReqSchema = z.strictObject({
+  bio: z.string().max(160, vError.tooLong)
+});
+
+export type UpdateBioReq = z.infer<typeof UpdateBioReqSchema>;
+
 export const RegisterReqSchema = z.strictObject({
   email: z.email(vError.invalidEmail),
   username: z.string()

@@ -17,6 +17,7 @@ type LeaderboardRow = {
 	id: UUID;
 	username: string;
 	avatarUrl?: string | null;
+	bio: string;
 	currentGame?: UUID | null;
 	gamesPlayed: number;
 	gamesWon: number;
@@ -38,6 +39,7 @@ export async function selectTop(limit: number): Promise<LeaderboardEntry[]> {
 			id,
 			username,
 			avatar_url AS "avatarUrl",
+			bio,
 			current_game AS "currentGame",
 			games_played AS "gamesPlayed",
 			games_won AS "gamesWon",
@@ -62,6 +64,7 @@ export async function selectTop(limit: number): Promise<LeaderboardEntry[]> {
 			id: row.id,
 			username: row.username,
 			avatarUrl: row.avatarUrl ?? undefined,
+			bio: row.bio,
 			status: "offline",
 			currentGame: row.currentGame ?? undefined,
 			createdAt: row.createdAt,
