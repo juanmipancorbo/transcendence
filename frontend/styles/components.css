@@ -1007,16 +1007,18 @@
 .pixel-auth .label-micro.accent { display: inline-block; width: fit-content; padding: 5px 8px; border: 2px solid var(--pixel-line); background: var(--pixel-teal); box-shadow: 3px 3px 0 var(--pixel-line); }
 .pixel-auth h1 { color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 4px 4px 0 var(--pixel-mustard); }
 .pixel-auth h1 span { color: var(--pixel-red); background: none; -webkit-text-fill-color: currentColor; }
-.pixel-auth-card { border: 4px solid var(--pixel-line) !important; border-radius: 0; background: var(--pixel-cream); box-shadow: 9px 9px 0 var(--pixel-line); backdrop-filter: none; }
-.pixel-auth .field-label { color: var(--pixel-ink); font-family: inherit; letter-spacing: 0; }
-.pixel-auth .field-input { min-height: 48px; padding: 10px 12px; border: 3px solid var(--pixel-line); border-radius: 0; background: white; color: var(--pixel-ink); font-family: inherit; }
-.pixel-auth .field-input:focus { background: white; box-shadow: 4px 4px 0 var(--pixel-teal); }
+.pixel-auth-card { border: 4px solid var(--pixel-line) !important; border-radius: 0; background: #3a322c; color: var(--pixel-cream); box-shadow: 9px 9px 0 var(--pixel-line); backdrop-filter: none; }
+.pixel-auth .field-label { color: var(--pixel-mustard); font-family: inherit; letter-spacing: 0; }
+.pixel-auth .field-input { min-height: 48px; padding: 10px 12px; border: 3px solid var(--pixel-line); border-radius: 0; background: #292420; color: var(--pixel-cream); font-family: inherit; }
+.pixel-auth .field-input::placeholder { color: #a9987e; opacity: 1; }
+.pixel-auth .field-input:focus { background: #302a27; outline: none; box-shadow: 4px 4px 0 var(--pixel-teal); }
 .pixel-auth .field-underline { display: none; }
 .pixel-auth .btn-primary, .pixel-auth .btn-secondary { min-height: 50px; border: 3px solid var(--pixel-line); border-radius: 0; color: var(--pixel-ink); font-family: inherit; letter-spacing: 0; box-shadow: 5px 5px 0 var(--pixel-line); }
 .pixel-auth .btn-primary { background: var(--pixel-mustard); }
 .pixel-auth .btn-secondary { background: var(--pixel-teal); }
 .pixel-auth .btn-primary:active, .pixel-auth .btn-secondary:active { transform: translate(5px, 5px); box-shadow: none; }
-.pixel-auth a { color: var(--pixel-red); }
+.pixel-auth-card .label-micro { color: #d8c8a8; }
+.pixel-auth a { color: var(--pixel-mustard); }
 .pixel-terms { background: #302a27; color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; }
 .pixel-terms main { background-color: #302a27 !important; }
 .pixel-terms h1 { color: var(--pixel-cream) !important; font-family: inherit; font-size: clamp(42px, 8vw, 82px); letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
