@@ -14,7 +14,7 @@ export default function TermsPage() {
               TERMS & PRIVACY
             </h1>
             <p className="text-on-surface-variant text-lg max-w-2xl border-l-4 border-tertiary pl-6 py-2">
-              Governing the velocity, privacy, and conduct standards within the FT_TRANSCENDANCE ecosystem.
+              Governing the velocity, privacy, and conduct standards within the FT_TRANSCENDENCE ecosystem.
               Please review these protocols before proceeding.
             </p>
           </section>
@@ -70,7 +70,7 @@ export default function TermsPage() {
                 <div className="terms-info-box">
                   <h4 className="label-micro accent tracking-[0.2em] mb-4">Identity Encryption</h4>
                   <p>
-                    All player data within FT_TRANSCENDANCE is subjected to high-level asymmetric encryption.
+                    All player data within FT_TRANSCENDENCE is subjected to high-level asymmetric encryption.
                     We collect telemetry including match performance, ping cycles, and system specifications
                     solely to optimize the matchmaking engine and maintain game integrity. We do not sell your
                     personal identification to third-party entities.
@@ -116,12 +116,12 @@ export default function TermsPage() {
 
               <div className="space-y-12 leading-relaxed text-on-surface-variant">
                 <p>
-                  By accessing the FT_TRANSCENDANCE neural link, you agree to abide by the following conduct
+                  By accessing the FT_TRANSCENDENCE neural link, you agree to abide by the following conduct
                   codes. Failure to comply results in immediate de-platforming.
                 </p>
 
                 <div className="relative mt-12">
-                  <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-tertiary via-transparent to-transparent" />
+                  <div className="absolute -left-4 top-0 w-1 h-full bg-tertiary" />
                   <div className="space-y-12 pl-8">
                     <div className="max-w-2xl">
                       <h4 className="text-tertiary font-headline font-bold mb-2">1. Competitive Integrity</h4>
@@ -135,7 +135,7 @@ export default function TermsPage() {
                       <h4 className="text-tertiary font-headline font-bold mb-2">2. Intellectual Property</h4>
                       <p className="text-sm">
                         All assets, including UI shaders, character meshes, and proprietary network protocols,
-                        remain the sole property of FT_TRANSCENDANCE. Reverse engineering is a violation of
+                        remain the sole property of FT_TRANSCENDENCE. Reverse engineering is a violation of
                         international copyright law.
                       </p>
                     </div>
@@ -180,7 +180,7 @@ export default function TermsPage() {
           {/* Footer */}
           <footer className="mt-20 py-10 flex justify-between items-center opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-700">
             <div className="text-xs font-black tracking-widest font-headline uppercase">
-              FT_TRANSCENDANCE // LEGAL
+              FT_TRANSCENDENCE // LEGAL
             </div>
             <div className="label-micro">Noir Velocity Engine © 2025</div>
           </footer>

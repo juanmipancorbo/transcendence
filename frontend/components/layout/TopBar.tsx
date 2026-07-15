@@ -76,7 +76,7 @@ export default function TopBar({
             {friendsOpen && (
               <div className="pixel-friends-menu absolute right-0 top-12 z-50 w-96 max-w-[calc(100vw-2rem)] overflow-hidden border bg-surface-container-high shadow-2xl">
                 <section>
-                  <div className="border-b border-outline-variant/20 px-4 py-3">
+                  <div className="pixel-friends-heading border-b px-4 py-3">
                     <p className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">Requests</p>
                   </div>
                   {friendRequests.length === 0 ? (
@@ -84,19 +84,19 @@ export default function TopBar({
                   ) : friendRequests.map(request => {
                     const isPending = pendingFriendAction === request.id;
                     return (
-                      <div key={request.id} className="flex items-center gap-3 border-b border-outline-variant/10 px-4 py-3">
+                      <div key={request.id} className="pixel-friend-row flex items-center gap-3 border-b px-4 py-3">
                         <Link href={`/friend?id=${request.id}`} onClick={() => setFriendsOpen(false)} className="min-w-0 flex-1 truncate text-sm font-semibold text-on-surface hover:text-primary">
                           {request.username}
                         </Link>
-                        <button type="button" disabled={isPending} onClick={() => onAcceptFriend?.(request.id)} className="rounded px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-40">Accept</button>
-                        <button type="button" disabled={isPending} onClick={() => onDeclineFriend?.(request.id)} className="rounded px-2 py-1 text-xs font-semibold text-error hover:bg-error/10 disabled:opacity-40">Decline</button>
+                        <button type="button" disabled={isPending} onClick={() => onAcceptFriend?.(request.id)} className="pixel-friend-accept px-2 py-1 text-xs font-semibold disabled:opacity-40">Accept</button>
+                        <button type="button" disabled={isPending} onClick={() => onDeclineFriend?.(request.id)} className="pixel-friend-decline px-2 py-1 text-xs font-semibold disabled:opacity-40">Decline</button>
                       </div>
                     );
                   })}
                 </section>
 
                 <section className="border-t border-outline-variant/20">
-                  <div className="border-b border-outline-variant/20 px-4 py-3">
+                  <div className="pixel-friends-heading border-b px-4 py-3">
                     <p className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">Friends</p>
                   </div>
                   {friends.length === 0 ? (
@@ -104,7 +104,7 @@ export default function TopBar({
                   ) : (
                     <div className="max-h-64 overflow-y-auto">
                       {friends.map(friend => (
-                        <div key={friend.id} className="flex items-center gap-3 border-b border-outline-variant/10 px-4 py-3 last:border-0">
+                        <div key={friend.id} className="pixel-friend-row flex items-center gap-3 border-b px-4 py-3 last:border-0">
                           <span className={`h-2 w-2 shrink-0 rounded-full ${friend.status === "online" ? "bg-primary" : friend.status === "busy" ? "bg-tertiary" : "bg-outline-variant"}`} />
                           <Link href={`/friend?id=${friend.id}`} onClick={() => setFriendsOpen(false)} className="min-w-0 flex-1 truncate text-sm font-semibold text-on-surface hover:text-primary">
                             {friend.username}
@@ -114,7 +114,7 @@ export default function TopBar({
                             disabled={inGame}
                             onClick={() => { setFriendsOpen(false); onOpenChat?.(friend.id); }}
                             title={inGame ? "Use the game chat while a match is active" : `Chat with ${friend.username}`}
-                            className="rounded px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:text-on-surface-variant disabled:hover:bg-transparent"
+                            className="pixel-friend-chat px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             {inGame ? "Use game chat" : "Chat"}
                           </button>
