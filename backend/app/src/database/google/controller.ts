@@ -43,7 +43,7 @@ export async function login(req: Request<unknown, unknown, GoogleLoginReq>, res:
 	if (!userData.email_verified)
 		return res.status(401).json({ success: false, data: "Verify your google email address first" });
 
-	const login = await loginUserGoogle(userData.email, userData.given_name);
+	const login = await loginUserGoogle(userData.email, userData.given_name, userData.picture);
 	const newTokens = await generateTokens(login);
 
 	res.status(200).json({

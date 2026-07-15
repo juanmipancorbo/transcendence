@@ -26,13 +26,13 @@ export async function insertUser(email: string, username: string, password: stri
   `, [email, username, password]);
 }
 
-export async function insertUserGoogle(email: string, username: string): Promise<FullUser>
+export async function insertUserGoogle(email: string, username: string, avatar?: string): Promise<FullUser>
 {
   const ret = await pool.query(sql`
-    INSERT INTO users (email, username, account_host)
-      VALUES ($1, $2, 'google')
+    INSERT INTO users (email, username, account_host, avatar_url)
+      VALUES ($1, $2, 'google', $3)
       RETURNING ${USER_DATA}
-  `, [email, username]);
+  `, [email, username, avatar ?? 'NULL']);
   return ({ ...ret.rows[0], status: "offline" });
 }
 

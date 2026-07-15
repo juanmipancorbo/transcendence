@@ -28,10 +28,10 @@ export async function loginUser(input: {email: string, password: string}): Promi
   return (user)
 }
 
-export async function loginUserGoogle(email: string, username: string): Promise<FullUser> {
+export async function loginUserGoogle(email: string, username: string, avatar?: string): Promise<FullUser> {
 	const user = await Repo.selectFullUserByEmail(email);
 	if (!user)
-		return await Repo.insertUserGoogle(email, username);
+		return await Repo.insertUserGoogle(email, username, avatar);
 	return user;
 }
 
