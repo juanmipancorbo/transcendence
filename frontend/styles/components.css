@@ -706,7 +706,7 @@
 .retro-timer span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .retro-timer strong { margin-top: 4px; font-size: 18px; }
 
-.retro-board-wrap { width: 100%; transform: rotate(1deg); }
+.retro-board-wrap { width: 100%; }
 .retro-board {
   width: 100%;
   aspect-ratio: 1;
