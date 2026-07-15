@@ -337,6 +337,9 @@ export class GameSession {
 			this.broadcast(buildWhiteDisconnect(RECONNECT_TIME_MS));
 			this.whiteAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
 		}
+		conn.handler = globalHandler;
+		conn.status = "online";
+		conn.player = undefined;
 	}
 }
 

@@ -341,7 +341,6 @@ export function useGame(id: string) {
 
 	useEffect(() => {
 		closeChat();
-		socket.send(buildJoinGame(id));
 
 		// Game socket setup start
 		const callbacks: ((p: ByteReader) => void)[] = [];
@@ -371,6 +370,7 @@ export function useGame(id: string) {
 		socket.handlers = callbacks;
 		// Game socket setup end
 
+		socket.send(buildJoinGame(id));
 		setInGame(true);
 		setUser({ ...user!, currentGame: id });
 		socket.send(buildReadyToGame()); // Notify the backend this player is ready
