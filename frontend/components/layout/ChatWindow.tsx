@@ -91,8 +91,8 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 						className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-colors"
 						aria-label={collapsed ? "Expand chat" : "Collapse chat"}
 					>
-						<span className="material-symbols-outlined text-lg">
-							{collapsed ? "expand_less" : "expand_more"}
+						<span className="text-lg font-bold leading-none" aria-hidden="true">
+							{collapsed ? "+" : "-"}
 						</span>
 					</button>
 					<button
@@ -100,7 +100,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 						className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:text-error hover:bg-surface-container-highest transition-colors"
 						aria-label="Close chat"
 					>
-						<span className="material-symbols-outlined text-lg">close</span>
+						<span className="text-lg font-bold leading-none" aria-hidden="true">x</span>
 					</button>
 				</div>
 			</div>

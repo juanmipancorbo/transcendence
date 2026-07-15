@@ -45,7 +45,7 @@ export default function LobbyPage() {
                   className="btn-find-match"
                 >
                   FIND MATCH
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                  <span className="font-bold" aria-hidden="true">&gt;</span>
                 </button>
               ) : (
                 <button
@@ -53,7 +53,7 @@ export default function LobbyPage() {
                   className="btn-cancel-queue"
                 >
                   CANCEL SEARCH
-                  <span className="material-symbols-outlined">close</span>
+                  <span className="font-bold" aria-hidden="true">x</span>
                 </button>
               )}
 

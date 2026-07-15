@@ -144,7 +144,7 @@ export default function GamePage() {
                   game.abandon();
                 router.push("/lobby");
               }} className="btn-ghost danger">
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="font-bold" aria-hidden="true">x</span>
                 {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
               </button>
             )}

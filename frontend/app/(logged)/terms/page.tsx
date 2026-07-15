@@ -26,7 +26,7 @@ export default function TermsPage() {
               className="terms-protocol-card border-b-2 border-primary-dim/20 hover:border-primary-dim group"
             >
               <div className="flex justify-between items-start mb-4">
-                <span className="material-symbols-outlined text-primary text-3xl">security</span>
+                <span className="text-primary text-2xl font-bold" aria-hidden="true">[!]</span>
                 <span className="label-micro">01_PROTOCOL</span>
               </div>
               <h3 className="text-xl font-headline font-bold text-white group-hover:text-primary-fixed transition-colors">
@@ -42,7 +42,7 @@ export default function TermsPage() {
               className="terms-protocol-card border-b-2 border-tertiary/20 hover:border-tertiary group"
             >
               <div className="flex justify-between items-start mb-4">
-                <span className="material-symbols-outlined text-tertiary text-3xl">description</span>
+                <span className="text-tertiary text-2xl font-bold" aria-hidden="true">[i]</span>
                 <span className="label-micro">02_PROTOCOL</span>
               </div>
               <h3 className="text-xl font-headline font-bold text-white group-hover:text-tertiary transition-colors">
@@ -87,7 +87,7 @@ export default function TermsPage() {
                         "Hardware ID (HWID) for anti-cheat verification",
                       ].map(item => (
                         <li key={item} className="flex items-start gap-3">
-                          <span className="material-symbols-outlined text-primary text-lg flex-shrink-0">check_circle</span>
+                          <span className="text-primary font-bold flex-shrink-0" aria-hidden="true">+</span>
                           <span>{item}</span>
                         </li>
                       ))}
@@ -151,7 +151,7 @@ export default function TermsPage() {
                 </div>
 
                 <div className="terms-warning-box">
-                  <span className="material-symbols-outlined text-error text-4xl flex-shrink-0">warning</span>
+                  <span className="text-error text-3xl font-bold flex-shrink-0" aria-hidden="true">!</span>
                   <div>
                     <h3 className="text-white font-headline font-bold text-lg mb-2 uppercase">
                       Account Termination Warning
