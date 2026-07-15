@@ -25,6 +25,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 	const [loadingHistory, setLoadingHistory] = useState(false);
 
 	const bottomRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const lastMessageAt = useRef<string | undefined>(undefined);
 
 	const messages = chat.messages;
@@ -41,6 +42,10 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 	useEffect(() => {
 		if (!collapsed) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages[0]?.createdAt, collapsed]);
+
+	useEffect(() => {
+		if (!collapsed) inputRef.current?.focus();
+	}, [collapsed, chat.friendId]);
 
 	useEffect(() => {
 		const latest = messages[0];
@@ -165,6 +170,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 					{/* Composer */}
 					<div className="flex gap-2 p-3 border-t border-outline-variant/20">
 						<input
+							ref={inputRef}
 							className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-3 py-2 outline-none border border-outline-variant/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
 							placeholder="Message…"
 							value={draft}
