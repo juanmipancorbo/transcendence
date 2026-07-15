@@ -172,6 +172,7 @@ export default function GamePage() {
             myId={game.state?.players[game.myColor === WHITE ? "white" : "black"] ?? ""}
             onSend={game.chat}
             readOnly={isSpectator}
+            disabled={game.state?.status === "FINISHED"}
           />
           <SpectatorList spectators={game.spectators} profiles={game.profiles} />
         </aside>
@@ -324,12 +325,13 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
   );
 }
 
-function ChatPanel({ messages, profiles, myId, onSend, readOnly = false }: {
+function ChatPanel({ messages, profiles, myId, onSend, readOnly = false, disabled = false }: {
   messages: Array<{ sender: string; message: string }>;
   profiles: Map<string, { username?: string }>;
   myId: string;
   onSend: (msg: string) => void;
   readOnly?: boolean;
+  disabled?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -340,6 +342,7 @@ function ChatPanel({ messages, profiles, myId, onSend, readOnly = false }: {
   }, [messages]);
 
   function submit() {
+    if (disabled) return;
     const text = draft.trim();
     if (!text) return;
     const now = Date.now();
@@ -378,15 +381,16 @@ function ChatPanel({ messages, profiles, myId, onSend, readOnly = false }: {
         : <div className="flex gap-2 mt-1">
         <input
           className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-2 py-1 outline-none border border-outline/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
-          placeholder="Message…"
+          placeholder={disabled ? "Match finished" : "Message…"}
           value={draft}
+          disabled={disabled}
           maxLength={200}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") submit(); }}
         />
         <button
           onClick={submit}
-          disabled={!draft.trim()}
+          disabled={disabled || !draft.trim()}
           className="text-xs px-2 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Send
