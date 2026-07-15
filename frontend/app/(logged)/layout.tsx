@@ -124,21 +124,23 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
       function onFriendChatMessage(p: ByteReader) {
         const sender = p.readPrefixedUTF();
-        const message = p.readPrefixedUTF();
-        setChats(prev => {
-          const chat = prev.get(sender);
-          if (!chat) return prev;
+        const content = p.readPrefixedUTF();
+        const incoming = { createdAt: new Date().toISOString(), content, senderId: sender };
 
-          const map = new Map(prev);
-          map.set(sender, {
-            ...chat,
-            messages: [
-              { createdAt: new Date().toISOString(), content: message, senderId: sender },
-              ...chat.messages,
-            ],
-          });
-          return map;
-        });
+        const existing = chatsRef.current.get(sender);
+        const updated: Chat = existing
+          ? { ...existing, messages: [incoming, ...existing.messages] }
+          : {
+              friendId: sender,
+              chatId: sender,
+              isFinal: false,
+              loadMoreMessages: () => loadMoreMessages(sender),
+              messages: [incoming],
+            };
+
+        setChats(prev => new Map(prev).set(sender, updated));
+        setActiveChat(active => active?.friendId === sender ? updated : active ?? updated);
+        message("New chat message");
       }
 
       const handlers: ((p: ByteReader) => void)[] = [];
