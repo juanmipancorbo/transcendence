@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
@@ -20,6 +20,7 @@ interface ProtectedLayoutProps {
 
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, isLoading } = useAuth();
   const { message, error } = useMsg();
   const [socket, setSocket] = useState<GameSocket | null>(null);
@@ -279,7 +280,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   // ------- Ws Context Functions End -------
 
   return (
-    <div className="dark min-h-screen bg-background text-on-surface">
+    <div className={`dark min-h-screen bg-background text-on-surface ${pathname === "/lobby" ? "retro-shell" : ""}`}>
       <div className="ml-64 flex flex-col min-h-screen">
         <TopBar
           withSidebar
