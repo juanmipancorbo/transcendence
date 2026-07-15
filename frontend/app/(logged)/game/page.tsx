@@ -58,7 +58,7 @@ export default function GamePage() {
 
   return (
     <>
-      <main className="max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col xl:flex-row gap-8 xl:gap-12 min-h-[calc(100vh-100px)]">
+      <main className="pixel-game max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col xl:flex-row gap-8 xl:gap-12 min-h-[calc(100vh-100px)]">
 
         {/* My panel */}
         <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-2 xl:order-1">
@@ -69,7 +69,7 @@ export default function GamePage() {
             total={64}
             accentClass="border-primary"
             scoreColorClass="text-primary"
-            glowColor="#8ff5ff"
+            glowColor="#d5a62b"
             isMyTurn={game.yourTurn ?? false}
             timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
@@ -88,7 +88,7 @@ export default function GamePage() {
         {/* Board */}
         <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2">
           {/* Turn banner */}
-          <div className="px-6 py-2 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-3">
+          <div className="pixel-turn-banner px-6 py-2 flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
             <span className="font-headline font-bold text-primary tracking-tighter text-sm">
               {game.state?.status === "FINISHED"
@@ -104,8 +104,8 @@ export default function GamePage() {
           {/* Grid */}
           <div className="relative w-full max-w-[min(32rem,calc(100vw-2rem))] xl:max-w-[32rem]">
             <div className="absolute -inset-3 sm:-inset-4 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
-            <div className="relative w-full aspect-square bg-surface-container-high p-2 sm:p-3 md:p-4 rounded-xl shadow-2xl">
-              <div className="grid grid-cols-8 gap-[2px] bg-surface-container-highest p-[2px] w-full h-full">
+            <div className="pixel-board-frame relative w-full aspect-square p-2 sm:p-3 md:p-4">
+              <div className="pixel-game-board grid grid-cols-8 gap-[2px] p-[2px] w-full h-full">
                 {game.state && game.state.board.map((row, r) =>
                   row.map((cell, c) => {
                     const key     = `${r},${c}`;
@@ -114,16 +114,16 @@ export default function GamePage() {
                       <div
                         key={key}
                         onClick={() => { if (isValid) game.makeMove(r, c); }}
-                        className={`aspect-square min-w-0 min-h-0 bg-surface-container-low flex items-center justify-center transition-all ${isValid ? "cursor-pointer hover:bg-surface-container-high" : ""}`}
+                        className={`pixel-game-square aspect-square min-w-0 min-h-0 flex items-center justify-center ${isValid ? "valid cursor-pointer" : ""}`}
                       >
                         {cell === BLACK && (
-                          <div className="w-3/4 h-3/4 rounded-full bg-on-surface shadow-[0_0_10px_rgba(255,255,255,0.15)]" />
+                          <div className="pixel-game-piece dark" />
                         )}
                         {cell === WHITE && (
-                          <div className="w-3/4 h-3/4 rounded-full bg-primary-container shadow-[0_0_10px_rgba(0,238,252,0.4)]" />
+                          <div className="pixel-game-piece light" />
                         )}
                         {cell !== BLACK && cell !== WHITE && isValid && (
-                          <div className="w-1/3 h-1/3 rounded-full bg-primary/30 border border-primary/40" />
+                          <div className="pixel-valid-move" />
                         )}
                       </div>
                     );
@@ -160,7 +160,7 @@ export default function GamePage() {
             total={64}
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
-            glowColor="#d575ff"
+            glowColor="#3ca6a0"
             isMyTurn={game.yourTurn === false}
             timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
             profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
@@ -248,7 +248,7 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
 
   const avatar = (
     <div
-      className={`w-24 h-24 rounded-full border-2 p-1 flex items-center justify-center bg-surface-container-highest ${profileHref ? "cursor-pointer hover:brightness-125" : ""}`}
+      className={`pixel-player-avatar w-24 h-24 flex items-center justify-center ${profileHref ? "cursor-pointer" : ""}`}
       style={{ borderColor: glowColor }}
     >
       <span className={`font-headline font-black text-3xl ${scoreColorClass}`}>
@@ -258,20 +258,20 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
   );
 
   return (
-    <div className={`player-panel ${accentClass}`}>
+    <div className={`pixel-player-panel player-panel ${accentClass}`}>
       <div className="relative">
         {profileHref ? <Link href={profileHref} aria-label={`View ${name}'s profile`}>{avatar}</Link> : avatar}
         {profileHref ? (
           <Link
             href={profileHref}
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full font-headline tracking-widest whitespace-nowrap text-on-primary-fixed hover:brightness-110"
+            className="pixel-player-name absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 font-headline whitespace-nowrap text-on-primary-fixed"
             style={{ background: glowColor }}
           >
             {label}
           </Link>
         ) : (
           <div
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full font-headline tracking-widest whitespace-nowrap text-on-primary-fixed"
+            className="pixel-player-name absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 font-headline whitespace-nowrap text-on-primary-fixed"
             style={{ background: glowColor }}
           >
             {label}
