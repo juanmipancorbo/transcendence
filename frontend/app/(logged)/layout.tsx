@@ -140,7 +140,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
         setChats(prev => new Map(prev).set(sender, updated));
         setActiveChat(active => active?.friendId === sender ? updated : active ?? updated);
-        message("New chat message");
       }
 
       const handlers: ((p: ByteReader) => void)[] = [];

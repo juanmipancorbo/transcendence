@@ -20,10 +20,12 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 
 	const [friend, setFriend] = useState<PublicUser | null>(null);
 	const [collapsed, setCollapsed] = useState(false);
+	const [hasUnread, setHasUnread] = useState(false);
 	const [draft, setDraft] = useState("");
 	const [loadingHistory, setLoadingHistory] = useState(false);
 
 	const bottomRef = useRef<HTMLDivElement>(null);
+	const lastMessageAt = useRef<string | undefined>(undefined);
 
 	const messages = chat.messages;
 	const hasMore = !chat.isFinal;
@@ -39,6 +41,22 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 	useEffect(() => {
 		if (!collapsed) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages[0]?.createdAt, collapsed]);
+
+	useEffect(() => {
+		const latest = messages[0];
+		if (!latest) return;
+
+		if (lastMessageAt.current && lastMessageAt.current !== latest.createdAt && collapsed && latest.senderId !== user?.id)
+			setHasUnread(true);
+		lastMessageAt.current = latest.createdAt;
+	}, [messages[0]?.createdAt, collapsed, user?.id]);
+
+	function toggleCollapsed() {
+		setCollapsed(current => {
+			if (current) setHasUnread(false);
+			return !current;
+		});
+	}
 
 	async function loadMore() {
 		if (loadingHistory) return;
@@ -68,11 +86,11 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 	const ordered = [...messages].reverse();
 
 	return (
-		<div className="fixed bottom-6 right-6 z-50 w-80 rounded-xl border border-outline-variant/30 bg-surface-container shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+		<div className={`fixed bottom-6 right-6 z-50 w-80 rounded-xl border bg-surface-container shadow-2xl overflow-hidden flex flex-col animate-slide-up ${hasUnread ? "border-primary" : "border-outline-variant/30"}`}>
 			{/* Header */}
 			<div
-				className="flex items-center justify-between gap-2 px-4 py-3 bg-surface-container-high cursor-pointer"
-				onClick={() => setCollapsed(prev => !prev)}
+				className={`flex items-center justify-between gap-2 px-4 py-3 cursor-pointer ${hasUnread ? "bg-primary/15 animate-pulse" : "bg-surface-container-high"}`}
+				onClick={toggleCollapsed}
 			>
 				<div className="flex items-center gap-2 min-w-0">
 					<div className="relative w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0">
@@ -84,10 +102,11 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 					<span className="font-headline font-bold text-sm text-on-surface truncate">
 						{friend?.username ?? "Loading…"}
 					</span>
+					{hasUnread && <span className="rounded bg-primary px-1.5 py-0.5 text-[9px] font-bold uppercase text-on-primary">New</span>}
 				</div>
 				<div className="flex items-center gap-1 shrink-0">
 					<button
-						onClick={e => { e.stopPropagation(); setCollapsed(prev => !prev); }}
+						onClick={e => { e.stopPropagation(); toggleCollapsed(); }}
 						className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-colors"
 						aria-label={collapsed ? "Expand chat" : "Collapse chat"}
 					>
