@@ -193,21 +193,56 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
   timeLeft?: string;
 }) {
   const { message, error } = useMsg();
-  const [addState, setAddState] = useState<"idle" | "sending" | "sent">("idle");
+  const [friendRelation, setFriendRelation] = useState<"loading" | "none" | "incoming" | "sent" | "friends" | "sending">("loading");
 
-  async function sendFriendRequest() {
-    if (!addFriendUserId || addState !== "idle") return;
+  const refreshFriendRelation = useCallback(async () => {
+    if (!addFriendUserId) return;
     const token = getTokens()?.accessToken;
     if (!token) return;
 
-    setAddState("sending");
+    const [isFriend, incoming, outgoing] = await Promise.all([
+      friendApi.isFriend(token, addFriendUserId),
+      friendApi.getIncomingRequests(token),
+      friendApi.getOutgoingRequests(token),
+    ]);
+
+    if (isFriend)
+      setFriendRelation("friends");
+    else if (incoming.some(user => user.id === addFriendUserId))
+      setFriendRelation("incoming");
+    else if (outgoing.some(user => user.id === addFriendUserId))
+      setFriendRelation("sent");
+    else
+      setFriendRelation("none");
+  }, [addFriendUserId]);
+
+  useEffect(() => {
+    if (!addFriendUserId) return;
+
+    refreshFriendRelation().catch(() => setFriendRelation("none"));
+    const interval = window.setInterval(() => refreshFriendRelation().catch(() => {}), 10000);
+    window.addEventListener("focus", refreshFriendRelation);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshFriendRelation);
+    };
+  }, [addFriendUserId, refreshFriendRelation]);
+
+  async function sendFriendRequest() {
+    if (!addFriendUserId || !["none", "incoming"].includes(friendRelation)) return;
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    const wasIncoming = friendRelation === "incoming";
+    setFriendRelation("sending");
     try {
       await friendApi.sendRequest(token, addFriendUserId);
-      setAddState("sent");
-      message("Friend request sent");
+      setFriendRelation(wasIncoming ? "friends" : "sent");
+      message(wasIncoming ? "Friend request accepted" : "Friend request sent");
     } catch (err) {
-      setAddState("idle");
-      error(err instanceof Error ? err.message : "Could not send friend request");
+      await refreshFriendRelation().catch(() => setFriendRelation("none"));
+      error(err instanceof Error ? err.message : "Could not update friend request");
     }
   }
 
@@ -244,15 +279,21 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
         )}
       </div>
 
-      {addFriendUserId && (
+      {addFriendUserId && !["loading", "friends"].includes(friendRelation) && (
         <button
           type="button"
           onClick={sendFriendRequest}
-          disabled={addState !== "idle"}
+          disabled={["sending", "sent"].includes(friendRelation)}
           className="mt-5 rounded border px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-60"
           style={{ color: glowColor, borderColor: `${glowColor}50`, background: `${glowColor}10` }}
         >
-          {addState === "sending" ? "Sending..." : addState === "sent" ? "Request sent" : "Add friend"}
+          {friendRelation === "sending"
+            ? "Updating..."
+            : friendRelation === "sent"
+              ? "Request sent"
+              : friendRelation === "incoming"
+                ? "Accept request"
+                : "Add friend"}
         </button>
       )}
 
