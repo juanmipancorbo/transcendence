@@ -11,6 +11,7 @@ interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: (code: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
@@ -95,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         isAuthenticated: user !== null,
+		setUser,
         login,
 		loginGoogle,
         register,

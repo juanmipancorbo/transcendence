@@ -1,6 +1,17 @@
-import { GameData } from "@endpoints/users-response";
+import { GameData } from "@endpoints/game-request";
 import { pool } from "@utils/pg-pool";
 import { sql } from "@utils/sql";
+
+const GAME_DATA = `
+	id as gameId,
+	white_player_id as whiteId,
+	black_player_id as blackId,
+	time_left_white as timeLimitWhite,
+	time_left_black as timeLimitBlack,
+	allow_spectators as allowSpectators,
+	friendly,
+	winner_id as winnerId
+`;
 
 export async function insertGame(gameId: string, whiteId: string, blackId: string, friendly: boolean, time: number, allowSpectators: boolean):
     Promise<void> {
@@ -12,17 +23,10 @@ export async function insertGame(gameId: string, whiteId: string, blackId: strin
 
 export async function selectGame(gameId: string): Promise<GameData | null> {
   const ret = await pool.query<GameData>(sql`
-    SELECT * FROM games
+    SELECT ${GAME_DATA} FROM games
       WHERE id = $1
   `, [gameId]);
   return (ret.rows[0] ?? null);
-}
-
-// TEST Query DELETE in prod
-export async function selectGameTable(): Promise<GameData[] | null> {
-  const ret = await pool.query<GameData>(sql`
-    SELECT * FROM games`);
-  return (ret.rows ?? null);
 }
 
 export async function updateUserTimer(gameId: string, userId: string, timeLeft: number) {

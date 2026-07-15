@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { PublicUser } from "@/types";
+import CurrentGame from "./CurrentGame";
+import { useWs } from "@/hooks/useWs";
 
 interface TopBarProps {
   withSidebar?: boolean;
@@ -25,10 +27,9 @@ export default function TopBar({
   onDeclineFriend,
   onOpenChat,
 }: TopBarProps) {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { inGame } = useWs();
   const router = useRouter();
-  const pathname = usePathname();
-  const isInGame = pathname.startsWith("/game");
   const [friendsOpen, setFriendsOpen] = useState(false);
   const friendsRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +57,7 @@ export default function TopBar({
           FT_TRANSCENDENCE
         </div>
         <div className="flex items-center gap-4">
+		  <CurrentGame />
           <div className="relative" ref={friendsRef}>
             <button
               type="button"
@@ -109,12 +111,12 @@ export default function TopBar({
                           </Link>
                           <button
                             type="button"
-                            disabled={isInGame}
+                            disabled={inGame}
                             onClick={() => { setFriendsOpen(false); onOpenChat?.(friend.id); }}
-                            title={isInGame ? "Use the game chat while a match is active" : `Chat with ${friend.username}`}
+                            title={inGame ? "Use the game chat while a match is active" : `Chat with ${friend.username}`}
                             className="rounded px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:text-on-surface-variant disabled:hover:bg-transparent"
                           >
-                            {isInGame ? "Use game chat" : "Chat"}
+                            {inGame ? "Use game chat" : "Chat"}
                           </button>
                         </div>
                       ))}
@@ -124,7 +126,13 @@ export default function TopBar({
               </div>
             )}
           </div>
-          <button onClick={handleLogout} className="px-4 py-2 text-sm rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
+          <Link href="/profile" className="w-10 h-10 rounded-full border border-violet-500/30 bg-surface-container-highest flex items-center justify-center font-headline font-bold text-sm text-primary hover:border-violet-400 transition-colors">
+            {user?.username?.[0]?.toUpperCase() ?? "?"}
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+          >
             Logout
           </button>
         </div>

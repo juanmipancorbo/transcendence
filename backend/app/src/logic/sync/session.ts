@@ -149,14 +149,17 @@ export class GameSession {
 		this.blackPlayer.conn.forEach(c => {
 			c.handler = globalHandler;
 			c.status = "online";
+			c.player = undefined;
 		});
 		this.whitePlayer.conn.forEach(c => {
 			c.handler = globalHandler;
 			c.status = "online";
+			c.player = undefined;
 		});
 		this.spectators.forEach(s => s.conn.forEach(c => {
 			c.handler = globalHandler;
 			c.status = "online";
+			c.player = undefined;
 		}));
 	}
 

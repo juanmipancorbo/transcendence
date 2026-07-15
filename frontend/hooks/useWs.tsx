@@ -18,6 +18,8 @@ interface WsContextValue {
 	chats: Map<string, Chat>, // Friend id, chat
 	globalHandler: ((p: ByteReader) => void)[],
 	inQueue: boolean,
+	inGame: boolean,
+	setInGame: (value: boolean) => void,
 	openChat: (friendId: string) => void,
 	closeChat: () => void,
 	joinQueue: () => void,
