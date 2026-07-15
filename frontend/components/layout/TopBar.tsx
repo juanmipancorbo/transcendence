@@ -51,9 +51,9 @@ export default function TopBar({
   };
 
   return (
-    <header className={`w-full top-0 sticky z-40 backdrop-blur-xl bg-gradient-to-b from-[#0e0e13] to-transparent ${withSidebar ? "" : ""}`}>
+    <header className={`pixel-topbar w-full top-0 sticky z-40 ${withSidebar ? "" : ""}`}>
       <div className="flex justify-between items-center px-8 py-6 w-full">
-        <div className="text-2xl font-black italic tracking-widest text-violet-500 font-headline uppercase select-none">
+        <div className="pixel-wordmark text-2xl font-black font-headline uppercase select-none">
           FT_TRANSCENDENCE
         </div>
         <div className="flex items-center gap-4">
@@ -74,7 +74,7 @@ export default function TopBar({
             </button>
 
             {friendsOpen && (
-              <div className="absolute right-0 top-12 z-50 w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container-high shadow-2xl">
+              <div className="pixel-friends-menu absolute right-0 top-12 z-50 w-96 max-w-[calc(100vw-2rem)] overflow-hidden border bg-surface-container-high shadow-2xl">
                 <section>
                   <div className="border-b border-outline-variant/20 px-4 py-3">
                     <p className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">Requests</p>

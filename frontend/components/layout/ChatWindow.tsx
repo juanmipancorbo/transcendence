@@ -91,7 +91,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 	const ordered = [...messages].reverse();
 
 	return (
-		<div className={`fixed bottom-6 right-6 z-50 w-80 rounded-xl border bg-surface-container shadow-2xl overflow-hidden flex flex-col animate-slide-up ${hasUnread ? "border-primary" : "border-outline-variant/30"}`}>
+		<div className={`pixel-chat fixed bottom-6 right-6 z-50 w-80 border bg-surface-container shadow-2xl overflow-hidden flex flex-col animate-slide-up ${hasUnread ? "border-primary" : "border-outline-variant/30"}`}>
 			{/* Header */}
 			<div
 				className={`flex items-center justify-between gap-2 px-4 py-3 cursor-pointer ${hasUnread ? "bg-primary/15 animate-pulse" : "bg-surface-container-high"}`}
