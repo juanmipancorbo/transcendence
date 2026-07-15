@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { PublicUser } from "@/types";
@@ -27,6 +27,8 @@ export default function TopBar({
 }: TopBarProps) {
   const { logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isInGame = pathname.startsWith("/game");
   const [friendsOpen, setFriendsOpen] = useState(false);
   const friendsRef = useRef<HTMLDivElement>(null);
 
@@ -107,10 +109,12 @@ export default function TopBar({
                           </Link>
                           <button
                             type="button"
+                            disabled={isInGame}
                             onClick={() => { setFriendsOpen(false); onOpenChat?.(friend.id); }}
-                            className="rounded px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/10"
+                            title={isInGame ? "Use the game chat while a match is active" : `Chat with ${friend.username}`}
+                            className="rounded px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:text-on-surface-variant disabled:hover:bg-transparent"
                           >
-                            Chat
+                            {isInGame ? "Use game chat" : "Chat"}
                           </button>
                         </div>
                       ))}
