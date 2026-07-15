@@ -7,31 +7,41 @@
 
 /* ─── CSS custom properties ──────────────────────────────────────────────── */
 :root {
-  --brand:              #8B5CF6;
-  --brand-light:        #A78BFA;
-  --brand-dark:         #7C3AED;
-  --bg-deep:            #0e0e13;
-  --bg-surface:         #1a1a24;
-  --border:             #2d2d3d;
-
-  /* Velocity Noir palette */
-  --primary:            #8ff5ff;
-  --primary-container:  #00eefc;
-  --primary-dim:        #00deec;
-  --secondary:          #ac8aff;
-  --tertiary:           #d575ff;
-  --error:              #ff6e84;
-  --surface:            #0e0e13;
-  --surface-container-low:     #131318;
-  --surface-container:         #19191f;
-  --surface-container-high:    #1f1f26;
-  --surface-container-highest: #25252c;
-  --surface-variant:           #25252c;
-  --secondary-container:       #5516be;
-  --on-surface:         #f8f5fd;
-  --on-surface-variant: #acaab1;
-  --on-primary-fixed:   #003f43;
-  --outline-variant:    #48474d;
+  --brand: #d5a62b;
+  --brand-light: #e7bf49;
+  --brand-dark: #b9851d;
+  --bg-deep: #211e1b;
+  --bg-surface: #302a27;
+  --border: #171513;
+  --primary: #d5a62b;
+  --primary-container: #e7bf49;
+  --primary-dim: #b9851d;
+  --secondary: #3ca6a0;
+  --secondary-dim: #287c78;
+  --tertiary: #d75b46;
+  --tertiary-container: #e36e59;
+  --error: #ef765f;
+  --error-dim: #bd4635;
+  --error-container: #592c26;
+  --surface: #211e1b;
+  --surface-bright: #4a4038;
+  --surface-container-lowest: #171513;
+  --surface-container-low: #292420;
+  --surface-container: #302a27;
+  --surface-container-high: #3a322c;
+  --surface-container-highest: #463c34;
+  --surface-variant: #463c34;
+  --secondary-container: #286f6b;
+  --on-surface: #f4e7c5;
+  --on-surface-variant: #c0af91;
+  --on-primary: #211e1b;
+  --on-primary-container: #211e1b;
+  --on-primary-fixed: #211e1b;
+  --on-secondary: #171513;
+  --on-secondary-container: #e4fffb;
+  --on-tertiary: #f4e7c5;
+  --outline: #8a7966;
+  --outline-variant: #66594c;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
@@ -41,7 +51,7 @@
   body {
     background-color: var(--bg-deep);
     color: var(--on-surface);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Courier New", ui-monospace, monospace;
     margin: 0;
     -webkit-font-smoothing: antialiased;
   }

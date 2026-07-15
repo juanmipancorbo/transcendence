@@ -51,9 +51,9 @@ export default function TopBar({
   };
 
   return (
-    <header className={`w-full top-0 sticky z-40 backdrop-blur-xl bg-gradient-to-b from-[#0e0e13] to-transparent ${withSidebar ? "" : ""}`}>
+    <header className={`pixel-topbar w-full top-0 sticky z-40 ${withSidebar ? "" : ""}`}>
       <div className="flex justify-between items-center px-8 py-6 w-full">
-        <div className="text-2xl font-black italic tracking-widest text-violet-500 font-headline uppercase select-none">
+        <div className="pixel-wordmark text-2xl font-black font-headline uppercase select-none">
           FT_TRANSCENDENCE
         </div>
         <div className="flex items-center gap-4">
@@ -74,9 +74,9 @@ export default function TopBar({
             </button>
 
             {friendsOpen && (
-              <div className="absolute right-0 top-12 z-50 w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-outline-variant/30 bg-surface-container-high shadow-2xl">
+              <div className="pixel-friends-menu absolute right-0 top-12 z-50 w-96 max-w-[calc(100vw-2rem)] overflow-hidden border bg-surface-container-high shadow-2xl">
                 <section>
-                  <div className="border-b border-outline-variant/20 px-4 py-3">
+                  <div className="pixel-friends-heading border-b px-4 py-3">
                     <p className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">Requests</p>
                   </div>
                   {friendRequests.length === 0 ? (
@@ -84,19 +84,19 @@ export default function TopBar({
                   ) : friendRequests.map(request => {
                     const isPending = pendingFriendAction === request.id;
                     return (
-                      <div key={request.id} className="flex items-center gap-3 border-b border-outline-variant/10 px-4 py-3">
+                      <div key={request.id} className="pixel-friend-row flex items-center gap-3 border-b px-4 py-3">
                         <Link href={`/friend?id=${request.id}`} onClick={() => setFriendsOpen(false)} className="min-w-0 flex-1 truncate text-sm font-semibold text-on-surface hover:text-primary">
                           {request.username}
                         </Link>
-                        <button type="button" disabled={isPending} onClick={() => onAcceptFriend?.(request.id)} className="rounded px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-40">Accept</button>
-                        <button type="button" disabled={isPending} onClick={() => onDeclineFriend?.(request.id)} className="rounded px-2 py-1 text-xs font-semibold text-error hover:bg-error/10 disabled:opacity-40">Decline</button>
+                        <button type="button" disabled={isPending} onClick={() => onAcceptFriend?.(request.id)} className="pixel-friend-accept px-2 py-1 text-xs font-semibold disabled:opacity-40">Accept</button>
+                        <button type="button" disabled={isPending} onClick={() => onDeclineFriend?.(request.id)} className="pixel-friend-decline px-2 py-1 text-xs font-semibold disabled:opacity-40">Decline</button>
                       </div>
                     );
                   })}
                 </section>
 
                 <section className="border-t border-outline-variant/20">
-                  <div className="border-b border-outline-variant/20 px-4 py-3">
+                  <div className="pixel-friends-heading border-b px-4 py-3">
                     <p className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">Friends</p>
                   </div>
                   {friends.length === 0 ? (
@@ -104,19 +104,23 @@ export default function TopBar({
                   ) : (
                     <div className="max-h-64 overflow-y-auto">
                       {friends.map(friend => (
-                        <div key={friend.id} className="flex items-center gap-3 border-b border-outline-variant/10 px-4 py-3 last:border-0">
+                        <div key={friend.id} className="pixel-friend-row flex items-center gap-3 border-b px-4 py-3 last:border-0">
                           <span className={`h-2 w-2 shrink-0 rounded-full ${friend.status === "online" ? "bg-primary" : friend.status === "busy" ? "bg-tertiary" : "bg-outline-variant"}`} />
                           <Link href={`/friend?id=${friend.id}`} onClick={() => setFriendsOpen(false)} className="min-w-0 flex-1 truncate text-sm font-semibold text-on-surface hover:text-primary">
                             {friend.username}
                           </Link>
                           <button
                             type="button"
-                            disabled={inGame}
+                            disabled={inGame || friend.status === "busy"}
                             onClick={() => { setFriendsOpen(false); onOpenChat?.(friend.id); }}
-                            title={inGame ? "Use the game chat while a match is active" : `Chat with ${friend.username}`}
-                            className="rounded px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:text-on-surface-variant disabled:hover:bg-transparent"
+                            title={inGame
+                              ? "Use the game chat while a match is active"
+                              : friend.status === "busy"
+                                ? `${friend.username} is currently in a game`
+                                : `Chat with ${friend.username}`}
+                            className="pixel-friend-chat px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                           >
-                            {inGame ? "Use game chat" : "Chat"}
+                            {inGame ? "Use game chat" : friend.status === "busy" ? "In game" : "Chat"}
                           </button>
                         </div>
                       ))}

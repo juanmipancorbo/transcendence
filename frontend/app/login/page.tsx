@@ -60,7 +60,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="page-root">
+    <div className="pixel-auth page-root">
 
       <div className="page-glow-layer">
         <div className="page-glow-tr" />
@@ -69,7 +69,7 @@ export default function LoginPage() {
 
       <header className="auth-topbar">
         <div className="auth-topbar-inner">
-          <div className="wordmark">FT_TRANSCENDANCE</div>
+          <div className="wordmark">REVERSI CLUB</div>
           <div className="flex items-center gap-6">
           </div>
         </div>
@@ -82,24 +82,22 @@ export default function LoginPage() {
           <div className="hidden lg:flex flex-col lg:col-span-7 space-y-8">
             <div className="space-y-2">
               <span className="label-micro accent tracking-[0.4em]">
-                System_Status: Online
+                Arcade server: online
               </span>
               <h1 className="hero-title" style={{ fontSize: "4.5rem", lineHeight: 0.9 }}>
-                ENTER THE <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">
-                  VOID_PROTOCOL
-                </span>
+                WELCOME <br />
+                <span>BACK, PLAYER</span>
               </h1>
             </div>
           </div>
 
           {/* Right: form */}
           <div className="lg:col-span-5 w-full">
-            <div className="glass-panel p-10 rounded-lg border border-outline-variant/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="pixel-auth-card glass-panel p-10">
               <form className="space-y-6" onSubmit={handleSubmit}>
 
                 <div className="field-group">
-                  <label htmlFor="login-email" className="field-label">Pilot_Identity</label>
+                  <label htmlFor="login-email" className="field-label">Email</label>
                   <div className="field-wrap">
                     <input
                       id="login-email"
@@ -115,7 +113,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="field-group">
-                  <label htmlFor="login-password" className="field-label">Access_Code</label>
+                  <label htmlFor="login-password" className="field-label">Password</label>
                   <div className="field-wrap">
                     <input
                       id="login-password"
@@ -139,7 +137,7 @@ export default function LoginPage() {
                 )}
 
                 <button type="submit" className="btn-primary mt-8" disabled={isLoading}>
-                  {isLoading ? "Initializing..." : "Initialize_Login"}
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </button>
 
                 <div className="flex items-center gap-4">
@@ -150,18 +148,18 @@ export default function LoginPage() {
 
                 <button onClick={googleLogin} type="button" className="btn-secondary" disabled={isLoading}>
                   <img src="/google.svg" alt="" className="w-5 h-5" />
-                  Google_Login
+                  Continue with Google
                 </button>
               </form>
 
               <p className="text-center mt-8 label-micro tracking-wider">
                 No account?{" "}
                 <Link href="/register" className="text-on-surface underline underline-offset-4">
-                  Register_Now
+                  Create account
                 </Link>
                 {" · "}
                 <Link href="/terms" className="text-on-surface underline underline-offset-4">
-                  Operating_Directives
+                  Terms & Privacy
                 </Link>
               </p>
             </div>

@@ -26,10 +26,10 @@ export default function LeaderboardPage() {
 
   return (
     <>
-      <main className="px-12 py-10 max-w-screen-2xl">
+      <main className="pixel-rankings px-12 py-10 max-w-screen-2xl">
 
         {/* Header */}
-        <div className="mb-12 flex items-end gap-6">
+        <div className="pixel-page-heading mb-12 flex items-end gap-6">
           <div className="flex flex-col">
             <span className="label-micro accent tracking-[0.4em] mb-2">Global_Rankings</span>
             <h1 className="text-6xl font-headline font-black tracking-tighter text-on-surface italic">
@@ -54,12 +54,12 @@ export default function LeaderboardPage() {
           <>
             {/* Column headers */}
             <div className="lb-header-row">
-              <div className="col-span-1">Rank</div>
-              <div className="col-span-4">Competitor</div>
-              <div className="col-span-2 text-right">XP</div>
-              <div className="col-span-2 text-center">Wins</div>
-              <div className="col-span-1 text-center">Losses</div>
-              <div className="col-span-2 text-right">Win Rate</div>
+              <div className="lb-head-rank col-span-1">Rank</div>
+              <div className="lb-head-competitor col-span-4">Competitor</div>
+              <div className="lb-head-xp col-span-2 text-right">XP</div>
+              <div className="lb-head-wins col-span-2 text-center">Wins</div>
+              <div className="lb-head-losses col-span-1 text-center">Losses</div>
+              <div className="lb-head-rate col-span-2 text-right">Win Rate</div>
             </div>
 
             {/* Rows */}
@@ -87,7 +87,7 @@ export default function LeaderboardPage() {
                     </div>
 
                     {/* Competitor */}
-                    <Link href={isMe ? "/profile" : `/friend?id=${entry.user.id}`} className="col-span-4 flex items-center gap-4 hover:brightness-125">
+                    <Link href={isMe ? "/profile" : `/friend?id=${entry.user.id}`} className="lb-competitor col-span-4 flex items-center gap-4 hover:brightness-125">
                       <div className="lb-avatar overflow-hidden">
                         {entry.user.avatarUrl ? (
                           <img src={entry.user.avatarUrl} alt={entry.user.username} className="w-full h-full object-cover" />
@@ -110,22 +110,22 @@ export default function LeaderboardPage() {
                     </Link>
 
                     {/* XP */}
-                    <div className="col-span-2 text-right font-headline font-bold text-primary text-sm">
+                    <div className="lb-xp col-span-2 text-right font-headline font-bold text-primary text-sm">
                       {entry.xp.toLocaleString()}
                     </div>
 
                     {/* Wins */}
-                    <div className="col-span-2 text-center font-headline font-bold text-on-surface">
+                    <div className="lb-wins col-span-2 text-center font-headline font-bold text-on-surface">
                       {entry.wins}
                     </div>
 
                     {/* Losses */}
-                    <div className="col-span-1 text-center font-headline font-bold text-on-surface-variant">
+                    <div className="lb-losses col-span-1 text-center font-headline font-bold text-on-surface-variant">
                       {entry.losses}
                     </div>
 
                     {/* Win rate */}
-                    <div className="col-span-2 text-right">
+                    <div className="lb-rate col-span-2 text-right">
                       <div className="lb-win-bar-track">
                         <div className="lb-win-bar-fill" style={{ width: `${entry.winRate}%` }} />
                       </div>

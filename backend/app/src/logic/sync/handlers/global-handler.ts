@@ -118,17 +118,29 @@ function onFriendRequestAccept(p: ByteReader, conn: Socket) {
 function onChat(p: ByteReader, conn: Socket) {
 	const to = p.readPrefixedUTF();
 	const message = p.readPrefixedUTF();
-	const online = getSocksById(to as UUID);
+	const connections = getSocksById(to as UUID);
 
-	addChatMessage(conn.id, to, message).catch(e => console.log(`Error adding chat message: ${e.message}`)); // Add msg to database
-
-	if (online) {
-		const msg = buildFriendChatMessage(conn.id, message);
-		for (const client of online) {
-			if (client.status === "online")
-				client.send(msg);
-		}
+	if (connections && [...connections].some(client => client.status === "busy")) {
+		conn.send(buildError("This player is currently in a game"));
+		return;
 	}
+
+	getUserCurrentGame(to)
+		.then(currentGame => {
+			if (currentGame !== null) {
+				conn.send(buildError("This player is currently in a game"));
+				return;
+			}
+			return addChatMessage(conn.id, to, message).then(() => {
+				const online = getSocksById(to as UUID);
+				if (!online) return;
+				const msg = buildFriendChatMessage(conn.id, message);
+				for (const client of online) {
+					if (client.status === "online") client.send(msg);
+				}
+			});
+		})
+		.catch(e => conn.send(buildError(`Failed to send message: ${e.message}`)));
 }
 
 function onJoinGame(p: ByteReader, conn: Socket) {

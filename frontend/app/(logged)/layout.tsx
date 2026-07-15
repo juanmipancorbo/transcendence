@@ -12,6 +12,7 @@ import { useMsg } from "@/hooks/useMsg";
 import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
 import { chatApi, friendApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
+import PixelLoader from "@/components/ui/PixelLoader";
 import { GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
 
 interface ProtectedLayoutProps {
@@ -181,10 +182,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (fatalError) {
     return (
       <div className="dark min-h-screen bg-background text-on-surface flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-          <p className="mt-4 label-micro">{fatalError}</p>
-        </div>
+        <PixelLoader label={fatalError} />
       </div>
     );
   }
@@ -217,10 +215,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (isLoading || !socket || !socket.isConnected) {
     return (
       <div className="dark min-h-screen bg-background text-on-surface flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-          <p className="mt-4 label-micro">Initializing...</p>
-        </div>
+        <PixelLoader label="Loading game room..." />
       </div>
     );
   }
@@ -280,7 +275,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   // ------- Ws Context Functions End -------
 
   return (
-    <div className="dark min-h-screen bg-background text-on-surface">
+    <div className="retro-shell dark min-h-screen bg-background text-on-surface">
       <div className="ml-64 flex flex-col min-h-screen">
         <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue, inGame, setInGame }}>
           <TopBar
@@ -294,7 +289,13 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
           />
           <main className="flex-1">
             {children}
-            {activeChat && <ChatWindow chat={activeChat} onClose={closeChat} />}
+            {activeChat && (
+              <ChatWindow
+                chat={activeChat}
+                friendProfile={friends.find(friend => friend.id === activeChat.friendId)}
+                onClose={closeChat}
+              />
+            )}
           </main>
         </WsContext.Provider>
       </div>

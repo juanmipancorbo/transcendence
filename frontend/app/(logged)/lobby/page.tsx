@@ -1,24 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWs } from "@/hooks/useWs";
 import { useGlobalRank } from "@/hooks/useGlobalRank";
 
+const STARTING_PIECES: Record<number, "light" | "dark"> = {
+  27: "light",
+  28: "dark",
+  35: "dark",
+  36: "light",
+};
+
 export default function LobbyPage() {
   const { user } = useAuth();
   const { inQueue, joinQueue, leaveQueue } = useWs();
-
-  const [elapsed,  setElapsed]  = useState(0);
+  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     if (!inQueue) { setElapsed(0); return; }
-    const t = setInterval(() => setElapsed(s => s + 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setElapsed(seconds => seconds + 1), 1000);
+    return () => clearInterval(timer);
   }, [inQueue]);
 
-  const fmt = (s: number) =>
-    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}_`;
+  const formatTime = (seconds: number) =>
+    `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
   const xpProgress = user ? (user.xp % 1000) / 10 : 0;
   const globalRank = useGlobalRank(user?.id);
@@ -26,94 +32,65 @@ export default function LobbyPage() {
   const winRate = totalGames > 0 ? Math.round(((user?.gamesWon ?? 0) / totalGames) * 100) : 0;
 
   return (
-    <>
-      <div className="p-8">
-        <div className="max-w-screen-xl mx-auto flex flex-col gap-8">
+    <main className="retro-lobby">
+      <div className="retro-lobby-inner">
+        <section className="retro-hero">
+          <div className="retro-hero-copy">
+            <p className="retro-kicker">Online Reversi Club</p>
+            <h1>REVERSI</h1>
+            <p className="retro-subtitle">A quiet game of strategy. Claim the board, one move at a time.</p>
 
-          {/* ── Hero banner ──────────────────────────────────────────── */}
-          <section className="hero-section">
-            <div className="hero-gradient-overlay" />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-tertiary/5" />
-
-            <div className="hero-content">
-              <h1 className="hero-title">
-                READY_FOR <br />
-                <span className="text-primary italic">DEPLOYMENT</span>
-              </h1>
-
-              <div className="mt-8 flex gap-4 w-full md:w-auto">
-                {!inQueue ? (
-                  <button
-                    onClick={() => joinQueue()}
-                    className="btn-find-match"
-                  >
-                    FIND MATCH
-                    <span className="font-bold" aria-hidden="true">&gt;</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => leaveQueue()}
-                    className="btn-cancel-queue"
-                  >
-                    CANCEL SEARCH
-                    <span className="font-bold" aria-hidden="true">x</span>
-                  </button>
-                )}
-
-                <div className="queue-timer">
-                  <span className="label-micro">
-                    {inQueue ? "Queue Time" : "Avg Queue"}
-                  </span>
-                  <span className="text-xl font-bold text-white tracking-widest font-headline">
-                    {inQueue ? fmt(elapsed) : "???"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/*  Mode card  */}
-          <div className="mode-card">
-            <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
-              <div className="flex-1">
-                <div className="mode-card-label">Protocol_QuickMatch</div>
-                <h3 className="mode-card-title">Find Match</h3>
-                <p className="text-on-surface-variant text-base font-medium leading-relaxed max-w-2xl">
-                  Initialize core combat protocols. System will automatically match you based on skill level
-                  and region availability. Experience gains and rank adjustments enabled for all sessions.
-                </p>
-              </div>
-              <div className="w-full md:w-72 shrink-0">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="label-micro accent">Level Progress</span>
-                  <span className="label-micro text-on-surface">LVL {user?.level ?? 0}</span>
-                </div>
-                <div className="xp-bar-track">
-                  <div
-                    className="xp-bar-fill"
-                    style={{ width: `${xpProgress}%` }}
-                  />
-                </div>
+            <div className="retro-queue-actions">
+              {!inQueue ? (
+                <button onClick={joinQueue} className="retro-primary-button">Find opponent</button>
+              ) : (
+                <button onClick={leaveQueue} className="retro-secondary-button">Cancel search</button>
+              )}
+              <div className="retro-timer" aria-live="polite">
+                <span>{inQueue ? "Searching" : "Matchmaking"}</span>
+                <strong>{inQueue ? formatTime(elapsed) : "Ready"}</strong>
               </div>
             </div>
           </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "GLOBAL_RANK", value: globalRank ? `#${globalRank}` : "#--", color: "text-primary" },
-              { label: "WINS",        value: user?.gamesWon ?? 0,          color: "text-secondary" },
-              { label: "LOSSES",      value: user?.gamesLost ?? 0,        color: "text-on-surface-variant" },
-              { label: "WIN_RATE",    value: `${winRate}%`, color: "text-tertiary" },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="stat-card">
-               <div className={`stat-card-value ${color}`}>{value}</div>
-                  <div className="stat-card-label">{label}</div>
-              </div>
-            ))}
+          <div className="retro-board-wrap" aria-label="Reversi starting position">
+            <div className="retro-board">
+              {Array.from({ length: 64 }, (_, index) => (
+                <div key={index} className="retro-square">
+                  {STARTING_PIECES[index] && <span className={`retro-piece ${STARTING_PIECES[index]}`} />}
+                </div>
+              ))}
+            </div>
+            <p>8 x 8 / classic rules</p>
           </div>
-        </div>
+        </section>
+
+        <section className="retro-match-strip">
+          <div>
+            <p className="retro-section-label">Quick match</p>
+            <h2>Play another person online</h2>
+            <p>You will be paired with the next available player. Results count toward your rank and experience.</p>
+          </div>
+          <div className="retro-level">
+            <div><span>Level progress</span><strong>LVL {user?.level ?? 0}</strong></div>
+            <div className="retro-progress"><span style={{ width: `${xpProgress}%` }} /></div>
+          </div>
+        </section>
+
+        <section className="retro-stats" aria-label="Player statistics">
+          {[
+            { label: "Global rank", value: globalRank ? `#${globalRank}` : "#--" },
+            { label: "Wins", value: user?.gamesWon ?? 0 },
+            { label: "Losses", value: user?.gamesLost ?? 0 },
+            { label: "Win rate", value: `${winRate}%` },
+          ].map(({ label, value }) => (
+            <div key={label} className="retro-stat">
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </section>
       </div>
-    </>
+    </main>
   );
 }

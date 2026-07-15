@@ -58,7 +58,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <main className="flex-grow p-12 min-h-screen">
+      <main className="pixel-profile flex-grow p-12 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-12">
 
           {/* ── Identity card ─────────────────────────────────────────── */}
@@ -74,7 +74,7 @@ export default function ProfilePage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-5xl font-black" style={{ color: "var(--primary)", fontFamily: "Space Grotesk, sans-serif" }}>
+                  <span className="text-5xl font-black" style={{ color: "var(--primary)" }}>
                     {(user?.username ?? "?")[0].toUpperCase()}
                   </span>
                 </div>
@@ -214,15 +214,13 @@ function FriendEntry({ friend }: { friend: PublicUser }) {
 
       {pos && (
         <div
-          className="w-44 rounded-lg overflow-hidden z-50"
+          className="pixel-friend-popover w-44 overflow-hidden z-50"
           style={{
             position: "fixed",
             top: pos.top - 8,
             left: pos.left,
             transform: "translateY(-100%)",
             background: "var(--surface-container-high)",
-            border: "1px solid rgba(72,71,77,0.3)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
           }}
         >
           <button

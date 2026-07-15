@@ -166,17 +166,21 @@ export class GameSession {
 	// Determines the winner, if no winner is set it stops the game with a draw
 	reportFinished() {
 		this.finishedAt = Date.now();
-		this.broadcast(buildGameEnd(this));
 		const winner = this.state.winner !== null ?
-			(this.state.winner === BLACK ? 
+			(this.state.winner === BLACK ?
 				this.blackPlayer
 				: this.whitePlayer)
 			: null;
 
 		reportFinishedGame(this.id, winner?.id ?? null)
-			.then(newXp => winner?.send(buildXpUpdate(newXp!)))
+			.then(newXp => {
+				if (winner && newXp !== null) winner.send(buildXpUpdate(newXp));
+			})
 			.catch(e => console.error(e))
-			.finally(() => this.closeSession());
+			.finally(() => {
+				this.broadcast(buildGameEnd(this));
+				this.closeSession();
+			});
 	}
 
 	playerReady(conn: Socket) {
@@ -337,6 +341,9 @@ export class GameSession {
 			this.broadcast(buildWhiteDisconnect(RECONNECT_TIME_MS));
 			this.whiteAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
 		}
+		conn.handler = globalHandler;
+		conn.status = "busy";
+		conn.player = undefined;
 	}
 }
 
