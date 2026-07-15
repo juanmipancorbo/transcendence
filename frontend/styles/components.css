@@ -706,7 +706,18 @@
 .retro-timer span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .retro-timer strong { margin-top: 4px; font-size: 18px; }
 
-.retro-board-wrap { width: 100%; }
+.retro-board-wrap { width: 100%; position: relative; }
+.retro-board-wrap::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 9px;
+  left: 9px;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 5px solid var(--pixel-line);
+  background: var(--pixel-red);
+}
 .retro-board {
   width: 100%;
   aspect-ratio: 1;
@@ -715,7 +726,10 @@
   border: 5px solid var(--pixel-line);
   background: var(--pixel-line);
   gap: 2px;
-  box-shadow: 8px 8px 0 var(--pixel-red);
+  position: relative;
+  z-index: 1;
+  transform: rotate(1deg);
+  transform-origin: center;
 }
 .retro-square { aspect-ratio: 1; display: grid; place-items: center; background: var(--pixel-mustard); }
 .retro-square:nth-child(16n + 2), .retro-square:nth-child(16n + 4), .retro-square:nth-child(16n + 6), .retro-square:nth-child(16n + 8),
@@ -723,7 +737,7 @@
 .retro-piece { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--pixel-line); box-shadow: 2px 2px 0 var(--pixel-line); }
 .retro-piece.light { background: var(--pixel-cream); }
 .retro-piece.dark { background: #292521; }
-.retro-board-wrap > p { margin: 14px 0 0; color: var(--pixel-cream); font-size: 10px; font-weight: 700; text-align: right; text-transform: uppercase; }
+.retro-board-wrap > p { position: relative; z-index: 1; margin: 14px 0 0; color: var(--pixel-cream); font-size: 10px; font-weight: 700; text-align: right; text-transform: uppercase; }
 
 .retro-match-strip {
   display: grid;
