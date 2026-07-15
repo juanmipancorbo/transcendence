@@ -1,6 +1,6 @@
 export default function TermsPage() {
   return (
-    <div className="dark min-h-screen bg-background text-on-surface">
+    <div className="pixel-terms min-h-screen bg-background text-on-surface">
       <main className="p-12 min-h-screen">
         <div className="max-w-4xl mx-auto">
 
@@ -11,7 +11,7 @@ export default function TermsPage() {
               <span className="label-micro">Updated: Jan 2025</span>
             </div>
             <h1 className="text-6xl md:text-8xl font-black tracking-tighter font-headline text-primary-fixed mb-4">
-              LEGAL_CORE
+              TERMS & PRIVACY
             </h1>
             <p className="text-on-surface-variant text-lg max-w-2xl border-l-4 border-tertiary pl-6 py-2">
               Governing the velocity, privacy, and conduct standards within the FT_TRANSCENDANCE ecosystem.
@@ -30,7 +30,7 @@ export default function TermsPage() {
                 <span className="label-micro">01_PROTOCOL</span>
               </div>
               <h3 className="text-xl font-headline font-bold text-white group-hover:text-primary-fixed transition-colors">
-                Privacy Protocol
+                Privacy Policy
               </h3>
               <p className="text-sm text-on-surface-variant mt-2">
                 Data encryption, collection standards, and user telemetry management.

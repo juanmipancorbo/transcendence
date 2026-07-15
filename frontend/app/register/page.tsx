@@ -62,14 +62,14 @@ export default function RegisterPage() {
   }
 
   const FIELDS = [
-    { key: "username"        as const, label: "Pilot_Handle",  type: "text",     placeholder: "USERNAME"        },
-    { key: "email"           as const, label: "Neural_Link",   type: "email",    placeholder: "EMAIL ADDRESS"   },
-    { key: "password"        as const, label: "Access_Code",   type: "password", placeholder: "MIN 8 CHARS"     },
-    { key: "confirmPassword" as const, label: "Confirm_Code",  type: "password", placeholder: "REPEAT PASSWORD" },
+    { key: "username"        as const, label: "Username",  type: "text",     placeholder: "USERNAME"        },
+    { key: "email"           as const, label: "Email",   type: "email",    placeholder: "EMAIL ADDRESS"   },
+    { key: "password"        as const, label: "Password",   type: "password", placeholder: "MIN 8 CHARS"     },
+    { key: "confirmPassword" as const, label: "Confirm password",  type: "password", placeholder: "REPEAT PASSWORD" },
   ];
 
   return (
-    <div className="page-root">
+    <div className="pixel-auth page-root">
       <div className="page-glow-layer">
         <div className="page-glow-tr" />
         <div className="page-glow-bl" />
@@ -77,7 +77,7 @@ export default function RegisterPage() {
 
       <header className="auth-topbar">
         <div className="auth-topbar-inner">
-          <div className="wordmark">FT_TRANSCENDANCE</div>
+          <div className="wordmark">REVERSI CLUB</div>
         </div>
       </header>
 
@@ -86,17 +86,15 @@ export default function RegisterPage() {
 
           <div className="mb-8">
             <Link href="/login" className="label-micro hover:text-primary transition-colors">
-              ← Back_to_Login
+              Back to sign in
             </Link>
             <h1 className="mt-4 text-5xl font-headline font-bold tracking-tighter text-on-surface">
-              CREATE_
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                ACCOUNT
-              </span>
+              CREATE YOUR
+              <span> ACCOUNT</span>
             </h1>
           </div>
 
-          <div className="glass-panel p-10 rounded-lg border border-outline-variant/10">
+          <div className="pixel-auth-card glass-panel p-10">
             <form className="space-y-5" onSubmit={handleSubmit}>
               {FIELDS.map(({ key, label, type, placeholder }) => (
                 <div key={key} className="field-group">
@@ -125,14 +123,14 @@ export default function RegisterPage() {
               )}
 
               <button type="submit" className="btn-primary mt-4" disabled={mounted ? isLoading : false}>
-                {mounted && isLoading ? "Creating..." : "Initialize_Account"}
+                {mounted && isLoading ? "Creating..." : "Create Account"}
               </button>
             </form>
 
             <p className="text-center mt-6 label-micro tracking-wider">
               By registering you accept our{" "}
               <Link href="/terms" className="text-on-surface underline underline-offset-4">
-                Operating_Directives
+                Terms & Privacy
               </Link>
             </p>
           </div>
