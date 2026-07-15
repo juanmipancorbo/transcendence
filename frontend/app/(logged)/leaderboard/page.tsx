@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { leaderboardApi } from "@/lib/api";
@@ -86,7 +87,7 @@ export default function LeaderboardPage() {
                     </div>
 
                     {/* Competitor */}
-                    <div className="col-span-4 flex items-center gap-4">
+                    <Link href={isMe ? "/profile" : `/friend?id=${entry.user.id}`} className="col-span-4 flex items-center gap-4 hover:brightness-125">
                       <div className="lb-avatar overflow-hidden">
                         {entry.user.avatarUrl ? (
                           <img src={entry.user.avatarUrl} alt={entry.user.username} className="w-full h-full object-cover" />
@@ -106,7 +107,7 @@ export default function LeaderboardPage() {
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
 
                     {/* XP */}
                     <div className="col-span-2 text-right font-headline font-bold text-primary text-sm">

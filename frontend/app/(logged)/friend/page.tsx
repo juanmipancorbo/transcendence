@@ -83,6 +83,21 @@ export default function FriendProfilePage() {
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [userId, loadRelation]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    const refreshRelation = () => loadRelation(token, userId).catch(() => {});
+    const interval = window.setInterval(refreshRelation, 10000);
+    window.addEventListener("focus", refreshRelation);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshRelation);
+    };
+  }, [userId, loadRelation]);
+
   async function handleAddFriend() {
     const token = getTokens()?.accessToken;
     if (!token || !userId) return;

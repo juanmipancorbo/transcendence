@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGame, type LogEntry } from "@/hooks/useGame";
 import { BLACK, WHITE } from "@/types";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
+import { useMsg } from "@/hooks/useMsg";
 
 export default function GamePage() {
   const router = useRouter();
@@ -23,20 +25,23 @@ export default function GamePage() {
   let username1;
   let score;
   let score1;
-  let opponentId: string | undefined;
+  let leftPlayerId: string | undefined;
+  let rightPlayerId: string | undefined;
   if (game.myColor === WHITE) {
     username   = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
     username1  = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
     score      = game.state?.scores.white ?? 0;
     score1     = game.state?.scores.black ?? 0;
-    opponentId = game.state?.players.black;
+    leftPlayerId = game.state?.players.white;
+    rightPlayerId = game.state?.players.black;
   } else {
     // BLACK player or spectator — left = black, right = white
     username   = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
     username1  = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
     score      = game.state?.scores.black ?? 0;
     score1     = game.state?.scores.white ?? 0;
-    opponentId = isSpectator ? undefined : game.state?.players.white;
+    leftPlayerId = game.state?.players.black;
+    rightPlayerId = game.state?.players.white;
   }
 
   const gameResultLabel = (() => {
@@ -67,6 +72,7 @@ export default function GamePage() {
             glowColor="#8ff5ff"
             isMyTurn={game.yourTurn ?? false}
             timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
+            profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -138,7 +144,7 @@ export default function GamePage() {
                   game.abandon();
                 router.push("/lobby");
               }} className="btn-ghost danger">
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="font-bold" aria-hidden="true">x</span>
                 {game.state?.status === "FINISHED" ? "Back to Lobby" : "Resign"}
               </button>
             )}
@@ -157,7 +163,8 @@ export default function GamePage() {
             glowColor="#d575ff"
             isMyTurn={game.yourTurn === false}
             timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
-            userId={opponentId}
+            profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
+            addFriendUserId={isSpectator ? undefined : rightPlayerId}
           />
           <ChatPanel
             messages={game.messages}
@@ -178,126 +185,124 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, userId, timeLeft }: {
+function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft }: {
   name: string; label: string; score: number; total: number;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
-  userId?: string;
+  profileHref?: string;
+  addFriendUserId?: string;
   timeLeft?: string;
 }) {
-  const [menuOpen,   setMenuOpen]   = useState(false);
-  const [addState,   setAddState]   = useState<"idle" | "sent">("idle");
-  const [tipVisible, setTipVisible] = useState(false);
-  const menuRef  = useRef<HTMLDivElement>(null);
-  const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { message, error } = useMsg();
+  const [friendRelation, setFriendRelation] = useState<"loading" | "none" | "incoming" | "sent" | "friends" | "sending">("loading");
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    function close(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node))
-        setMenuOpen(false);
-    }
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [menuOpen]);
-
-  async function sendFriendRequest() {
-    if (!userId || addState === "sent") return;
+  const refreshFriendRelation = useCallback(async () => {
+    if (!addFriendUserId) return;
     const token = getTokens()?.accessToken;
     if (!token) return;
-    await friendApi.sendRequest(token, userId).catch(() => {});
-    setAddState("sent");
-    setMenuOpen(false);
+
+    const [isFriend, incoming, outgoing] = await Promise.all([
+      friendApi.isFriend(token, addFriendUserId),
+      friendApi.getIncomingRequests(token),
+      friendApi.getOutgoingRequests(token),
+    ]);
+
+    if (isFriend)
+      setFriendRelation("friends");
+    else if (incoming.some(user => user.id === addFriendUserId))
+      setFriendRelation("incoming");
+    else if (outgoing.some(user => user.id === addFriendUserId))
+      setFriendRelation("sent");
+    else
+      setFriendRelation("none");
+  }, [addFriendUserId]);
+
+  useEffect(() => {
+    if (!addFriendUserId) return;
+
+    refreshFriendRelation().catch(() => setFriendRelation("none"));
+    const interval = window.setInterval(() => refreshFriendRelation().catch(() => {}), 10000);
+    window.addEventListener("focus", refreshFriendRelation);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshFriendRelation);
+    };
+  }, [addFriendUserId, refreshFriendRelation]);
+
+  async function sendFriendRequest() {
+    if (!addFriendUserId || !["none", "incoming"].includes(friendRelation)) return;
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    const wasIncoming = friendRelation === "incoming";
+    setFriendRelation("sending");
+    try {
+      await friendApi.sendRequest(token, addFriendUserId);
+      setFriendRelation(wasIncoming ? "friends" : "sent");
+      message(wasIncoming ? "Friend request accepted" : "Friend request sent");
+    } catch (err) {
+      await refreshFriendRelation().catch(() => setFriendRelation("none"));
+      error(err instanceof Error ? err.message : "Could not update friend request");
+    }
   }
 
-  function onAddBtnEnter() {
-    tipTimer.current = setTimeout(() => setTipVisible(true), 700);
-  }
-  function onAddBtnLeave() {
-    if (tipTimer.current) clearTimeout(tipTimer.current);
-    setTipVisible(false);
-  }
+  const avatar = (
+    <div
+      className={`w-24 h-24 rounded-full border-2 p-1 flex items-center justify-center bg-surface-container-highest ${profileHref ? "cursor-pointer hover:brightness-125" : ""}`}
+      style={{ borderColor: glowColor }}
+    >
+      <span className={`font-headline font-black text-3xl ${scoreColorClass}`}>
+        {name[0].toUpperCase()}
+      </span>
+    </div>
+  );
 
   return (
     <div className={`player-panel ${accentClass}`}>
-      <div className="relative" ref={menuRef}>
-
-        {/* Avatar — clickable*/}
-        <div
-          className={`w-24 h-24 rounded-full border-2 p-1 flex items-center justify-center bg-surface-container-highest ${userId ? "cursor-pointer" : ""}`}
-          style={{ borderColor: glowColor }}
-          onClick={() => userId && setMenuOpen(prev => !prev)}
-        >
-          <span className={`font-headline font-black text-3xl ${scoreColorClass}`}>
-            {name[0].toUpperCase()}
-          </span>
-        </div>
-
-        {/* Quick Add Friend button */}
-        {userId && (
-          <div className="absolute -top-1 -right-1">
-            <button
-              onClick={e => { e.stopPropagation(); sendFriendRequest(); }}
-              onMouseEnter={onAddBtnEnter}
-              onMouseLeave={onAddBtnLeave}
-              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-              style={{
-                background: addState === "sent" ? "#22c55e20" : `${glowColor}20`,
-                color:      addState === "sent" ? "#22c55e"   : glowColor,
-                border:     `1px solid ${addState === "sent" ? "#22c55e50" : `${glowColor}50`}`,
-              }}
-            >
-              {addState === "sent" ? "✓" : "+"}
-            </button>
-            {tipVisible && (
-              <div
-                className="absolute bottom-full right-0 mb-1 px-2 py-1 rounded text-[10px] whitespace-nowrap font-semibold pointer-events-none"
-                style={{ background: "var(--surface-container-highest)", color: "var(--on-surface-variant)", border: "1px solid rgba(72,71,77,0.4)" }}
-              >
-                {addState === "sent" ? "Request sent" : "Send friend request"}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Name label */}
-        <div
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full font-headline tracking-widest whitespace-nowrap text-on-primary-fixed"
-          style={{ background: glowColor }}
-        >
-          {label}
-        </div>
-
-        {/* Dropdown */}
-        {userId && menuOpen && (
-          <div
-            className="absolute top-[calc(100%+0.75rem)] left-1/2 -translate-x-1/2 w-40 rounded-lg overflow-hidden z-10"
-            style={{ background: "var(--surface-container-high)", border: "1px solid rgba(72,71,77,0.3)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+      <div className="relative">
+        {profileHref ? <Link href={profileHref} aria-label={`View ${name}'s profile`}>{avatar}</Link> : avatar}
+        {profileHref ? (
+          <Link
+            href={profileHref}
+            className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full font-headline tracking-widest whitespace-nowrap text-on-primary-fixed hover:brightness-110"
+            style={{ background: glowColor }}
           >
-            <button
-              onClick={() => { setMenuOpen(false); window.open(`/friend?id=${userId}`, "_blank"); }}
-              className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors"
-              style={{ color: "var(--on-surface)" }}
-            >
-              View Profile ↗
-            </button>
-            <button
-              onClick={sendFriendRequest}
-              disabled={addState === "sent"}
-              className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors disabled:opacity-50"
-              style={{ color: addState === "sent" ? "#22c55e" : glowColor }}
-            >
-              {addState === "sent" ? "✓ Request Sent" : "Add Friend"}
-            </button>
+            {label}
+          </Link>
+        ) : (
+          <div
+            className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full font-headline tracking-widest whitespace-nowrap text-on-primary-fixed"
+            style={{ background: glowColor }}
+          >
+            {label}
           </div>
         )}
       </div>
+
+      {addFriendUserId && !["loading", "friends"].includes(friendRelation) && (
+        <button
+          type="button"
+          onClick={sendFriendRequest}
+          disabled={["sending", "sent"].includes(friendRelation)}
+          className="mt-5 rounded border px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-60"
+          style={{ color: glowColor, borderColor: `${glowColor}50`, background: `${glowColor}10` }}
+        >
+          {friendRelation === "sending"
+            ? "Updating..."
+            : friendRelation === "sent"
+              ? "Request sent"
+              : friendRelation === "incoming"
+                ? "Accept request"
+                : "Add friend"}
+        </button>
+      )}
 
       <div className="text-center mt-2">
         <div className={`player-score-value ${scoreColorClass}`}>{score}</div>
         <div className="player-score-label">Captured_Cells</div>
         {timeLeft && (
           <div className="text-xs font-mono mt-1" style={{ color: glowColor }}>
-            ⏱ {timeLeft}
+            {timeLeft}
           </div>
         )}
       </div>
@@ -310,10 +315,7 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
       </div>
 
       {isMyTurn && (
-        <span
-          className="player-active-badge"
-          style={{ background: `${glowColor}20`, color: glowColor }}
-        >
+        <span className="player-active-badge" style={{ background: `${glowColor}20`, color: glowColor }}>
           <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: glowColor }} />
           ACTIVE
         </span>

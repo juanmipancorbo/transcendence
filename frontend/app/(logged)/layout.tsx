@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/Sidebar";
@@ -10,9 +10,9 @@ import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
 import { useMsg } from "@/hooks/useMsg";
 import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
-import { chatApi } from "@/lib/api";
+import { chatApi, friendApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
-import { GlobalProtocol, ProtocolCodes } from "@/types";
+import { GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -25,9 +25,29 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [chats, setChats] = useState<Map<string, Chat>>(new Map());
+  const chatsRef = useRef(chats);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const [friendRequests, setFriendRequests] = useState<PublicUser[]>([]);
+  const [friends, setFriends] = useState<PublicUser[]>([]);
+  const [pendingFriendAction, setPendingFriendAction] = useState<string | null>(null);
   const [inQueue, setInQueue] = useState(false);
   const [handlers, setHandlers] = useState<((p: ByteReader) => void)[]>([]);
+
+  const loadSocialState = useCallback(async () => {
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    try {
+      const [requests, friendProfiles] = await Promise.all([
+        friendApi.getIncomingRequests(token),
+        friendApi.getProfiles(token),
+      ]);
+      setFriendRequests(requests);
+      setFriends(friendProfiles);
+    } catch (err) {
+      error(err instanceof Error ? err.message : "Failed to load friends");
+    }
+  }, [error]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -47,6 +67,21 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
+    loadSocialState();
+    const refresh = () => loadSocialState();
+    const interval = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [isAuthenticated, loadSocialState]);
+
+  useEffect(() => {
+    chatsRef.current = chats;
     if (activeChat) {
       setActiveChat(prev => {
         const newChat = chats.get(prev?.friendId ?? "");
@@ -82,29 +117,29 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       }
 
       function onFriendRequest(p: ByteReader) {
-        const from = p.readPrefixedUTF();
-
-        // TODO: Notification maybe
+        p.readPrefixedUTF();
+        message("You received a friend request");
+        loadSocialState();
       }
 
       function onFriendChatMessage(p: ByteReader) {
         const sender = p.readPrefixedUTF();
-        const message = p.readPrefixedUTF();
-        setChats(prev => {
-          const chat = prev.get(sender);
-          if (!chat) return prev;
+        const content = p.readPrefixedUTF();
+        const incoming = { createdAt: new Date().toISOString(), content, senderId: sender };
 
-          const map = new Map(prev);
-          map.set(sender, {
-            ...chat,
-            messages: [
-              { createdAt: new Date().toISOString(), content: message, senderId: sender },
-              ...chat.messages,
-            ],
-          });
-          map.set(sender, chat);
-          return map;
-        });
+        const existing = chatsRef.current.get(sender);
+        const updated: Chat = existing
+          ? { ...existing, messages: [incoming, ...existing.messages] }
+          : {
+              friendId: sender,
+              chatId: sender,
+              isFinal: false,
+              loadMoreMessages: () => loadMoreMessages(sender),
+              messages: [incoming],
+            };
+
+        setChats(prev => new Map(prev).set(sender, updated));
+        setActiveChat(active => active?.friendId === sender ? updated : active ?? updated);
       }
 
       const handlers: ((p: ByteReader) => void)[] = [];
@@ -119,7 +154,28 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 	  setHandlers(handlers);
       // ------- WS Callbacks End -------
     }
-  }, [socket]);
+  }, [socket, error, loadSocialState, message, router]);
+
+  async function respondToFriendRequest(senderId: string, accept: boolean) {
+    const token = getTokens()?.accessToken;
+    if (!token || pendingFriendAction) return;
+
+    setPendingFriendAction(senderId);
+    try {
+      if (accept)
+        await friendApi.acceptRequest(token, senderId);
+      else
+        await friendApi.declineRequest(token, senderId);
+
+      await loadSocialState();
+      message(accept ? "Friend request accepted" : "Friend request declined");
+    } catch (err) {
+      error(err instanceof Error ? err.message : "Failed to update friend request");
+      await loadSocialState();
+    } finally {
+      setPendingFriendAction(null);
+    }
+  }
 
   if (fatalError) {
     return (
@@ -134,23 +190,25 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // Convenience function for fetching messages history
   async function loadMoreMessages(friendId: string) {
-    const chat = chats.get(friendId);
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    const chat = chatsRef.current.get(friendId);
     if (!chat || chat.isFinal) return;
 
-    const before = chat.messages.length ? new Date(chat.messages[chat.messages.length - 1].createdAt) : new Date();
-    const data = await chatApi.getHistory(getTokens()!.accessToken, chat.friendId, { before: before.toISOString(), limit: 50 });
+    const before = chat.messages.length ? chat.messages[chat.messages.length - 1].createdAt : new Date().toISOString();
+    const data = await chatApi.getHistory(token, friendId, { before, limit: 50 });
 
     setChats(prev => {
+      const current = prev.get(friendId);
+      if (!current) return prev;
+
       const map = new Map(prev);
       map.set(friendId, {
-        ...chat,
-        messages: [
-          ...chat.messages,
-          ...data
-        ],
+        ...current,
+        messages: [...current.messages, ...data],
         isFinal: data.length !== 50,
       });
-      map.set(friendId, chat);
       return map;
     });
   }
@@ -172,17 +230,35 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // ------- Ws Context Functions -------
   function openChat(friendId: string) {
-    const newChats = new Map(chats);
+    const existing = chats.get(friendId);
+    if (existing) {
+      setActiveChat(existing);
+      return;
+    }
+
     const chat: Chat = {
-      friendId: friendId,
+      friendId,
       chatId: friendId,
       isFinal: false,
       loadMoreMessages: () => loadMoreMessages(friendId),
-      messages: []
-    }
-    newChats.set(friendId, chat);
-    setChats(newChats);
+      messages: [],
+    };
+    setChats(prev => new Map(prev).set(friendId, chat));
     setActiveChat(chat);
+
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+    chatApi.getHistory(token, friendId, { before: new Date().toISOString(), limit: 50 })
+      .then(data => {
+        setChats(prev => {
+          const current = prev.get(friendId);
+          if (!current) return prev;
+          const map = new Map(prev);
+          map.set(friendId, { ...current, messages: data, isFinal: data.length !== 50 });
+          return map;
+        });
+      })
+      .catch(() => error("Could not load chat history"));
   }
 
   function closeChat() {
@@ -205,7 +281,15 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   return (
     <div className="dark min-h-screen bg-background text-on-surface">
       <div className="ml-64 flex flex-col min-h-screen">
-        <TopBar withSidebar />
+        <TopBar
+          withSidebar
+          friendRequests={friendRequests}
+          friends={friends}
+          pendingFriendAction={pendingFriendAction}
+          onAcceptFriend={senderId => respondToFriendRequest(senderId, true)}
+          onDeclineFriend={senderId => respondToFriendRequest(senderId, false)}
+          onOpenChat={openChat}
+        />
         <main className="flex-1">
           <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue }}>
             {children}
