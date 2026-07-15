@@ -282,23 +282,17 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   return (
     <div className="dark min-h-screen bg-background text-on-surface">
       <div className="ml-64 flex flex-col min-h-screen">
-<<<<<<< HEAD
-        <TopBar
-          withSidebar
-          friendRequests={friendRequests}
-          friends={friends}
-          pendingFriendAction={pendingFriendAction}
-          onAcceptFriend={senderId => respondToFriendRequest(senderId, true)}
-          onDeclineFriend={senderId => respondToFriendRequest(senderId, false)}
-          onOpenChat={openChat}
-        />
-        <main className="flex-1">
-          <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue }}>
-=======
         <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue, inGame, setInGame }}>
-          <TopBar withSidebar />
+          <TopBar
+            withSidebar
+            friendRequests={friendRequests}
+            friends={friends}
+            pendingFriendAction={pendingFriendAction}
+            onAcceptFriend={senderId => respondToFriendRequest(senderId, true)}
+            onDeclineFriend={senderId => respondToFriendRequest(senderId, false)}
+            onOpenChat={openChat}
+          />
           <main className="flex-1">
->>>>>>> 7b1cf69 (Game rejoin)
             {children}
             {activeChat && <ChatWindow chat={activeChat} onClose={closeChat} />}
           </main>
