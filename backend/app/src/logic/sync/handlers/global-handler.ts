@@ -118,6 +118,12 @@ function onFriendRequestAccept(p: ByteReader, conn: Socket) {
 function onChat(p: ByteReader, conn: Socket) {
 	const to = p.readPrefixedUTF();
 	const message = p.readPrefixedUTF();
+	const connections = getSocksById(to as UUID);
+
+	if (connections && [...connections].some(client => client.status === "busy")) {
+		conn.send(buildError("This player is currently in a game"));
+		return;
+	}
 
 	getUserCurrentGame(to)
 		.then(currentGame => {
