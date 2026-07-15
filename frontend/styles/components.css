@@ -937,19 +937,23 @@
 
 /* Rankings and profiles */
 .pixel-page-heading { padding-bottom: 18px; border-bottom: 4px solid var(--pixel-line); }
-.pixel-page-heading h1 { color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; font-size: clamp(34px, 5vw, 60px); font-style: normal; letter-spacing: 0; text-shadow: 4px 4px 0 var(--pixel-mustard); }
-.pixel-page-heading .accent { color: var(--pixel-red); letter-spacing: 0; }
+.pixel-rankings { background: #302a27 !important; }
+.pixel-page-heading h1 { color: var(--pixel-cream) !important; font-family: "Courier New", ui-monospace, monospace; font-size: clamp(42px, 8vw, 82px); font-style: normal; letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
+.pixel-page-heading .accent { color: var(--pixel-teal); letter-spacing: 0; }
 .pixel-page-heading .live-badge { border: 2px solid var(--pixel-line); border-radius: 0; background: var(--pixel-teal); color: var(--pixel-ink); box-shadow: 3px 3px 0 var(--pixel-line); }
 .pixel-page-heading .live-dot { background: var(--pixel-red); animation: pulse 1s steps(2, end) infinite; }
 .pixel-rankings .lb-header-row, .pixel-rankings .lb-row { grid-template-columns: 64px minmax(210px, 1fr) 100px 72px 72px 130px; column-gap: 18px; }
 .pixel-rankings .lb-header-row { padding: 13px 18px; border: 3px solid var(--pixel-line); background: var(--pixel-panel); color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; letter-spacing: 0; box-shadow: 4px 4px 0 var(--pixel-red); }
 .pixel-rankings .lb-header-row > div, .pixel-rankings .lb-row > .lb-rank, .pixel-rankings .lb-row > .lb-competitor, .pixel-rankings .lb-row > .lb-xp, .pixel-rankings .lb-row > .lb-wins, .pixel-rankings .lb-row > .lb-losses, .pixel-rankings .lb-row > .lb-rate { grid-column: auto; }
-.pixel-rankings .lb-row { min-height: 82px; padding: 14px 18px; border: 3px solid var(--pixel-line); background: var(--pixel-cream); color: var(--pixel-ink); box-shadow: 4px 4px 0 var(--pixel-line); }
-.pixel-rankings .lb-row-odd { background: #f8efda; }
-.pixel-rankings .lb-row:hover { background: var(--pixel-mustard); transform: translate(-2px, -2px); }
+.pixel-rankings .lb-row { min-height: 82px; padding: 14px 18px; border: 3px solid var(--pixel-line); background: #3a322c; color: var(--pixel-cream); box-shadow: 4px 4px 0 var(--pixel-line); }
+.pixel-rankings .lb-row-odd { background: #463c34; }
+.pixel-rankings .lb-row:hover { background: #594a3d; transform: translate(-2px, -2px); }
 .pixel-rankings .lb-row-me { outline: 4px solid var(--pixel-teal); outline-offset: -7px; }
 .pixel-rankings .lb-row-me-accent { width: 7px; background: var(--pixel-red); }
-.pixel-rankings .lb-rank { color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-rankings .lb-rank { color: var(--pixel-mustard) !important; font-family: "Courier New", ui-monospace, monospace; }
+.pixel-rankings .lb-competitor p, .pixel-rankings .lb-wins { color: var(--pixel-cream) !important; }
+.pixel-rankings .lb-xp { color: var(--pixel-mustard) !important; }
+.pixel-rankings .lb-losses, .pixel-rankings .lb-rate .label-micro { color: #cdbd9f !important; }
 .pixel-rankings .lb-avatar { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-teal); color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; box-shadow: 3px 3px 0 var(--pixel-line); }
 .pixel-rankings .lb-level-badge { border: 2px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); color: var(--pixel-ink); font-family: inherit; }
 .pixel-rankings .lb-win-bar-track { height: 9px; border: 2px solid var(--pixel-line); background: #8a7d69; }
@@ -1013,14 +1017,16 @@
 .pixel-auth .btn-secondary { background: var(--pixel-teal); }
 .pixel-auth .btn-primary:active, .pixel-auth .btn-secondary:active { transform: translate(5px, 5px); box-shadow: none; }
 .pixel-auth a { color: var(--pixel-red); }
-.pixel-terms { background: var(--pixel-paper); color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; }
-.pixel-terms main { background-color: var(--pixel-paper) !important; }
-.pixel-terms h1 { color: var(--pixel-ink); font-family: inherit; font-size: clamp(42px, 8vw, 82px); letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
-.pixel-terms h2, .pixel-terms h3, .pixel-terms h4, .pixel-terms p, .pixel-terms li { color: var(--pixel-ink); font-family: inherit; }
-.pixel-terms .terms-protocol-card { border: 3px solid var(--pixel-line); background: var(--pixel-cream); color: var(--pixel-ink); box-shadow: 5px 5px 0 var(--pixel-line); }
-.pixel-terms .terms-protocol-card:hover { background: var(--pixel-mustard); border-color: var(--pixel-line); }
+.pixel-terms { background: #302a27; color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-terms main { background-color: #302a27 !important; }
+.pixel-terms h1 { color: var(--pixel-cream) !important; font-family: inherit; font-size: clamp(42px, 8vw, 82px); letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
+.pixel-terms h2, .pixel-terms h3, .pixel-terms h4 { color: var(--pixel-mustard) !important; font-family: inherit; }
+.pixel-terms p, .pixel-terms li { color: #e3d5b6 !important; font-family: inherit; }
+.pixel-terms .terms-protocol-card { border: 3px solid var(--pixel-line); background: #3a322c; color: var(--pixel-cream); box-shadow: 5px 5px 0 var(--pixel-line); }
+.pixel-terms .terms-protocol-card:hover { background: #463c34; border-color: var(--pixel-line); }
+.pixel-terms .terms-protocol-card h3 { color: var(--pixel-mustard) !important; }
 .pixel-terms .terms-section-number { color: var(--pixel-red); font-family: inherit; font-style: normal; text-shadow: 3px 3px 0 var(--pixel-line); }
-.pixel-terms .terms-info-box { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-cream); box-shadow: 6px 6px 0 var(--pixel-teal); }
+.pixel-terms .terms-info-box { border: 3px solid var(--pixel-line); border-radius: 0; background: #3a322c; box-shadow: 6px 6px 0 var(--pixel-teal); }
 .pixel-terms .terms-warning-box { border: 4px solid var(--pixel-line); background: var(--pixel-red); color: var(--pixel-cream); box-shadow: 7px 7px 0 var(--pixel-line); }
 .pixel-terms .terms-warning-box h3, .pixel-terms .terms-warning-box p, .pixel-terms .terms-warning-box span { color: var(--pixel-cream); }
 .pixel-terms article > section { scroll-margin-top: 110px; }
