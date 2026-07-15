@@ -12,6 +12,7 @@ import { useMsg } from "@/hooks/useMsg";
 import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
 import { chatApi, friendApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
+import PixelLoader from "@/components/ui/PixelLoader";
 import { GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
 
 interface ProtectedLayoutProps {
@@ -181,10 +182,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (fatalError) {
     return (
       <div className="dark min-h-screen bg-background text-on-surface flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-          <p className="mt-4 label-micro">{fatalError}</p>
-        </div>
+        <PixelLoader label={fatalError} />
       </div>
     );
   }
@@ -217,10 +215,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (isLoading || !socket || !socket.isConnected) {
     return (
       <div className="dark min-h-screen bg-background text-on-surface flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-          <p className="mt-4 label-micro">Initializing...</p>
-        </div>
+        <PixelLoader label="Loading game room..." />
       </div>
     );
   }

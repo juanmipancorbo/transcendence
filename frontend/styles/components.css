@@ -1040,3 +1040,18 @@
   .pixel-terms main { padding: 28px 18px; }
   .pixel-terms section { margin-bottom: 48px; }
 }
+
+
+/* Pixel loading indicator. */
+.pixel-loader { display: flex; flex-direction: column; align-items: center; gap: 16px; color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-loader-track { display: flex; gap: 7px; padding: 8px; border: 3px solid var(--pixel-line); background: #3a322c; box-shadow: 4px 4px 0 var(--pixel-line); }
+.pixel-loader-track i { width: 13px; height: 13px; background: #66594c; animation: pixel-loading 1s steps(1, end) infinite; }
+.pixel-loader-track i:nth-child(2) { animation-delay: 0.15s; }
+.pixel-loader-track i:nth-child(3) { animation-delay: 0.3s; }
+.pixel-loader-track i:nth-child(4) { animation-delay: 0.45s; }
+.pixel-loader p { margin: 0; color: currentColor; font-size: 11px; font-weight: 900; letter-spacing: 0; text-transform: uppercase; }
+@keyframes pixel-loading {
+  0%, 24% { background: var(--pixel-mustard); transform: translateY(-3px); }
+  25%, 100% { background: #66594c; transform: translateY(0); }
+}
+.pixel-auth .pixel-loader { color: var(--pixel-cream); }

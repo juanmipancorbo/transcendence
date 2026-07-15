@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMsg } from "@/hooks/useMsg";
 import { useAuth } from "@/hooks/useAuth";
+import PixelLoader from "@/components/ui/PixelLoader";
 
 function GoogleCallbackContent() {
 	const router = useRouter();
@@ -39,17 +40,14 @@ function GoogleCallbackContent() {
 	}, []);
 
 	return (
-		<div className="page-root">
+		<div className="pixel-auth page-root">
 			<div className="page-glow-layer">
 				<div className="page-glow-tr" />
 				<div className="page-glow-bl" />
 			</div>
 			<main className="relative z-10 min-h-screen flex items-center justify-center px-6">
-				<div className="glass-panel p-10 rounded-lg border border-outline-variant/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-6">
-					<div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-					<span className="label-micro accent tracking-[0.4em]">
-						Verifying_Identity...
-					</span>
+				<div className="pixel-auth-card p-10 flex flex-col items-center gap-6">
+					<PixelLoader label="Verifying identity..." />
 				</div>
 			</main>
 		</div>
@@ -59,9 +57,9 @@ function GoogleCallbackContent() {
 export default function GoogleCallbackPage() {
 	return (
 		<Suspense fallback={
-			<div className="page-root">
+			<div className="pixel-auth page-root">
 				<main className="relative z-10 min-h-screen flex items-center justify-center px-6">
-					<div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+					<PixelLoader label="Loading..." />
 				</main>
 			</div>
 		}>
