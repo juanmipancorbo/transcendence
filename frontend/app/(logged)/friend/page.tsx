@@ -158,7 +158,7 @@ export default function FriendProfilePage() {
 
   return (
     <>
-      <main className="flex-grow p-12 min-h-screen">
+      <main className="pixel-profile flex-grow p-12 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-12">
 
           {loading && (
@@ -184,7 +184,7 @@ export default function FriendProfilePage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-5xl font-black" style={{ color: "var(--primary)", fontFamily: "Space Grotesk, sans-serif" }}>
+                      <span className="text-5xl font-black" style={{ color: "var(--primary)" }}>
                         {(profile.username ?? "?")[0].toUpperCase()}
                       </span>
                     </div>
