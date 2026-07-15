@@ -877,16 +877,17 @@
 .pixel-chat input:focus { border-color: var(--pixel-teal); }
 .pixel-chat button { border: 2px solid var(--pixel-line); background: var(--pixel-mustard); color: var(--pixel-ink); }
 .pixel-toast {
-  border: 3px solid var(--pixel-line);
+  min-width: min(320px, calc(100vw - 32px));
+  border: 3px solid var(--pixel-line, #171513);
   border-radius: 0;
-  box-shadow: 5px 5px 0 var(--pixel-line);
+  box-shadow: 5px 5px 0 var(--pixel-line, #171513);
   font-family: "Courier New", ui-monospace, monospace;
   font-weight: 900;
 }
-.pixel-toast.info { background: var(--pixel-cream); color: var(--pixel-ink); }
-.pixel-toast.error { background: var(--pixel-red); color: var(--pixel-cream); }
-.pixel-toast-marker { width: 10px; height: 10px; flex: 0 0 auto; border: 2px solid var(--pixel-line); background: var(--pixel-teal); animation: pulse 1s steps(2, end) infinite; }
-.pixel-toast.error .pixel-toast-marker { background: var(--pixel-mustard); }
+.pixel-toast.info { background: var(--pixel-cream, #f4e7c5); color: var(--pixel-ink, #211e1b); }
+.pixel-toast.error { background: var(--pixel-red, #d75b46); color: var(--pixel-cream, #f4e7c5); }
+.pixel-toast-marker { width: 10px; height: 10px; flex: 0 0 auto; border: 2px solid var(--pixel-line, #171513); background: var(--pixel-teal, #3ca6a0); animation: pulse 1s steps(2, end) infinite; }
+.pixel-toast.error .pixel-toast-marker { background: var(--pixel-mustard, #d5a62b); }
 
 @media (max-width: 900px) {
   .pixel-topbar > div { padding-left: 16px; padding-right: 16px; flex-wrap: wrap; gap: 12px; }
