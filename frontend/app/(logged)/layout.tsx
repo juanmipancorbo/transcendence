@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/Sidebar";
@@ -10,9 +10,9 @@ import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
 import { useMsg } from "@/hooks/useMsg";
 import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
-import { chatApi } from "@/lib/api";
+import { chatApi, friendApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
-import { GlobalProtocol, ProtocolCodes } from "@/types";
+import { GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -26,8 +26,21 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [chats, setChats] = useState<Map<string, Chat>>(new Map());
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const [friendRequests, setFriendRequests] = useState<PublicUser[]>([]);
+  const [pendingFriendAction, setPendingFriendAction] = useState<string | null>(null);
   const [inQueue, setInQueue] = useState(false);
   const [handlers, setHandlers] = useState<((p: ByteReader) => void)[]>([]);
+
+  const loadFriendRequests = useCallback(async () => {
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    try {
+      setFriendRequests(await friendApi.getIncomingRequests(token));
+    } catch (err) {
+      error(err instanceof Error ? err.message : "Failed to load friend requests");
+    }
+  }, [error]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -45,6 +58,10 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       }
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated) loadFriendRequests();
+  }, [isAuthenticated, loadFriendRequests]);
 
   useEffect(() => {
     if (activeChat) {
@@ -82,9 +99,9 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       }
 
       function onFriendRequest(p: ByteReader) {
-        const from = p.readPrefixedUTF();
-
-        // TODO: Notification maybe
+        p.readPrefixedUTF();
+        message("You received a friend request");
+        loadFriendRequests();
       }
 
       function onFriendChatMessage(p: ByteReader) {
@@ -119,7 +136,28 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 	  setHandlers(handlers);
       // ------- WS Callbacks End -------
     }
-  }, [socket]);
+  }, [socket, error, loadFriendRequests, message, router]);
+
+  async function respondToFriendRequest(senderId: string, accept: boolean) {
+    const token = getTokens()?.accessToken;
+    if (!token || pendingFriendAction) return;
+
+    setPendingFriendAction(senderId);
+    try {
+      if (accept)
+        await friendApi.acceptRequest(token, senderId);
+      else
+        await friendApi.declineRequest(token, senderId);
+
+      setFriendRequests(requests => requests.filter(request => request.id !== senderId));
+      message(accept ? "Friend request accepted" : "Friend request declined");
+    } catch (err) {
+      error(err instanceof Error ? err.message : "Failed to update friend request");
+      await loadFriendRequests();
+    } finally {
+      setPendingFriendAction(null);
+    }
+  }
 
   if (fatalError) {
     return (
@@ -205,7 +243,13 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   return (
     <div className="dark min-h-screen bg-background text-on-surface">
       <div className="ml-64 flex flex-col min-h-screen">
-        <TopBar withSidebar />
+        <TopBar
+          withSidebar
+          friendRequests={friendRequests}
+          pendingFriendAction={pendingFriendAction}
+          onAcceptFriend={senderId => respondToFriendRequest(senderId, true)}
+          onDeclineFriend={senderId => respondToFriendRequest(senderId, false)}
+        />
         <main className="flex-1">
           <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue }}>
             {children}

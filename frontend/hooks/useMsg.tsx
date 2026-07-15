@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useRef } from "react";
+import React, { createContext, useCallback, useContext, useState, useRef } from "react";
 
 interface Message {
 	msg: string,
@@ -20,17 +20,23 @@ export function MsgProvider({ children }: { children: React.ReactNode }) {
 	const [msg, setMsg] = useState<Message>({ msg: "", show: false, isError: false });
 	const timer = useRef<number | undefined>(undefined);
 
-	const message = (message: string, timeMs?: number) => {
+	const message = useCallback((message: string, timeMs?: number) => {
 		window.clearTimeout(timer.current);
 		setMsg({ msg: message, show: true, isError: false });
-		timer.current = window.setTimeout(() => setMsg({ ...msg, show: false }), timeMs ?? 3000)
-	};
+		timer.current = window.setTimeout(
+			() => setMsg(current => ({ ...current, show: false })),
+			timeMs ?? 3000
+		);
+	}, []);
 
-	const error = (message: string, timeMs?: number) => {
+	const error = useCallback((message: string, timeMs?: number) => {
 		window.clearTimeout(timer.current);
 		setMsg({ msg: message, show: true, isError: true });
-		timer.current = window.setTimeout(() => setMsg({ ...msg, show: false }), timeMs ?? 3000);
-	};
+		timer.current = window.setTimeout(
+			() => setMsg(current => ({ ...current, show: false })),
+			timeMs ?? 3000
+		);
+	}, []);
 
 	return (
 		<MsgContext.Provider
