@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/Sidebar";
@@ -25,6 +25,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [chats, setChats] = useState<Map<string, Chat>>(new Map());
+  const chatsRef = useRef(chats);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [friendRequests, setFriendRequests] = useState<PublicUser[]>([]);
   const [friends, setFriends] = useState<PublicUser[]>([]);
@@ -80,6 +81,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   }, [isAuthenticated, loadSocialState]);
 
   useEffect(() => {
+    chatsRef.current = chats;
     if (activeChat) {
       setActiveChat(prev => {
         const newChat = chats.get(prev?.friendId ?? "");
@@ -135,7 +137,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
               ...chat.messages,
             ],
           });
-          map.set(sender, chat);
           return map;
         });
       }
@@ -188,23 +189,25 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // Convenience function for fetching messages history
   async function loadMoreMessages(friendId: string) {
-    const chat = chats.get(friendId);
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+
+    const chat = chatsRef.current.get(friendId);
     if (!chat || chat.isFinal) return;
 
-    const before = chat.messages.length ? new Date(chat.messages[chat.messages.length - 1].createdAt) : new Date();
-    const data = await chatApi.getHistory(getTokens()!.accessToken, chat.friendId, { before: before.toISOString(), limit: 50 });
+    const before = chat.messages.length ? chat.messages[chat.messages.length - 1].createdAt : new Date().toISOString();
+    const data = await chatApi.getHistory(token, friendId, { before, limit: 50 });
 
     setChats(prev => {
+      const current = prev.get(friendId);
+      if (!current) return prev;
+
       const map = new Map(prev);
       map.set(friendId, {
-        ...chat,
-        messages: [
-          ...chat.messages,
-          ...data
-        ],
+        ...current,
+        messages: [...current.messages, ...data],
         isFinal: data.length !== 50,
       });
-      map.set(friendId, chat);
       return map;
     });
   }
@@ -226,17 +229,35 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // ------- Ws Context Functions -------
   function openChat(friendId: string) {
-    const newChats = new Map(chats);
+    const existing = chats.get(friendId);
+    if (existing) {
+      setActiveChat(existing);
+      return;
+    }
+
     const chat: Chat = {
-      friendId: friendId,
+      friendId,
       chatId: friendId,
       isFinal: false,
       loadMoreMessages: () => loadMoreMessages(friendId),
-      messages: []
-    }
-    newChats.set(friendId, chat);
-    setChats(newChats);
+      messages: [],
+    };
+    setChats(prev => new Map(prev).set(friendId, chat));
     setActiveChat(chat);
+
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+    chatApi.getHistory(token, friendId, { before: new Date().toISOString(), limit: 50 })
+      .then(data => {
+        setChats(prev => {
+          const current = prev.get(friendId);
+          if (!current) return prev;
+          const map = new Map(prev);
+          map.set(friendId, { ...current, messages: data, isFinal: data.length !== 50 });
+          return map;
+        });
+      })
+      .catch(() => error("Could not load chat history"));
   }
 
   function closeChat() {
