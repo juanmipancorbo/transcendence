@@ -111,12 +111,16 @@ export default function TopBar({
                           </Link>
                           <button
                             type="button"
-                            disabled={inGame}
+                            disabled={inGame || friend.status === "busy"}
                             onClick={() => { setFriendsOpen(false); onOpenChat?.(friend.id); }}
-                            title={inGame ? "Use the game chat while a match is active" : `Chat with ${friend.username}`}
+                            title={inGame
+                              ? "Use the game chat while a match is active"
+                              : friend.status === "busy"
+                                ? `${friend.username} is currently in a game`
+                                : `Chat with ${friend.username}`}
                             className="pixel-friend-chat px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                           >
-                            {inGame ? "Use game chat" : "Chat"}
+                            {inGame ? "Use game chat" : friend.status === "busy" ? "In game" : "Chat"}
                           </button>
                         </div>
                       ))}

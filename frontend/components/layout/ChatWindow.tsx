@@ -82,7 +82,7 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 
 	function send() {
 		const text = draft.trim();
-		if (!text || !user) return;
+		if (!text || !user || friend?.status === "busy") return;
 
 		socket.send(buildFriendChat(chat.friendId, text));
 		chat.messages.unshift({
@@ -176,7 +176,8 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 						<input
 							ref={inputRef}
 							className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-3 py-2 outline-none border border-outline-variant/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
-							placeholder="Message…"
+							placeholder={friend?.status === "busy" ? "Player is in a game" : "Message…"}
+							disabled={friend?.status === "busy"}
 							value={draft}
 							maxLength={500}
 							onChange={e => setDraft(e.target.value)}
@@ -184,7 +185,7 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 						/>
 						<button
 							onClick={send}
-							disabled={!draft.trim()}
+							disabled={!draft.trim() || friend?.status === "busy"}
 							className="text-xs px-3 py-2 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
 						>
 							Send
