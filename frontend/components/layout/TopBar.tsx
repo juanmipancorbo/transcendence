@@ -58,7 +58,7 @@ export default function TopBar({
               aria-expanded={requestsOpen}
               className="relative flex h-10 w-10 items-center justify-center rounded-full border border-violet-500/30 bg-surface-container-highest text-on-surface-variant transition-colors hover:border-violet-400 hover:text-primary"
             >
-              <span className="material-symbols-outlined text-xl">person_add</span>
+              <span className="text-xl font-bold leading-none" aria-hidden="true">+</span>
               {friendRequests.length > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-on-primary">
                   {friendRequests.length > 9 ? "9+" : friendRequests.length}
@@ -87,10 +87,10 @@ export default function TopBar({
                             <span className="truncate text-sm font-semibold text-on-surface">{request.username}</span>
                           </Link>
                           <button type="button" disabled={isPending} onClick={() => onAcceptFriend?.(request.id)} aria-label={`Accept ${request.username}'s friend request`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10 disabled:opacity-40">
-                            <span className="material-symbols-outlined text-lg">check</span>
+                            <span className="text-lg font-bold leading-none" aria-hidden="true">✓</span>
                           </button>
                           <button type="button" disabled={isPending} onClick={() => onDeclineFriend?.(request.id)} aria-label={`Decline ${request.username}'s friend request`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-error transition-colors hover:bg-error/10 disabled:opacity-40">
-                            <span className="material-symbols-outlined text-lg">close</span>
+                            <span className="text-xl leading-none" aria-hidden="true">×</span>
                           </button>
                         </div>
                       );
