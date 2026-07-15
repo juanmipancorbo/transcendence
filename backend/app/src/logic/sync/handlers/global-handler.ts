@@ -7,6 +7,7 @@ import { buildError, buildFriendChatMessage, buildFriendRequest, buildGameFatalE
 import { declineFriendRequest, sendFriendRequest } from "@databaseAccess/friend/service";
 import { UUID } from "node:crypto";
 import { addChatMessage } from "@databaseAccess/chat/service";
+import { getUserCurrentGame } from "@databaseAccess/user/repository";
 
 export enum Protocol {
 	KeepAlive = 0,
@@ -40,17 +41,21 @@ function onKeepAlive(_: ByteReader, conn: Socket) {
 }
 
 function onQueueCasual(_: ByteReader, conn: Socket) {
-	conn.status = "busy";
-	if (!waiting) {
-		waiting = conn;
-		return;
-	} else if (waiting.id === conn.id)
-		return conn.send(buildError("You are already in queue", ProtocolCodes.QueueFailed));
-	const game = createGameSession(waiting.id, conn.id, true /* TODO: Maybe take into account user settings */, false, 180);
-	const tmp = waiting;
-	waiting = null;
-	tmp.send(buildMatchFound(game, conn.id));
-	conn.send(buildMatchFound(game, tmp.id));
+	getUserCurrentGame(conn.id).then(currentGame => {
+		if (currentGame !== null)
+			return conn.send(buildError("You can't join a queue while you are in a game", ProtocolCodes.QueueFailed));
+		conn.status = "busy";
+		if (!waiting) {
+			waiting = conn;
+			return;
+		} else if (waiting.id === conn.id)
+			return conn.send(buildError("You are already in queue", ProtocolCodes.QueueFailed));
+		const game = createGameSession(waiting.id, conn.id, true /* TODO: Maybe take into account user settings */, false, 180);
+		const tmp = waiting;
+		waiting = null;
+		tmp.send(buildMatchFound(game, conn.id));
+		conn.send(buildMatchFound(game, tmp.id));
+	}).catch(_ => conn.send(buildError("Failed to check current game state", ProtocolCodes.QueueFailed)));
 }
 
 function onQueueLeave(_: ByteReader, conn: Socket) {
@@ -130,8 +135,6 @@ function onJoinGame(p: ByteReader, conn: Socket) {
 	const gameId = p.readPrefixedUTF();
 	const game = SESSIONS.get(gameId as UUID);
 	if (!game) {
-		conn.handler = handler;
-		conn.status = "online";
 		conn.send(buildGameFatalError("Game doesn't exist"));
 		return;
 	}

@@ -31,6 +31,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [friends, setFriends] = useState<PublicUser[]>([]);
   const [pendingFriendAction, setPendingFriendAction] = useState<string | null>(null);
   const [inQueue, setInQueue] = useState(false);
+  const [inGame, setInGame] = useState(false);
   const [handlers, setHandlers] = useState<((p: ByteReader) => void)[]>([]);
 
   const loadSocialState = useCallback(async () => {
@@ -281,6 +282,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   return (
     <div className="dark min-h-screen bg-background text-on-surface">
       <div className="ml-64 flex flex-col min-h-screen">
+<<<<<<< HEAD
         <TopBar
           withSidebar
           friendRequests={friendRequests}
@@ -292,10 +294,15 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
         />
         <main className="flex-1">
           <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue }}>
+=======
+        <WsContext.Provider value={{ socket, chats, openChat, closeChat, joinQueue, leaveQueue, globalHandler: handlers, inQueue, inGame, setInGame }}>
+          <TopBar withSidebar />
+          <main className="flex-1">
+>>>>>>> 7b1cf69 (Game rejoin)
             {children}
             {activeChat && <ChatWindow chat={activeChat} onClose={closeChat} />}
-          </WsContext.Provider>
-        </main>
+          </main>
+        </WsContext.Provider>
       </div>
       <Sidebar />
     </div>

@@ -55,3 +55,10 @@ export async function updateUserGame(userId: string, gameId: string | null)
     WHERE id = $1
   `, [userId, gameId]);
 }
+
+export async function getUserCurrentGame(userId: string): Promise<string | null> {
+	const res = await pool.query(sql`
+		SELECT current_game FROM users WHERE id = $1
+	`, [userId]);
+	return res.rows[0]?.current_game ?? null;
+}

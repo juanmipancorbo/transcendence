@@ -99,6 +99,19 @@ export interface GameState {
   endedAt?: number;
 }
 
+export type Winner = 1 | 2 | 'DRAW' | null;
+
+export type GameData = {
+  gameId: string,
+  whiteId: string,
+  blackId: string,
+  timeLimitBlack: number,
+  timeLimitWhite: number,
+  allowSpectators: number,
+  friendly: number,
+  winner: Winner,
+};
+
 // ─── Lobby / Matchmaking ─────────────────────────────────────────────────────
 
 export type GameMode = "ranked" | "casual" | "private";

@@ -41,9 +41,9 @@ function formatMs(ms: number) {
 }
 
 export function useGame(id: string) {
-	const { socket, globalHandler, closeChat } = useWs();
+	const { socket, globalHandler, closeChat, setInGame } = useWs();
 	const { message, error } = useMsg();
-	const { user } = useAuth();
+	const { user, setUser } = useAuth();
 	const router = useRouter();
 
 	const [state, setState] = useState<GameState | null>(null);
@@ -189,6 +189,7 @@ export function useGame(id: string) {
 
 	function onFatalError(p: ByteReader) {
 		error(p.readPrefixedUTF());
+		setUser({ ...user!, currentGame: undefined });
 		router.push("/lobby");
 	}
 
@@ -310,6 +311,7 @@ export function useGame(id: string) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
+		setUser({ ...user!, currentGame: undefined });
 		setState(prev => {
 			if (!prev) return prev;
 			return {
@@ -369,13 +371,15 @@ export function useGame(id: string) {
 		socket.handlers = callbacks;
 		// Game socket setup end
 
+		setInGame(true);
+		setUser({ ...user!, currentGame: id });
 		socket.send(buildReadyToGame()); // Notify the backend this player is ready
 
 		return () => {
 			if (stateRef.current?.status === "ACTIVE")
 				socket.send(buildDisconnect());
-			console.log("Unmounted?????");
 			socket.handlers = globalHandler;
+			setInGame(false);
 		};
 	}, []);
 

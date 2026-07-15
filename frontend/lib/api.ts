@@ -1,5 +1,5 @@
 
-import type { User, LeaderboardEntry, PublicUser, ChatMessage } from "@/types";
+import type { User, LeaderboardEntry, PublicUser, ChatMessage, GameData } from "@/types";
 import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
@@ -280,11 +280,21 @@ export const friendApi = {
 	}
 };
 
+export const gamesApi = {
+	getGame: async (gameId: string): Promise<GameData> => {
+		const res = await apiFetch<{ success: boolean, data: GameData }>(
+			`/games/${gameId}`, {
+				headers: { "Content-Type": "application/json" }
+			}
+		);
+		return res.data;
+	}
+};
+
 // Chat
 
 export const chatApi = {
-	/** Conversation history with another user, newest message first.
-	 *  `before` is a cursor (a message's createdAt) for fetching older pages. */
+	// Conversation history with another user, newest message first.
 	getHistory: async (
 		accessToken: string,
 		userId: string,
@@ -300,7 +310,7 @@ export const chatApi = {
 					"Content-Type": "application/json",
 					"Authorization": `Bearer ${accessToken}`
 				}
-			});
+		});
 		return res.data;
 	},
 };

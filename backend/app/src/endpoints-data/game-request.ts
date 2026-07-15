@@ -1,18 +1,19 @@
+import { Winner } from "@gameLogic/game";
 import z from "zod";
 
-export const NewGameReqSchema = z.strictObject({
-  gameId: z.uuid(),
-  whiteId: z.uuid(),
-  blackId: z.uuid(),
-  timeLimit: z.number(),
-  allowSpectators: z.boolean(),
-  friendly: z.boolean(),
+export const GameReqSchema = z.strictObject({
+	id: z.uuid(),
 });
 
-export const PostWinReqSchema = z.strictObject({
-  gameId: z.string(),
-  winnerId: z.string().optional()
-});
+export type GameReq = z.infer<typeof GameReqSchema>;
 
-export type NewGameReq = z.infer<typeof NewGameReqSchema>;
-export type PostWinReq = z.infer<typeof PostWinReqSchema>;
+export type GameData = {
+  gameId: string,
+  whiteId: string,
+  blackId: string,
+  timeLimitBlack: number,
+  timeLimitWhite: number,
+  allowSpectators: number,
+  friendly: number,
+  winner: Winner,
+};

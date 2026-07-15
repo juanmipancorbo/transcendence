@@ -6,6 +6,7 @@ import { router as routerFriend } from "@databaseAccess/friend/router";
 import { router as routerLeaderboard } from "@databaseAccess/leaderboard/router";
 import { router as routerChat } from "@databaseAccess/chat/router";
 import { router as googleAuth } from "@databaseAccess/google/router";
+import { router as routerGames } from "@databaseAccess/game/router";
 import { create } from "./websockets";
 import { errorHandler } from "./middleware/error-middleware";
 
@@ -53,12 +54,13 @@ app.listen(port, _ => {
 	console.log("Listening on http://localhost" + ":" + port);
 });
 
-app.use("/users", routerUser)
-app.use("/auth", routerAuth)
-app.use("/friends", routerFriend)
-app.use("/leaderboard", routerLeaderboard)
-app.use("/chats", routerChat)
-app.use("/google", googleAuth)
+app.use("/users", routerUser);
+app.use("/auth", routerAuth);
+app.use("/friends", routerFriend);
+app.use("/leaderboard", routerLeaderboard);
+app.use("/chats", routerChat);
+app.use("/google", googleAuth);
+app.use("/games", routerGames);
 
 // Error Handler (has to be last one)
 app.use(errorHandler);
