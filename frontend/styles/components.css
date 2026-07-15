@@ -861,12 +861,20 @@
 .pixel-chat {
   border: 3px solid var(--pixel-line) !important;
   border-radius: 0;
-  background: var(--pixel-cream);
-  color: var(--pixel-ink);
+  background: #302a27;
+  color: var(--pixel-cream);
   box-shadow: 7px 7px 0 var(--pixel-line);
 }
 .pixel-chat > div:first-child { background: var(--pixel-teal); color: var(--pixel-ink); border-bottom: 3px solid var(--pixel-line); }
-.pixel-chat input { border: 2px solid var(--pixel-line); border-radius: 0; background: white; color: var(--pixel-ink); }
+.pixel-chat-messages { background: #292420; }
+.pixel-chat-message { border-radius: 2px; color: var(--pixel-cream); box-shadow: 2px 2px 0 var(--pixel-line); }
+.pixel-chat-message.mine { background: #286f6b; }
+.pixel-chat-message.theirs { background: #6b493d; }
+.pixel-chat-presence { display: block; margin-top: 1px; color: #33423d; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.pixel-chat-composer { border-color: var(--pixel-line); background: #3a322c; }
+.pixel-chat input { border: 2px solid var(--pixel-line); border-radius: 0; background: #211e1b; color: var(--pixel-cream); }
+.pixel-chat input::placeholder { color: #a9987e; opacity: 1; }
+.pixel-chat input:focus { border-color: var(--pixel-teal); }
 .pixel-chat button { border: 2px solid var(--pixel-line); background: var(--pixel-mustard); color: var(--pixel-ink); }
 .pixel-toast {
   border: 3px solid var(--pixel-line) !important;

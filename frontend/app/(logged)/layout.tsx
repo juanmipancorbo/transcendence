@@ -289,7 +289,13 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
           />
           <main className="flex-1">
             {children}
-            {activeChat && <ChatWindow chat={activeChat} onClose={closeChat} />}
+            {activeChat && (
+              <ChatWindow
+                chat={activeChat}
+                friendProfile={friends.find(friend => friend.id === activeChat.friendId)}
+                onClose={closeChat}
+              />
+            )}
           </main>
         </WsContext.Provider>
       </div>

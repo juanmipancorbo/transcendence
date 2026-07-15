@@ -10,10 +10,11 @@ import { PublicUser } from "@/types";
 
 interface ChatWindowProps {
 	chat: Chat;
+	friendProfile?: PublicUser;
 	onClose: () => void;
 }
 
-export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
+export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowProps) {
 	const { socket } = useWs();
 	const { error } = useMsg();
 	const { user } = useAuth();
@@ -34,10 +35,14 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 	// The Chat itself carries no profile info, so the header still needs its own
 	// fetch for the friend's username/avatar/status.
 	useEffect(() => {
+		if (friendProfile) {
+			setFriend(friendProfile);
+			return;
+		}
 		let cancelled = false;
 		userApi.getProfile(chat.friendId).then(p => { if (!cancelled) setFriend(p); }).catch(() => {});
 		return () => { cancelled = true; };
-	}, [chat.friendId]);
+	}, [chat.friendId, friendProfile]);
 
 	useEffect(() => {
 		if (!collapsed) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,9 +109,12 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 						</span>
 						{friend && <span className={`friend-status-dot ${friend.status}`} />}
 					</div>
-					<span className="font-headline font-bold text-sm text-on-surface truncate">
-						{friend?.username ?? "Loading…"}
-					</span>
+					<div className="min-w-0">
+						<span className="block font-headline font-bold text-sm truncate">
+							{friend?.username ?? "Loading…"}
+						</span>
+						{friend && <span className="pixel-chat-presence">{friend.status === "busy" ? "In game" : friend.status}</span>}
+					</div>
 					{hasUnread && <span className="rounded bg-primary px-1.5 py-0.5 text-[9px] font-bold uppercase text-on-primary">New</span>}
 				</div>
 				<div className="flex items-center gap-1 shrink-0">
@@ -132,7 +140,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 			{!collapsed && (
 				<>
 					{/* Messages */}
-					<div className="flex flex-col overflow-y-auto h-80 px-4 py-3 gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+					<div className="pixel-chat-messages flex flex-col overflow-y-auto h-80 px-4 py-3 gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 						{hasMore && ordered.length > 0 && (
 							<button
 								onClick={loadMore}
@@ -152,11 +160,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 									return (
 										<div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
 											<span
-												className={`max-w-[75%] break-words rounded-xl px-3 py-2 text-xs ${
-													isMe
-														? "bg-primary/15 text-on-surface border border-primary/30"
-														: "bg-surface-container-highest text-on-surface border border-outline-variant/20"
-												}`}
+												className={`pixel-chat-message max-w-[75%] break-words px-3 py-2 text-xs ${isMe ? "mine" : "theirs"}`}
 											>
 												{m.content}
 											</span>
@@ -168,7 +172,7 @@ export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
 					</div>
 
 					{/* Composer */}
-					<div className="flex gap-2 p-3 border-t border-outline-variant/20">
+					<div className="pixel-chat-composer flex gap-2 p-3 border-t">
 						<input
 							ref={inputRef}
 							className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-3 py-2 outline-none border border-outline-variant/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
