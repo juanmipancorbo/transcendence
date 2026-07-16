@@ -6,7 +6,7 @@ import { friendApi, userApi } from "@/lib/api";
 import type { PublicUser } from "@/types";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [friends, setFriends] = useState<PublicUser[]>([]);
 
@@ -45,6 +45,7 @@ export default function ProfilePage() {
     const nextBio = draftBio.trim();
     setBio(nextBio);
     userApi.updateProfile(user?.id ?? "", { username: draftName, bio: nextBio }).catch(() => {});
+	setUser({ ...user!, username: draftName, bio: nextBio });
     setEditing(false);
   }
 

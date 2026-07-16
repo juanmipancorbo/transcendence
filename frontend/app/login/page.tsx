@@ -136,17 +136,17 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <button type="submit" className="btn-primary mt-8" disabled={isLoading}>
+                <button type="submit" className="retro-shell auth btn-primary mt-8" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </button>
 
                 <div className="flex items-center gap-4">
-                  <div className="h-px flex-1 bg-outline-variant/20" />
+                  <div className="h-px flex-1 bg-white opacity-[0.15]" />
                   <span className="label-micro">or</span>
-                  <div className="h-px flex-1 bg-outline-variant/20" />
+                  <div className="h-px flex-1 bg-white opacity-[0.15]" />
                 </div>
 
-                <button onClick={googleLogin} type="button" className="btn-secondary" disabled={isLoading}>
+                <button onClick={googleLogin} type="button" className="btn-secondary auth-google" disabled={isLoading}>
                   <img src="/google.svg" alt="" className="w-5 h-5" />
                   Continue with Google
                 </button>

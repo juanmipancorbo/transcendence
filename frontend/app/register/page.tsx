@@ -122,7 +122,7 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <button type="submit" className="btn-primary mt-4" disabled={mounted ? isLoading : false}>
+              <button type="submit" className="retro-shell auth btn-primary mt-4" disabled={mounted ? isLoading : false}>
                 {mounted && isLoading ? "Creating..." : "Create Account"}
               </button>
             </form>

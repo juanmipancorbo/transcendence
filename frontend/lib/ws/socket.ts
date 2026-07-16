@@ -26,14 +26,12 @@ export class GameSocket {
 		this.ws.onopen = _ => {
 			this.ws.onerror = e => {
 				const router = useRouter();
-				console.log(e);
 				this.ws.onclose = () => {}; // Avoid ondisconnect being called twice
 				if (this.ondisconnect)
 					this.ondisconnect(new Error(`${e}`));
 				router.refresh();
 			};
 			this.ws.onclose = e => {
-				console.log(e);
 				if (this.ondisconnect)
 					this.ondisconnect(e.code === CloseCodes.Error ? new Error(e.reason) : undefined);
 			}

@@ -575,6 +575,15 @@
   font-family: "Courier New", ui-monospace, monospace;
 }
 
+/* Auth buttons */
+.retro-shell .auth {
+	background: var(--pixel-mustard);
+}
+.auth-google {
+	background: #f4e7c5 !important;
+	color: black !important;
+}
+
 .retro-shell header {
   background: var(--pixel-red);
   border-bottom: 4px solid var(--pixel-line);

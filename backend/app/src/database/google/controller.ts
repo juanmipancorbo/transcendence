@@ -54,4 +54,3 @@ export async function login(req: Request<unknown, unknown, GoogleLoginReq>, res:
 		}
 	});
 }
-

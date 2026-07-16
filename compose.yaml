@@ -39,7 +39,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
-      target: development
+      target: production
     restart: unless-stopped
     env_file: "./frontend/.env"
     volumes:
