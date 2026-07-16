@@ -7,6 +7,7 @@ import { updateUserGame, clearUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 import { clearTimeout } from "timers";
 import globalHandler from "./handlers/global-handler";
+import { getUnfinishedGames } from "@databaseAccess/game/repository";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
 
@@ -372,5 +373,37 @@ export function createGameSession(
 		updateUserGame(black, game.id),
 	])).catch(e => console.error(e));
 
-return game;
+	return game;
+}
+
+export function restoreUnfinishedSessions() {
+	console.log("Restoring unfinished games...")
+	getUnfinishedGames().then(games => games.forEach(game => {
+		let state = createInitialGameState(game.black_player_id, game.white_player_id);
+
+		for (const move of game.moves) {
+			const player = move.player === BLACK ? game.black_player_id : game.white_player_id;
+			state = applyPlayerMove(state, player, move.row, move.col);
+		}
+
+		const session = new GameSession(
+			game.id as UUID,
+			state,
+			game.black_player_id as UUID,
+			game.white_player_id as UUID,
+			game.allow_spectators,
+			game.friendly,
+			Math.max(game.time_left_black, game.time_left_white)
+		);
+		session.blackPlayer.timeLeft = game.time_left_black;
+		session.whitePlayer.timeLeft = game.time_left_white;
+
+		SESSIONS.set(game.id as UUID, session);
+
+		// Delete a stale session that players don't agree on joining after a reasonable time
+		setTimeout(() => {
+			if (SESSIONS.has(game.id as UUID))
+				session.reportFinished();
+		}, 600000 + game.time_left_white + game.time_left_black);
+	})).catch(e => console.error(e));
 }

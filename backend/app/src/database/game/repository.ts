@@ -1,4 +1,4 @@
-import { GameData } from "@endpoints/game-request";
+import { FullGame, GameData } from "@endpoints/game-request";
 import { pool } from "@utils/pg-pool";
 import { sql } from "@utils/sql";
 
@@ -56,4 +56,28 @@ export async function updateGameWinner(gameId: string, winnerId: string)
       SET winner_id = $2, finished_at = CURRENT_TIMESTAMP
     WHERE id = $1
 `, [gameId, winnerId]);
+}
+
+export async function getUnfinishedGames(): Promise<FullGame[]> {
+	const res = await pool.query(sql`
+		SELECT
+			g.id,
+			g.black_player_id,
+			g.white_player_id,
+			g.allow_spectators,
+			g.friendly,
+			g.time_left_black,
+			g.time_left_white,
+		COALESCE(
+			(SELECT json_agg(
+				json_build_object('row', m.row, 'col', m.col, 'player', m.player)
+				ORDER BY ord
+			)
+			FROM unnest(g.moves) WITH ORDINALITY AS m(row, col, player, ord)),
+			'[]'
+		) AS moves
+		FROM games g
+		WHERE g.finished_at IS NULL;
+	`);
+	return res.rows;
 }

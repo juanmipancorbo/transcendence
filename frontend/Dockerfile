@@ -3,7 +3,7 @@ FROM node:20-alpine AS base
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 # --- Development ---
 FROM base AS development
@@ -21,14 +21,15 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY --from=builder /app/.next ./.next
+# "output: standalone" bundles the server and its deps into .next/standalone,
+# so this stage needs no npm install. Static assets are not bundled.
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.* ./
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

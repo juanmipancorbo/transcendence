@@ -9,6 +9,9 @@ import { router as googleAuth } from "@databaseAccess/google/router";
 import { router as routerGames } from "@databaseAccess/game/router";
 import { create } from "./websockets";
 import { errorHandler } from "./middleware/error-middleware";
+import { restoreUnfinishedSessions } from "@gameLogic/sync/session";
+
+restoreUnfinishedSessions(); // Recover unfinished games in case of crash or sudden shutdown.
 
 const { app } = expressWs(express());
 

@@ -174,9 +174,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Append a movement to a game.
--- The player number is derived from user_id: BLACK = 1 (black_player_id),
--- WHITE = 2 (white_player_id), matching logic/game.ts. If the user is not a
--- player of the game, nothing is appended.
 CREATE OR REPLACE FUNCTION add_game_movement(game_id UUID, user_id UUID, m_row SMALLINT, m_col SMALLINT)
 RETURNS VOID AS $$
 BEGIN
