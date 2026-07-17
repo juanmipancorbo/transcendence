@@ -11,7 +11,7 @@ import { useAuth } from "./useAuth";
 import { levelFromXp } from "@/lib/levels";
 
 export type LogEntry =
-	| { type: 'move';    byMe: boolean; col: string; row: number; flips: number; turn: number }
+	| { type: 'move';    byMe: boolean; player: PlayerColor; col: string; row: number; flips: number; turn: number }
 	| { type: 'abandon'; byMe: boolean }
 
 function getScores(board: Board) {
@@ -222,7 +222,8 @@ export function useGame(id: string) {
 			const turn = ++turnCountRef.current;
 			setLog(prev => [{
 				type: 'move',
-				byMe: yourTurn,
+				byMe: placed.content === myColorRef.current,
+				player: placed.content as PlayerColor,
 				col: String.fromCharCode(65 + placed.col),
 				row: placed.row + 1,
 				flips: updates.length - 1,

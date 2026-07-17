@@ -64,6 +64,15 @@ export default function GamePage() {
     return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
   })();
 
+  const getLogPlayerName = (entry: LogEntry) => {
+    if (entry.byMe) return "You";
+    if (entry.type === "abandon") return username1;
+    const playerId = entry.player === BLACK
+      ? game.state?.players.black
+      : game.state?.players.white;
+    return playerId ? game.profiles.get(playerId)?.username ?? "Opponent" : "Opponent";
+  };
+
   return (
     <>
       <main className="pixel-game max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col xl:flex-row gap-8 xl:gap-12 min-h-[calc(100vh-100px)]">
@@ -87,7 +96,7 @@ export default function GamePage() {
             <div className="overflow-y-auto max-h-64 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {game.log.length === 0
                 ? <p className="text-xs text-on-surface-variant italic">Moves will appear here…</p>
-                : game.log.map((entry, i) => <LogLine key={i} entry={entry} />)
+                : game.log.map((entry, i) => <LogLine key={i} entry={entry} playerName={getLogPlayerName(entry)} />)
               }
             </div>
           </div>
@@ -432,12 +441,12 @@ function SpectatorList({ spectators, profiles }: {
   );
 }
 
-function LogLine({ entry }: { entry: LogEntry }) {
+function LogLine({ entry, playerName }: { entry: LogEntry; playerName: string }) {
   if (entry.type === 'abandon') {
     return (
       <p className="text-xs text-on-surface-variant">
         <span className={entry.byMe ? "text-primary" : "text-tertiary"}>
-          {entry.byMe ? "You" : "Opponent"}
+          {playerName}
         </span>
         {" resigned"}
       </p>
@@ -447,7 +456,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
     <p className="text-xs text-on-surface-variant font-mono">
       <span className="text-on-surface-variant/40">{entry.turn}. </span>
       <span className={entry.byMe ? "text-primary" : "text-tertiary"}>
-        {entry.byMe ? "You" : "Opp"}
+        {playerName}
       </span>
       {` ${entry.col}${entry.row}`}
       <span className="text-on-surface-variant/50"> +{entry.flips}</span>
