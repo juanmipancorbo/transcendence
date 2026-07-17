@@ -183,7 +183,7 @@ The middleware:
 
 ## WebSocket authentication
 
-The realtime connection (`/ws/create`) does not use the HTTP header: the client sends the `accessToken` as the socket's first message (the `Token` handshake). See `docs/WEBSOCKETS.md`.
+The realtime connection (`/ws/create`) does not use the HTTP `Authorization` header: the client sends the `accessToken` as the socket's first message (the `Token` handshake). The reason is that the browser's `WebSocket` class does not support custom headers — it exposes no way to set an `Authorization` (or any other) header on the connection request whatsoever, so the token has to be sent in-band as the first message instead. See `docs/WEBSOCKETS.md`.
 
 ## Database
 
