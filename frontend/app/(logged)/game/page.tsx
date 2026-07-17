@@ -20,6 +20,8 @@ export default function GamePage() {
   }, []);
 
   const isSpectator = game.state !== null && game.myColor === 0;
+  const leftPieceColor = game.myColor === WHITE ? "white" : "black";
+  const rightPieceColor = leftPieceColor === "white" ? "black" : "white";
 
   let username;
   let username1;
@@ -73,6 +75,8 @@ export default function GamePage() {
             isMyTurn={game.yourTurn ?? false}
             timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
+            pieceColor={leftPieceColor}
+            isOwnPlayer={!isSpectator}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -165,6 +169,7 @@ export default function GamePage() {
             timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
             profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
             addFriendUserId={isSpectator ? undefined : rightPlayerId}
+            pieceColor={rightPieceColor}
           />
           <ChatPanel
             messages={game.messages}
@@ -186,12 +191,14 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft }: {
+function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft, pieceColor, isOwnPlayer = false }: {
   name: string; label: string; score: number; total: number;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
   profileHref?: string;
   addFriendUserId?: string;
   timeLeft?: string;
+  pieceColor: "black" | "white";
+  isOwnPlayer?: boolean;
 }) {
   const { message, error } = useMsg();
   const [friendRelation, setFriendRelation] = useState<"loading" | "none" | "incoming" | "sent" | "friends" | "sending">("loading");
@@ -297,6 +304,11 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
                 : "Add friend"}
         </button>
       )}
+
+      <div className="pixel-player-piece-indicator" aria-label={`${name} plays ${pieceColor} pieces`}>
+        <span className={`pixel-player-piece ${pieceColor}`} aria-hidden="true" />
+        <span>{isOwnPlayer ? "YOUR" : label}&nbsp;·&nbsp;{pieceColor.toUpperCase()} PIECES</span>
+      </div>
 
       <div className="text-center mt-2">
         <div className={`player-score-value ${scoreColorClass}`}>{score}</div>
