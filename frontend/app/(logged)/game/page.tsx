@@ -64,6 +64,14 @@ export default function GamePage() {
     return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
   })();
 
+  const resultTone = game.state?.status !== "FINISHED"
+    ? ""
+    : !game.state.winner
+      ? "result-draw"
+      : isSpectator
+        ? "result-spectator"
+        : game.state.winner === game.myColor ? "result-win" : "result-lose";
+
   const getLogPlayerName = (entry: LogEntry) => {
     if (entry.byMe) return "You";
     if (entry.type === "abandon") return username1;
@@ -105,21 +113,21 @@ export default function GamePage() {
         {/* Board */}
         <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2">
           {/* Turn banner */}
-          <div className="pixel-turn-banner px-6 py-2 flex items-center gap-3">
+          <div className={["pixel-turn-banner px-6 py-2 flex items-center gap-3", resultTone].filter(Boolean).join(" ")}>
             {game.state?.status === "ACTIVE" && currentTurn && (
               <span
                 className={`pixel-turn-piece ${currentTurn === BLACK ? "black" : "white"}`}
                 aria-label={`${currentTurn === BLACK ? "Black" : "White"} pieces moving`}
               />
             )}
-            <span className="font-headline font-bold text-primary tracking-tighter text-sm">
+            <span className="pixel-turn-label font-headline font-bold text-primary tracking-tighter text-sm">
               {game.state?.status === "FINISHED"
                 ? gameResultLabel
                 : game.state?.status === "WAITING"
                   ? "WAITING FOR PLAYERS…"
                   : game.yourTurn
-                    ? "YOUR TURN"
-                    : `${currentTurnName.toUpperCase()} MOVING…`}
+                    ? "your turn"
+                    : currentTurnName.toLowerCase() + " turn"}
             </span>
           </div>
 

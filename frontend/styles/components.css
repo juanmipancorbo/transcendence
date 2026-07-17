@@ -916,6 +916,12 @@
   box-shadow: 4px 4px 0 var(--pixel-line);
 }
 .pixel-turn-banner span { color: var(--pixel-cream) !important; letter-spacing: 0; }
+.pixel-turn-banner.result-win { min-height: 58px; background: var(--pixel-mustard); box-shadow: 7px 7px 0 var(--pixel-line); }
+.pixel-turn-banner.result-win .pixel-turn-label { color: var(--pixel-ink) !important; font-size: 18px; }
+.pixel-turn-banner.result-lose { min-height: 58px; background: var(--pixel-red); box-shadow: 7px 7px 0 var(--pixel-line); }
+.pixel-turn-banner.result-lose .pixel-turn-label { color: var(--pixel-cream) !important; font-size: 18px; }
+.pixel-turn-banner.result-draw, .pixel-turn-banner.result-spectator { min-height: 58px; background: var(--pixel-teal); box-shadow: 7px 7px 0 var(--pixel-line); }
+.pixel-turn-banner.result-draw .pixel-turn-label, .pixel-turn-banner.result-spectator .pixel-turn-label { color: var(--pixel-ink) !important; font-size: 18px; }
 .pixel-turn-piece { width: 22px; height: 22px; flex: 0 0 auto; border: 2px solid var(--pixel-line); border-radius: 50%; box-shadow: 2px 2px 0 var(--pixel-line); animation: pulse 1s steps(2, end) infinite; }
 .pixel-turn-piece.black { background: #28231f; }
 .pixel-turn-piece.white { background: var(--pixel-cream); }
