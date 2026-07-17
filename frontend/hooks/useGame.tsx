@@ -63,6 +63,7 @@ export function useGame(id: string) {
 	const stateRef    = useRef<GameState | null>(null);
 	const myColorRef  = useRef<PlayerColor | 0>(0);
 	const turnCountRef = useRef(0);
+	const abandonRequestedRef = useRef(false);
 
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
@@ -127,8 +128,8 @@ export function useGame(id: string) {
 	}
 
 	function onBlackAbandon(_: ByteReader) {
-		if (myColor === BLACK) {
-			message("You abandoned the game!");
+		if (myColorRef.current === BLACK) {
+			if (!abandonRequestedRef.current) message("You abandoned the game");
 			router.push("/lobby");
 			return;
 		} else message("Black abandoned the game");
@@ -142,8 +143,8 @@ export function useGame(id: string) {
 	}
 
 	function onWhiteAbandon(_: ByteReader) {
-		if (myColor === WHITE) {
-			message("You abandoned the game!");
+		if (myColorRef.current === WHITE) {
+			if (!abandonRequestedRef.current) message("You abandoned the game");
 			router.push("/lobby");
 			return;
 		} else message("White abandoned the game");
@@ -432,11 +433,20 @@ export function useGame(id: string) {
 	};
 
 	const abandon = () => {
+		const current = stateRef.current;
+		if (!current || current.status === "FINISHED") return;
+
+		abandonRequestedRef.current = true;
+		const finished = { ...current, status: "FINISHED" as GameStatus };
+		stateRef.current = finished;
+		setState(finished);
+		setUser({ ...user!, currentGame: undefined });
+		message("You abandoned the game");
 		socket.send(build(Protocol.Abandon).freeze());
 		setLog(prev => [{ type: 'abandon', byMe: true }, ...prev]);
 		window.clearInterval(whiteTimer);
 		window.clearInterval(blackTimer);
-		router.push("/lobby")
+		router.push("/lobby");
 	};
 
 	return {

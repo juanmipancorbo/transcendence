@@ -118,8 +118,8 @@ export default function GamePage() {
                 : game.state?.status === "WAITING"
                   ? "WAITING FOR PLAYERS…"
                   : game.yourTurn
-                    ? "YOUR_TURN"
-                    : `${currentTurnName.toUpperCase()}_MOVING…`}
+                    ? "YOUR TURN"
+                    : `${currentTurnName.toUpperCase()} MOVING…`}
             </span>
           </div>
 
