@@ -44,6 +44,14 @@ export default function GamePage() {
     rightPlayerId = game.state?.players.white;
   }
 
+  const currentTurn = game.state?.currentTurn;
+  const currentTurnId = currentTurn === BLACK
+    ? game.state?.players.black
+    : currentTurn === WHITE ? game.state?.players.white : undefined;
+  const currentTurnName = currentTurnId
+    ? game.profiles.get(currentTurnId)?.username ?? "Loading..."
+    : "Loading...";
+
   const gameResultLabel = (() => {
     if (game.state?.status !== "FINISHED") return null;
     const winner = game.state.winner;
@@ -55,6 +63,23 @@ export default function GamePage() {
     }
     return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
   })();
+
+  const resultTone = game.state?.status !== "FINISHED"
+    ? ""
+    : !game.state.winner
+      ? "result-draw"
+      : isSpectator
+        ? "result-spectator"
+        : game.state.winner === game.myColor ? "result-win" : "result-lose";
+
+  const getLogPlayerName = (entry: LogEntry) => {
+    if (entry.byMe) return "You";
+    if (entry.type === "abandon") return username1;
+    const playerId = entry.player === BLACK
+      ? game.state?.players.black
+      : game.state?.players.white;
+    return playerId ? game.profiles.get(playerId)?.username ?? "Opponent" : "Opponent";
+  };
 
   return (
     <>
@@ -79,7 +104,7 @@ export default function GamePage() {
             <div className="overflow-y-auto max-h-64 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {game.log.length === 0
                 ? <p className="text-xs text-on-surface-variant italic">Moves will appear here…</p>
-                : game.log.map((entry, i) => <LogLine key={i} entry={entry} />)
+                : game.log.map((entry, i) => <LogLine key={i} entry={entry} playerName={getLogPlayerName(entry)} />)
               }
             </div>
           </div>
@@ -88,16 +113,21 @@ export default function GamePage() {
         {/* Board */}
         <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2">
           {/* Turn banner */}
-          <div className="pixel-turn-banner px-6 py-2 flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-            <span className="font-headline font-bold text-primary tracking-tighter text-sm">
+          <div className={["pixel-turn-banner px-6 py-2 flex items-center gap-3", resultTone].filter(Boolean).join(" ")}>
+            {game.state?.status === "ACTIVE" && currentTurn && (
+              <span
+                className={`pixel-turn-piece ${currentTurn === BLACK ? "black" : "white"}`}
+                aria-label={`${currentTurn === BLACK ? "Black" : "White"} pieces moving`}
+              />
+            )}
+            <span className="pixel-turn-label font-headline font-bold text-primary tracking-tighter text-sm">
               {game.state?.status === "FINISHED"
                 ? gameResultLabel
                 : game.state?.status === "WAITING"
                   ? "WAITING FOR PLAYERS…"
-                  : isSpectator
-                    ? `${(game.state?.currentTurn === BLACK ? username : username1).toUpperCase()}_MOVING…`
-                    : game.yourTurn ? "YOUR_TURN" : `${username1.toUpperCase()}_MOVING…`}
+                  : game.yourTurn
+                    ? "your turn"
+                    : currentTurnName.toLowerCase() + " turn"}
             </span>
           </div>
 
@@ -419,12 +449,12 @@ function SpectatorList({ spectators, profiles }: {
   );
 }
 
-function LogLine({ entry }: { entry: LogEntry }) {
+function LogLine({ entry, playerName }: { entry: LogEntry; playerName: string }) {
   if (entry.type === 'abandon') {
     return (
       <p className="text-xs text-on-surface-variant">
         <span className={entry.byMe ? "text-primary" : "text-tertiary"}>
-          {entry.byMe ? "You" : "Opponent"}
+          {playerName}
         </span>
         {" resigned"}
       </p>
@@ -434,7 +464,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
     <p className="text-xs text-on-surface-variant font-mono">
       <span className="text-on-surface-variant/40">{entry.turn}. </span>
       <span className={entry.byMe ? "text-primary" : "text-tertiary"}>
-        {entry.byMe ? "You" : "Opp"}
+        {playerName}
       </span>
       {` ${entry.col}${entry.row}`}
       <span className="text-on-surface-variant/50"> +{entry.flips}</span>
