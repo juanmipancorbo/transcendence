@@ -4,13 +4,38 @@
 
 Build a web-based online Reversi game for ft_transcendence.
 
-Initial MVP:
-- user can register and log in
-- two users can join a match
-- both users can play the same Reversi game online
-- the server validates all moves
-- the game ends correctly
-- the result is stored
+The initial MVP — register/log in, two users join a match, play a server-validated
+Reversi game to completion, and store the result — is implemented. The project has
+since grown well past it: matchmaking, spectators, timed games, an XP/level system,
+friends, and direct chat all exist today. The sections below describe the system as
+it is now; the "Git Workflow", "Team Ownership", and "Immediate Development
+Priorities" notes near the end are kept as original planning context.
+
+---
+
+## Technology Stack
+
+- **Frontend** — Next.js 16 (App Router) + React 19 + Tailwind CSS. Talks to the
+  backend over REST and a single binary WebSocket. Runs on port 3000 inside its
+  container.
+- **Backend** — Node.js + TypeScript, Express 5 with `express-ws` for WebSockets.
+  A single service (`backend/app`) on port 3000. TypeScript path aliases: `@utils`,
+  `@endpoints`, `@gameLogic`, `@databaseAccess`.
+- **Database** — PostgreSQL 18. Schema initialised from a single `database/schema.sql`.
+- **Gateway** — nginx terminates TLS and reverse-proxies: `/api/*` → backend (the
+  `/api` prefix is stripped), everything else → frontend. WebSocket upgrades are
+  passed through. Exposed on host ports `8080` (HTTP → redirects to HTTPS) and
+  `8443` (HTTPS).
+- **Orchestration** — Docker Compose (`compose.yaml`), with a `Makefile` wrapper
+  (`make up`, `make down`, `make seed-db`, `make clean`, …) and `setup-env.sh` to
+  bootstrap env files and self-signed certs.
+
+### Services (compose.yaml)
+
+- `database` — PostgreSQL, initialised from `database/schema.sql`.
+- `backend` — Express API + WebSocket server.
+- `frontend` — Next.js app.
+- `nginx` — TLS-terminating reverse proxy / gateway.
 
 ---
 
@@ -28,17 +53,25 @@ This means:
 
 ### Move flow
 
+Moves travel over the WebSocket connection as binary frames (see
+`docs/WEBSOCKETS.md`), not over REST.
+
 1. the player clicks a cell on the board
-2. the frontend sends the move to the backend
-3. the backend checks:
-   - game exists
-   - user belongs to the game
-   - it is the user's turn
+2. the frontend sends a `ConsumeTurn` message (row + col) over the game socket
+3. the backend checks, via the Reversi engine and the in-memory `GameSession`:
+   - the socket belongs to a player in an active game
+   - it is that user's turn
    - the move is valid
 4. the backend applies the move using the Reversi engine
-5. the backend updates and stores the game state
-6. the backend emits the new state to both players
+5. the backend persists the move (appended to the game's `moves` array) and updates
+   the in-memory game state
+6. the backend broadcasts the changed cells (`MoveUpdate`) and the next turn to both
+   players and any spectators
 7. the frontend re-renders the board
+
+Game state is held in memory in a `GameSession` while a match is live, and mirrored
+to PostgreSQL move-by-move so an unfinished game can be rebuilt (by replaying its
+moves) if the backend restarts.
 
 ---
 
@@ -72,86 +105,122 @@ All parts of the project must use the same game state structure.
 
 ---
 
-## Initial Database Model
+## Database Model
 
-The initial database model should stay simple.
+The full schema lives in `database/schema.sql` (Postgres runs it on first init).
+It has grown well past the original "keep it simple" sketch.
 
 ### users
 
-- id
-- username
-- email
-- password_hash
-- avatar_url
-- created_at
-- updated_at
+- `id` (UUID)
+- `username` (unique), `email` (unique)
+- `password_hash` (null for OAuth accounts)
+- `account_host` — `'local'` or `'google'`
+- `avatar_url`, `bio`
+- `current_game` (UUID → games.id, nullable)
+- `games_played`, `games_won`, `games_lost`
+- `xp`, `level` — level is derived from xp by a DB trigger
+- `created_at`, `updated_at`
 
 ### games
 
-- id
-- black_player_id
-- white_player_id
-- board_state
-- current_turn
-- status
-- winner
-- created_at
-- updated_at
+- `id` (UUID)
+- `white_player_id`, `black_player_id` (→ users.id)
+- `time_left_white`, `time_left_black` — remaining time in seconds (`-1` = untimed)
+- `friendly` — ranked (false) vs. friendly (true, no xp/stats)
+- `allow_spectators`
+- `moves` — array of `move` composite values `(row, col, player)`; the game is
+  **reconstructed by replaying these moves**, there is no single `board_state` column
+- `winner_id` (nullable)
+- `created_at`, `finished_at`
+
+### auth_sessions
+
+Refresh-token sessions (see `AUTH.md`): `id`, `user_id`, `refresh_token_hash`
+(SHA256), `expires_at`, timestamps.
+
+### Social tables
+
+- `friends` — unordered unique pairs (stored canonically `user1_id < user2_id`)
+- `friend_requests` — directional pending requests (`sender_id` → `receiver_id`)
+- `chats` — one row per 1-to-1 conversation (unordered pair); a chat row is created
+  automatically when two users become friends
+- `messages` — messages belonging to a chat
+
+### XP / level system
+
+`xp_for_level(n)` and `level_from_xp(xp)` (BASE 100, EXPONENT 1.5) plus a trigger
+keep `users.level` in sync with `users.xp`. `report_game()` awards xp to the winner
+of a ranked game and updates win/loss counts.
 
 ### Relations
 
-- one user can participate in many games
-- one game has two players
-- one game may have one winner or end in a draw
-
-### Notes
-
-- `board_state` stores the current board
-- move history can be added later if needed
-- advanced statistics can be derived later from finished games
+- one user can participate in many games; one game has exactly two players
+- one game may have one winner or end in a draw/abandonment
 
 ---
 
 ## Repository Structure
 
-- ft_transcendence/
-  - frontend/
-  - backend/
-  - docs/
-  - docker-compose.yml
-  - .env.example
-  - .gitignore
-  - README.md
+```
+transcendence/
+├── frontend/                # Next.js app (app router, components, hooks, lib)
+├── backend/
+│   ├── app/                 # TypeScript source (src/), package.json, tsconfig
+│   └── container/           # Dockerfile + .env(.example)
+├── database/
+│   ├── schema.sql           # Full DB schema (run on init)
+│   └── container/           # .env(.example)
+├── nginx/
+│   ├── nginx.conf           # Reverse-proxy / gateway config
+│   └── certs/               # Self-signed TLS certs (generated by setup-env.sh)
+├── shared-data/             # Types shared between frontend and backend
+├── docs/                    # architecture.md, WEBSOCKETS.md
+├── compose.yaml             # Docker Compose (database, backend, frontend, nginx)
+├── Makefile                 # up / down / seed-db / clean helpers
+├── setup-env.sh             # Bootstraps env files
+└── AUTH.md
+```
 
 ### frontend
 
-Contains:
-- pages
-- components
-- routing
-- API calls
-- realtime client logic
-- game UI
+Next.js App Router. `app/` (routes: login, register, google callback, logged-in
+area), `components/`, `hooks/` (`useAuth`, `useWs`, `useGame`, …), `lib/` (API
+client, token storage, WebSocket client, config).
 
-### backend
+### backend (`backend/app/src`)
 
-Contains:
-- auth
-- routes
-- controllers
-- services
-- game engine
-- sockets
-- database access
+- `index.ts` — Express app, router mounting, healthcheck, WS endpoint
+- `websockets.ts` — WebSocket entrypoint (`/ws/create`)
+- `database/<domain>/` — per-domain `router` / `controller` / `service` / `repository`
+  for `auth`, `google`, `user`, `friend`, `chat`, `leaderboard`, `game`
+- `logic/` — Reversi engine (`game.ts`) and the realtime `sync/` layer
+- `middleware/` — `auth-middleware`, `error-middleware`
+- `endpoints-data/` — Zod request schemas and response types
+- `utils/` — JWT, password hashing, validation middlewares, pg pool, errors
+
+### REST endpoints
+
+Mounted in `index.ts`:
+
+| Prefix         | Purpose |
+|----------------|---------|
+| `/auth`        | register, login, me, refresh, logout |
+| `/google`      | Google OAuth login |
+| `/users`       | public profile, update username/bio |
+| `/friends`     | friends list + friend requests (all authenticated) |
+| `/chats`       | conversation history (sending is over the WebSocket) |
+| `/leaderboard` | top players |
+| `/games`       | active game session info by id |
+| `/health`      | healthcheck |
+| `/ws/create`   | the single WebSocket endpoint |
 
 ### docs
 
-Contains:
-- architecture notes
-- game state definition
-- API notes
-- socket events
-- technical decisions
+- `architecture.md` — this document
+- `WEBSOCKETS.md` — the binary realtime protocol
+
+Auth specifics live in `AUTH.md` at the repo root.
 
 ---
 
@@ -271,6 +340,8 @@ Two registered users can:
 - the server is always authoritative
 - game rules live in the backend game engine
 - the frontend displays state and sends user intent
-- database design must stay simple at first
-- build the core game before extra features
-- do not start with tournament, chat, friends, or advanced statistics
+- move validation and game state are owned by the backend, never the client
+
+(The original plan deferred chat, friends, and statistics until after the core game.
+The core game shipped, and those features — chat, friends, and an XP/stats system —
+have since been added.)
