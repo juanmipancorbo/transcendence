@@ -1,22 +1,22 @@
-# Autenticación - Backend
+# Authentication - Backend
 
-## Resumen
+## Overview
 
-El backend implementa autenticación JWT. Los usuarios pueden registrarse con email/contraseña o mediante Google OAuth, iniciar sesión y acceder a rutas protegidas. Las contraseñas se hashean con Argon2. Los refresh tokens de sesión se almacenan en la base de datos hasheados con SHA256.
+The backend implements JWT authentication. Users can register with email/password or via Google OAuth, log in, and access protected routes. Passwords are hashed with Argon2. Session refresh tokens are stored in the database hashed with SHA256.
 
 ## Endpoints
 
-Endpoints de email/contraseña bajo `/auth`; el login con Google bajo `/google`.
+Email/password endpoints live under `/auth`; Google login lives under `/google`.
 
-> A través del gateway nginx la API cuelga de `/api` (p. ej. `POST /api/auth/login`). El prefijo `/api` se elimina antes de llegar al backend.
+> Through the nginx gateway the API is served under `/api` (e.g. `POST /api/auth/login`). The `/api` prefix is stripped before the request reaches the backend.
 
 ### POST /auth/register
-Registra un nuevo usuario y devuelve tokens (hace login automáticamente).
+Registers a new user and returns tokens (it logs the user in automatically).
 
-Reglas de validación (Zod, `users-request.ts`):
-- `email`: email válido
-- `username`: 3–16 caracteres
-- `password`: 8–16 caracteres, con al menos una minúscula, una mayúscula, un dígito y un símbolo
+Validation rules (Zod, `users-request.ts`):
+- `email`: valid email
+- `username`: 3–16 characters
+- `password`: 8–16 characters, with at least one lowercase letter, one uppercase letter, one digit, and one symbol
 
 Request:
 ```json
@@ -43,10 +43,10 @@ Response (201):
 }
 ```
 
-Si el email o el username ya existen, responde `409` con `{ "success": false, "error": "Email or username is already taken" }`.
+If the email or username already exists, responds `409` with `{ "success": false, "error": "Email or username is already taken" }`.
 
 ### POST /auth/login
-Inicia sesión con un usuario existente.
+Logs in an existing user.
 
 Request:
 ```json
@@ -56,12 +56,12 @@ Request:
 }
 ```
 
-Response (200): misma forma que `register` (objeto `data` con `user`, `accessToken` y `refreshToken`).
+Response (200): same shape as `register` (a `data` object with `user`, `accessToken`, and `refreshToken`).
 
-Credenciales inválidas → `401` con `{ "success": false, "error": "Invalid credentials" }`.
+Invalid credentials → `401` with `{ "success": false, "error": "Invalid credentials" }`.
 
 ### POST /google/login
-Login/registro mediante Google OAuth. El frontend obtiene un `code` de Google y lo envía aquí; el backend lo intercambia por el perfil del usuario, crea la cuenta si no existe (`account_host = 'google'`) y devuelve tokens.
+Login/registration via Google OAuth. The frontend obtains a `code` from Google and sends it here; the backend exchanges it for the user's profile, creates the account if it does not exist (`account_host = 'google'`), and returns tokens.
 
 Request:
 ```json
@@ -82,10 +82,10 @@ Response (200):
 }
 ```
 
-Requiere `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `GOOGLE_REDIRECT_URI` en el entorno.
+Requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in the environment.
 
 ### GET /auth/me
-Retorna el perfil completo del usuario autenticado. Requiere header `Authorization: Bearer <accessToken>`.
+Returns the full profile of the authenticated user. Requires the `Authorization: Bearer <accessToken>` header.
 
 Response (200):
 ```json
@@ -111,7 +111,7 @@ Response (200):
 ```
 
 ### POST /auth/refresh
-Genera un nuevo access token usando el refresh token. No requiere header de autorización; el refresh token va en el body.
+Generates a new access token using the refresh token. No authorization header required; the refresh token goes in the body.
 
 Request:
 ```json
@@ -130,10 +130,10 @@ Response (200):
 }
 ```
 
-El refresh token debe existir (hasheado) en la BD; si no, responde `401`.
+The refresh token must exist (hashed) in the DB; otherwise it responds `401`.
 
 ### POST /auth/logout
-Invalida la sesión actual. **Requiere** header `Authorization: Bearer <accessToken>` **y** el `refreshToken` en el body (se elimina de la BD la sesión correspondiente).
+Invalidates the current session. **Requires** the `Authorization: Bearer <accessToken>` header **and** the `refreshToken` in the body (the corresponding session is deleted from the DB).
 
 Request:
 ```json
@@ -152,7 +152,7 @@ Response (200):
 
 ## Middleware
 
-El middleware `authMiddleware` (`src/middleware/auth-middleware.ts`) protege rutas. Para usarlo:
+The `authMiddleware` middleware (`src/middleware/auth-middleware.ts`) protects routes. To use it:
 
 ```typescript
 import { authMiddleware } from "../../middleware/auth-middleware";
@@ -161,33 +161,33 @@ import { Router } from "express";
 const router = Router();
 
 router.get("/protected-route", authMiddleware, (req, res) => {
-  console.log(req.userId); // userId disponible aquí
-  console.log(req.user);   // payload del token: { id, email, username }
+  console.log(req.userId); // userId available here
+  console.log(req.user);   // token payload: { id, email, username }
 });
 ```
 
-El middleware:
-- Valida el header `Authorization: Bearer <token>`
-- Verifica la firma del JWT y que sea un token de tipo `access`
-- Retorna `401` si el token no es válido o no existe
-- Agrega `userId` (string) y `user` (payload del token) al objeto `req`
+The middleware:
+- Validates the `Authorization: Bearer <token>` header
+- Verifies the JWT signature and that it is an `access` token
+- Returns `401` if the token is invalid or missing
+- Attaches `userId` (string) and `user` (token payload) to the `req` object
 
-## Seguridad
+## Security
 
-- Las contraseñas se hashean con **Argon2** (`argon2`).
-- Los access tokens expiran según `JWT_ACCESS_EXPIRY` (por defecto **15 minutos**).
-- Los refresh tokens expiran según `JWT_REFRESH_EXPIRY` (por defecto **7 días**).
-- Los refresh tokens se guardan hasheados en la BD con **SHA256**.
-- Los JWT incluyen un campo `tokenType` (`access` | `refresh`) que se comprueba al verificar, evitando usar un refresh token como access token y viceversa.
-- El secreto se toma de `JWT_SECRET`; el proceso falla al arrancar si no está definido.
+- Passwords are hashed with **Argon2** (`argon2`).
+- Access tokens expire based on `JWT_ACCESS_EXPIRY` (default **15 minutes**).
+- Refresh tokens expire based on `JWT_REFRESH_EXPIRY` (default **7 days**).
+- Refresh tokens are stored hashed in the DB with **SHA256**.
+- JWTs include a `tokenType` field (`access` | `refresh`) that is checked on verification, preventing a refresh token from being used as an access token and vice versa.
+- The secret is read from `JWT_SECRET`; the process fails on startup if it is not defined.
 
-## Autenticación por WebSocket
+## WebSocket authentication
 
-La conexión realtime (`/ws/create`) no usa el header HTTP: el cliente envía el `accessToken` como primer mensaje del socket (handshake `Token`). Ver `docs/WEBSOCKETS.md`.
+The realtime connection (`/ws/create`) does not use the HTTP header: the client sends the `accessToken` as the socket's first message (the `Token` handshake). See `docs/WEBSOCKETS.md`.
 
-## Base de datos
+## Database
 
-El esquema completo vive en un único archivo, `database/schema.sql`, que Postgres ejecuta al inicializarse. La tabla de sesiones:
+The full schema lives in a single file, `database/schema.sql`, which Postgres runs on initialization. The sessions table:
 
 ```sql
 CREATE TABLE IF NOT EXISTS auth_sessions (
@@ -204,55 +204,55 @@ CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at);
 ```
 
-La tabla `users` incluye, además de los campos básicos, `account_host` (`'local'` o `'google'`), `avatar_url`, `bio`, `current_game`, estadísticas (`games_played/won/lost`) y el sistema de `xp`/`level`. Ver `docs/architecture.md`.
+Besides the basic fields, the `users` table includes `account_host` (`'local'` or `'google'`), `avatar_url`, `bio`, `current_game`, statistics (`games_played/won/lost`), and the `xp`/`level` system. See `docs/architecture.md`.
 
-## Dependencias
+## Dependencies
 
-En `backend/app/package.json`:
+In `backend/app/package.json`:
 
-- `jsonwebtoken`: ^9.0.3 (tipos: `@types/jsonwebtoken` ^9.0.10)
+- `jsonwebtoken`: ^9.0.3 (types: `@types/jsonwebtoken` ^9.0.10)
 - `argon2`: ^0.44.0
 - `zod`: ^4.3.6
 
-## Validación
+## Validation
 
-Los datos se validan con Zod mediante los middlewares de `src/utils/validation-middelwares.ts` (`validateBody`, `validateParams`, `validateQuery`). Esquemas en `backend/app/src/endpoints-data/`:
+Data is validated with Zod through the middlewares in `src/utils/validation-middelwares.ts` (`validateBody`, `validateParams`, `validateQuery`). Schemas live in `backend/app/src/endpoints-data/`:
 
-- `users-request.ts`: esquemas de register, login y Google login
-- `game-request.ts`: esquemas de endpoints de juego
-- `friend-request.ts`, `chat-request.ts`: esquemas de amigos y chat
-- `validation-errors.ts`: mensajes de error
+- `users-request.ts`: register, login, and Google login schemas
+- `game-request.ts`: game endpoint schemas
+- `friend-request.ts`, `chat-request.ts`: friend and chat schemas
+- `validation-errors.ts`: error messages
 
-## Archivos relevantes
+## Relevant files
 
 ```
 backend/app/src/
   utils/
-    jwt-utils.ts              - Firmar y verificar tokens (access/refresh)
-    password-utils.ts         - Hash y verificación de contraseñas (Argon2)
+    jwt-utils.ts              - Sign and verify tokens (access/refresh)
+    password-utils.ts         - Hash and verify passwords (Argon2)
     validation-middelwares.ts - validateBody / validateParams / validateQuery (Zod)
-    error.ts                  - ApiError (errores con statusCode)
+    error.ts                  - ApiError (errors with statusCode)
   middleware/
-    auth-middleware.ts        - Middleware para proteger rutas
+    auth-middleware.ts        - Middleware to protect routes
   database/auth/
-    router.ts                 - Rutas de /auth
-    controller.ts             - Handlers de register/login/me/refresh/logout
-    service.ts                - Lógica de autenticación (incl. loginUserGoogle)
-    repository.ts             - Acceso a BD (usuarios y sesiones)
+    router.ts                 - /auth routes
+    controller.ts             - register/login/me/refresh/logout handlers
+    service.ts                - Authentication logic (incl. loginUserGoogle)
+    repository.ts             - DB access (users and sessions)
   database/google/
-    router.ts, controller.ts  - Rutas y handler de /google/login (OAuth)
+    router.ts, controller.ts  - /google/login routes and handler (OAuth)
   endpoints-data/
-    users-request.ts          - Esquemas de validación
-    users-response.ts         - Tipos de respuesta (AuthUser, FullUser, PublicUser)
-    validation-errors.ts      - Mensajes de error
+    users-request.ts          - Validation schemas
+    users-response.ts         - Response types (AuthUser, FullUser, PublicUser)
+    validation-errors.ts      - Error messages
 
 database/
-  schema.sql                  - Esquema completo (users, games, auth_sessions, friends, chats, ...)
+  schema.sql                  - Full schema (users, games, auth_sessions, friends, chats, ...)
 ```
 
 ## Testing
 
-Para probar los endpoints con curl (contra el backend directo en `:3000`, o a través de nginx en `https://localhost:8443/api`):
+To test the endpoints with curl (against the backend directly on `:3000`, or through nginx at `https://localhost:8443/api`):
 
 ```bash
 # Register
@@ -265,7 +265,7 @@ curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"TestPass123!"}'
 
-# Get user (perfil completo)
+# Get user (full profile)
 curl -X GET http://localhost:3000/auth/me \
   -H "Authorization: Bearer <accessToken>"
 
@@ -274,7 +274,7 @@ curl -X POST http://localhost:3000/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken":"<refreshToken>"}'
 
-# Logout (requiere access token Y refresh token)
+# Logout (requires both access token AND refresh token)
 curl -X POST http://localhost:3000/auth/logout \
   -H "Authorization: Bearer <accessToken>" \
   -H "Content-Type: application/json" \
@@ -283,19 +283,20 @@ curl -X POST http://localhost:3000/auth/logout \
 
 ## Frontend
 
-El frontend (Next.js) se integra así:
+The frontend (Next.js) integrates as follows:
 
-1. Se conecta a `/auth/register`, `/auth/login` o `/google/login`.
-2. Guarda `accessToken` y `refreshToken` (ver `frontend/lib/auth-storage.ts`).
-3. Envía `Authorization: Bearer <accessToken>` en las rutas protegidas.
-4. Cuando el access token expira (`401`), usa `/auth/refresh` para obtener uno nuevo.
-5. Para el realtime, envía el `accessToken` como primer mensaje del WebSocket.
+1. Calls `/auth/register`, `/auth/login`, or `/google/login`.
+2. Stores `accessToken` and `refreshToken` (see `frontend/lib/auth-storage.ts`).
+3. Sends `Authorization: Bearer <accessToken>` on protected routes.
+4. When the access token expires (`401`), uses `/auth/refresh` to obtain a new one.
+5. For realtime, sends the `accessToken` as the WebSocket's first message.
 
-## Variables de entorno
+## Environment variables
 
-Definidas en `backend/container/.env` (ver `.env.example`):
+Defined in `backend/container/.env` (see `.env.example`):
 
-- `JWT_SECRET` (obligatorio)
-- `JWT_ACCESS_EXPIRY` (por defecto `15m`)
-- `JWT_REFRESH_EXPIRY` (por defecto `7d`)
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (para el login con Google)
+- `JWT_SECRET` (required)
+- `JWT_ACCESS_EXPIRY` (default `15m`)
+- `JWT_REFRESH_EXPIRY` (default `7d`)
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (for Google login)
+```
