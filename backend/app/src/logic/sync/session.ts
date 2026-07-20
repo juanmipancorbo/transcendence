@@ -264,7 +264,7 @@ export class GameSession {
 		// Send state updates to whole game
 		this.broadcast(buildMoveUpdate(updates));
 
-		if (conn.player === this.state.currentTurn) {
+		if (this.state.status === STATUS_ACTIVE && conn.player === this.state.currentTurn) {
 			this.broadcast(conn.player === BLACK ? buildWhiteNoMoves() : buildBlackNoMoves());
 		}
 		addGameMovement(this.id, conn.id, pos).catch(e => console.error(e));

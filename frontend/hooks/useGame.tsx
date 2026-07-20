@@ -313,6 +313,7 @@ export function useGame(id: string) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
+		message("Game finished");
 		setUser({ ...user!, currentGame: undefined });
 		socket.handlers = globalHandler;
 		setInGame(false);
