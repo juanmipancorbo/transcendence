@@ -292,7 +292,7 @@ function PlayerPanel({ name, label, pieceColor, score, total, accentClass, score
   );
 
   const namePlateStyle = pieceColor === BLACK
-    ? { background: "#28231f", color: "var(--pixel-cream)", borderColor: "var(--pixel-cream)" }
+    ? { background: "#28231f", color: "var(--pixel-cream)", borderColor: "#28231f" }
     : { background: "var(--pixel-cream)", color: "#28231f", borderColor: "#28231f" };
 
   return (
