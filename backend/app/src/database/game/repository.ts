@@ -49,6 +49,30 @@ export async function reportFinishedGame(gameId: string, winner: string | null):
   return res.rows[0]?.xp ?? null;
 }
 
+export async function selectCompletedGame(gameId: string, userId: string): Promise<FullGame | null> {
+	const res = await pool.query<FullGame>(sql`
+		SELECT
+			g.id,
+			g.black_player_id,
+			g.white_player_id,
+			g.winner_id,
+			g.finished_at,
+			COALESCE(
+				(SELECT json_agg(
+					json_build_object('row', m.row, 'col', m.col, 'player', m.player)
+					ORDER BY ord
+				)
+				FROM unnest(g.moves) WITH ORDINALITY AS m(row, col, player, ord)),
+				'[]'
+			) AS moves
+		FROM games g
+		WHERE g.id = $1
+			AND g.finished_at IS NOT NULL
+			AND $2 IN (g.black_player_id, g.white_player_id)
+	`, [gameId, userId]);
+	return res.rows[0] ?? null;
+}
+
 export async function updateGameWinner(gameId: string, winnerId: string)
 {
   await pool.query(sql`

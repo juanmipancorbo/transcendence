@@ -139,7 +139,9 @@ BEGIN
 		RAISE EXCEPTION 'game % not found', game_id;
 	END IF;
 
-	UPDATE games SET winner_id = winner WHERE id = game_id;
+	UPDATE games
+		SET winner_id = winner, finished_at = CURRENT_TIMESTAMP
+		WHERE id = game_id;
 	UPDATE users SET current_game = NULL WHERE id IN (white_id, black_id);
 
 	IF is_friendly OR winner IS NULL THEN

@@ -1,5 +1,6 @@
-import { Position } from "@gameLogic/game";
+import { applyPlayerMove, BLACK, countPieces, createInitialGameState, Position, WHITE } from "@gameLogic/game";
 import * as Repo from "./repository"
+import type { CompletedGameData } from "@endpoints/game-request";
 import { ApiError } from "@utils/error";
 import { DatabaseError } from "pg";
 
@@ -39,10 +40,34 @@ export async function setUserTimeLeft(gameId: string, userId: string, timeLeft: 
 }
 
 export async function reportFinishedGame(gameId: string, winnerId: string | null): Promise<number | null> {
-  const res = await Repo.reportFinishedGame(gameId, winnerId);
-  if (!res)
-    throw (new ApiError("WRONG_INFO", 400));
-  return res;
+  return Repo.reportFinishedGame(gameId, winnerId);
+}
+
+export async function readCompletedGame(gameId: string, userId: string): Promise<CompletedGameData> {
+  const game = await Repo.selectCompletedGame(gameId, userId);
+  if (!game)
+    throw new ApiError("Completed game not found", 404);
+
+  let state = createInitialGameState(game.black_player_id, game.white_player_id);
+  for (const move of game.moves) {
+    const playerId = move.player === BLACK ? game.black_player_id : game.white_player_id;
+    state = applyPlayerMove(state, playerId, move.row, move.col);
+  }
+
+  const scores = countPieces(state.board);
+  const winner = game.winner_id === game.black_player_id
+    ? BLACK
+    : game.winner_id === game.white_player_id ? WHITE : 0;
+
+  return {
+    gameId: game.id,
+    whiteId: game.white_player_id,
+    blackId: game.black_player_id,
+    winner,
+    board: state.board,
+    scores,
+    finishedAt: game.finished_at!,
+  };
 }
 
 export async function setWinner({gameId, winnerId}:{ gameId: string; winnerId?: string | undefined })

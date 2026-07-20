@@ -2,6 +2,7 @@ import { GameReq } from "@endpoints/game-request";
 import { SESSIONS } from "@gameLogic/sync/session";
 import { Request, Response } from "express";
 import { UUID } from "node:crypto";
+import * as Service from "./service";
 
 export async function getGame(req: Request<GameReq>, res: Response) {
 	const gameId = req.params.id;
@@ -19,4 +20,9 @@ export async function getGame(req: Request<GameReq>, res: Response) {
 		timeLimitWhite: gameData.whitePlayer.timeLeft,
 		winner: gameData.state.winner,
 	} });
+}
+
+export async function getCompletedGame(req: Request<GameReq>, res: Response) {
+	const data = await Service.readCompletedGame(req.params.id, req.userId!);
+	res.status(200).json({ success: true, data });
 }
