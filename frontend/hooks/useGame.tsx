@@ -65,6 +65,7 @@ export function useGame(id: string) {
 	const profilesRef = useRef(new Map<string, PublicUser>());
 	const turnCountRef = useRef(0);
 	const abandonRequestedRef = useRef(false);
+	const finishedByAbandonRef = useRef(false);
 
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
@@ -141,6 +142,7 @@ export function useGame(id: string) {
 	}
 
 	function onBlackAbandon(_: ByteReader) {
+		finishedByAbandonRef.current = true;
 		if (myColorRef.current === BLACK) {
 			if (!abandonRequestedRef.current) message("You abandoned the game");
 			router.push("/lobby");
@@ -156,6 +158,7 @@ export function useGame(id: string) {
 	}
 
 	function onWhiteAbandon(_: ByteReader) {
+		finishedByAbandonRef.current = true;
 		if (myColorRef.current === WHITE) {
 			if (!abandonRequestedRef.current) message("You abandoned the game");
 			router.push("/lobby");
@@ -326,7 +329,7 @@ export function useGame(id: string) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
-		message("Game finished");
+		if (!finishedByAbandonRef.current) message("Game finished");
 		setUser({ ...user!, currentGame: undefined });
 		socket.handlers = globalHandler;
 		setInGame(false);
@@ -452,6 +455,7 @@ export function useGame(id: string) {
 		if (!current || current.status === "FINISHED") return;
 
 		abandonRequestedRef.current = true;
+		finishedByAbandonRef.current = true;
 		const finished = { ...current, status: "FINISHED" as GameStatus };
 		stateRef.current = finished;
 		setState(finished);
