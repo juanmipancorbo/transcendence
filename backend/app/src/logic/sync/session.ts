@@ -1,6 +1,6 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
-import { Socket } from "./socket";
+import { getSocksById, Socket } from "./socket";
 import { build, buildBlackAbandon, buildBlackDisconnect, buildBlackNoMoves, buildBlackReconnected, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildSpectatorJoin, buildSpectatorLeave, buildWhiteAbandon, buildWhiteDisconnect, buildWhiteNoMoves, buildWhiteReconnected, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
 import { updateUserGame, clearUserGame } from "@databaseAccess/user/service";
@@ -82,6 +82,7 @@ export class GameSession {
 	finishedAt?: number;
 	blackAbandonTimer?: NodeJS.Timeout;
 	whiteAbandonTimer?: NodeJS.Timeout;
+	private closing = false;
 
 	constructor(
 		id: UUID,
@@ -143,20 +144,32 @@ export class GameSession {
 		conn.send(buildGameState(this, (conn.player as SessionPlayer).player ?? 0));
 	}
 
+	private clearSessionTimers() {
+		if (this.blackPlayer.timeout) clearTimeout(this.blackPlayer.timeout);
+		if (this.whitePlayer.timeout) clearTimeout(this.whitePlayer.timeout);
+		if (this.blackAbandonTimer) clearTimeout(this.blackAbandonTimer);
+		if (this.whiteAbandonTimer) clearTimeout(this.whiteAbandonTimer);
+		this.blackPlayer.timeout = undefined;
+		this.whitePlayer.timeout = undefined;
+		this.blackAbandonTimer = undefined;
+		this.whiteAbandonTimer = undefined;
+	}
+
+	private releaseUserSockets(id: UUID) {
+		getSocksById(id)?.forEach(conn => {
+			conn.handler = globalHandler;
+			conn.status = "online";
+			conn.player = undefined;
+		});
+	}
+
 	closeSession() {
+		this.clearSessionTimers();
 		SESSIONS.delete(this.id);
 		clearUserGame(this.blackPlayer.id).catch(e => console.error(e));
 		clearUserGame(this.whitePlayer.id).catch(e => console.error(e));
-		this.blackPlayer.conn.forEach(c => {
-			c.handler = globalHandler;
-			c.status = "online";
-			c.player = undefined;
-		});
-		this.whitePlayer.conn.forEach(c => {
-			c.handler = globalHandler;
-			c.status = "online";
-			c.player = undefined;
-		});
+		this.releaseUserSockets(this.blackPlayer.id);
+		this.releaseUserSockets(this.whitePlayer.id);
 		this.spectators.forEach(s => s.conn.forEach(c => {
 			c.handler = globalHandler;
 			c.status = "online";
@@ -166,6 +179,9 @@ export class GameSession {
 
 	// Determines the winner, if no winner is set it stops the game with a draw
 	reportFinished() {
+		if (this.closing) return;
+		this.closing = true;
+		this.clearSessionTimers();
 		this.finishedAt = Date.now();
 		const winner = this.state.winner !== null ?
 			(this.state.winner === BLACK ?
@@ -248,7 +264,7 @@ export class GameSession {
 		// Send state updates to whole game
 		this.broadcast(buildMoveUpdate(updates));
 
-		if (conn.player === this.state.currentTurn) {
+		if (this.state.status === STATUS_ACTIVE && conn.player === this.state.currentTurn) {
 			this.broadcast(conn.player === BLACK ? buildWhiteNoMoves() : buildBlackNoMoves());
 		}
 		addGameMovement(this.id, conn.id, pos).catch(e => console.error(e));

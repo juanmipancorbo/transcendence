@@ -313,19 +313,20 @@ export function useGame(id: string) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
+		message("Game finished");
 		setUser({ ...user!, currentGame: undefined });
 		socket.handlers = globalHandler;
 		setInGame(false);
-		setState(prev => {
-			if (!prev) return prev;
+		const current = stateRef.current;
+		if (current) {
 			const next = {
-				...prev,
+				...current,
 				status: "FINISHED" as GameStatus,
 				winner: result
 			};
 			stateRef.current = next;
-			return next;
-		});
+			setState(next);
+		}
 	}
 
 	function onXpUpdate(p: ByteReader) {
