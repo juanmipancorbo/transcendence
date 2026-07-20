@@ -134,16 +134,9 @@ export default function ProfilePage() {
                     </button>
                     <button onClick={handleCancel} className="profile-edit-btn">Cancel</button>
                   </>
-                ) : (
-                  <button
-                    onClick={handleEdit}
-                    disabled={profileLocked}
-                    className="profile-edit-btn disabled:cursor-not-allowed disabled:opacity-50"
-                    title={profileLocked ? "Finish the current game to edit your profile" : undefined}
-                  >
-                    {profileLocked ? "Profile Locked" : "Edit Profile"}
-                  </button>
-                )}
+                ) : !profileLocked ? (
+                  <button onClick={handleEdit} className="profile-edit-btn">Edit Profile</button>
+                ) : null}
               </div>
             </div>
           </section>
