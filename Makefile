@@ -32,6 +32,8 @@ setup:
 
 up:
 	${COMPOSE} -f ${COMPOSE_FILE} up -d --build
+	# Refresh Docker DNS after frontend/backend containers may have been recreated.
+	${COMPOSE} -f ${COMPOSE_FILE} restart nginx
 
 #rebuild:
 #	${COMPOSE} -f ${COMPOSE_FILE} up --build
