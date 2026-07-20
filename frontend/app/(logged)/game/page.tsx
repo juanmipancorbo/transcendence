@@ -59,7 +59,7 @@ export default function GamePage() {
     if (isSpectator) {
       const winnerId = winner === BLACK ? game.state.players.black : game.state.players.white;
       const winnerName = game.profiles.get(winnerId)?.username ?? "Player";
-      return winnerName.toUpperCase() + "_WINS";
+      return winnerName + "_WINS";
     }
     return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
   })();
@@ -89,7 +89,8 @@ export default function GamePage() {
         <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-2 xl:order-1">
           <PlayerPanel
             name={username}
-            label={username.toUpperCase()}
+            label={username}
+            pieceColor={game.myColor === WHITE ? WHITE : BLACK}
             score={score}
             total={64}
             accentClass="border-primary"
@@ -127,7 +128,7 @@ export default function GamePage() {
                   ? "WAITING FOR PLAYERS…"
                   : game.yourTurn
                     ? "your turn"
-                    : currentTurnName.toLowerCase() + " turn"}
+                    : currentTurnName + " turn"}
             </span>
           </div>
 
@@ -185,7 +186,8 @@ export default function GamePage() {
         <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-3">
           <PlayerPanel
             name={username1}
-            label={username1.toUpperCase()}
+            label={username1}
+            pieceColor={game.myColor === WHITE ? BLACK : WHITE}
             score={score1}
             total={64}
             accentClass="border-tertiary"
@@ -216,8 +218,9 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft }: {
+function PlayerPanel({ name, label, pieceColor, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft }: {
   name: string; label: string; score: number; total: number;
+  pieceColor: typeof BLACK | typeof WHITE;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
   profileHref?: string;
   addFriendUserId?: string;
@@ -288,6 +291,10 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
     </div>
   );
 
+  const namePlateStyle = pieceColor === BLACK
+    ? { background: "#28231f", color: "var(--pixel-cream)", borderColor: "#28231f" }
+    : { background: "var(--pixel-cream)", color: "#28231f", borderColor: "#28231f" };
+
   return (
     <div className={`pixel-player-panel player-panel ${accentClass}`}>
       <div className="relative">
@@ -295,15 +302,15 @@ function PlayerPanel({ name, label, score, total, accentClass, scoreColorClass, 
         {profileHref ? (
           <Link
             href={profileHref}
-            className="pixel-player-name absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 font-headline whitespace-nowrap text-on-primary-fixed"
-            style={{ background: glowColor }}
+            className="pixel-player-name absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 font-headline whitespace-nowrap"
+            style={namePlateStyle}
           >
             {label}
           </Link>
         ) : (
           <div
-            className="pixel-player-name absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 font-headline whitespace-nowrap text-on-primary-fixed"
-            style={{ background: glowColor }}
+            className="pixel-player-name absolute -bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 font-headline whitespace-nowrap"
+            style={namePlateStyle}
           >
             {label}
           </div>

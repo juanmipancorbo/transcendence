@@ -10,11 +10,23 @@ export async function readProfile(userId: string): Promise<PublicUser>
   return (profile);
 }
 
+function ensureProfileEditable(user: PublicUser | null): user is PublicUser {
+	if (!user)
+		return false;
+	if (user.currentGame)
+		throw new ApiError("Profile cannot be changed during a game", 409);
+	return true;
+}
+
 export async function updateUsername(userId: string, newUsername: string): Promise<boolean> {
+	if (!ensureProfileEditable(await Repo.selectProfile(userId)))
+		return false;
 	return Repo.updateUsername(userId, newUsername);
 }
 
 export async function updateBio(userId: string, bio: string): Promise<boolean> {
+	if (!ensureProfileEditable(await Repo.selectProfile(userId)))
+		return false;
 	return Repo.updateBio(userId, bio);
 }
 

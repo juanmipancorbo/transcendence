@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { getTokens, useAuth } from "@/hooks/useAuth";
 import { friendApi, userApi } from "@/lib/api";
 import type { PublicUser } from "@/types";
+import { useMsg } from "@/hooks/useMsg";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
+  const { message, error } = useMsg();
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [friends, setFriends] = useState<PublicUser[]>([]);
 
@@ -34,19 +36,33 @@ export default function ProfilePage() {
   const [editing,   setEditing]   = useState(false);
   const [draftName, setDraftName] = useState("");
   const [draftBio,  setDraftBio]  = useState("");
+  const profileLocked = Boolean(user?.currentGame);
 
   function handleEdit() {
+    if (profileLocked) return;
     setDraftName(user?.username ?? "");
     setDraftBio(bio);
     setEditing(true);
   }
 
-  function handleSave() {
+  async function handleSave() {
+    if (profileLocked) {
+      setEditing(false);
+      error("Profile cannot be changed during a game");
+      return;
+    }
+
     const nextBio = draftBio.trim();
-    setBio(nextBio);
-    userApi.updateProfile(user?.id ?? "", { username: draftName, bio: nextBio }).catch(() => {});
-	setUser({ ...user!, username: draftName, bio: nextBio });
-    setEditing(false);
+    try {
+      await userApi.updateProfile(user?.id ?? "", { username: draftName, bio: nextBio });
+      setBio(nextBio);
+      setUser({ ...user!, username: draftName, bio: nextBio });
+      setProfile(current => current ? { ...current, username: draftName, bio: nextBio } : current);
+      setEditing(false);
+      message("Profile updated");
+    } catch (err) {
+      error(err instanceof Error ? err.message : "Could not update profile");
+    }
   }
 
   function handleCancel() {
@@ -91,7 +107,7 @@ export default function ProfilePage() {
                   value={draftName}
                   onChange={e => setDraftName(e.target.value)}
                   autoFocus
-                  maxLength={32}
+                  maxLength={16}
                   placeholder="Display name"
                 />
               ) : (
@@ -118,9 +134,9 @@ export default function ProfilePage() {
                     </button>
                     <button onClick={handleCancel} className="profile-edit-btn">Cancel</button>
                   </>
-                ) : (
+                ) : !profileLocked ? (
                   <button onClick={handleEdit} className="profile-edit-btn">Edit Profile</button>
-                )}
+                ) : null}
               </div>
             </div>
           </section>

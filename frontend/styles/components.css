@@ -447,7 +447,7 @@
   }
 
   .profile-username {
-    @apply text-5xl font-black tracking-tight uppercase italic;
+    @apply text-5xl font-black tracking-tight italic;
     color: var(--on-surface);
     font-family: 'Space Grotesk', sans-serif;
   }
@@ -514,7 +514,7 @@
   .friend-status-dot.busy { background-color: #d575ff; }
 
   .friend-name {
-    @apply hidden sm:block text-xs font-bold uppercase transition-colors;
+    @apply hidden sm:block text-xs font-bold transition-colors;
     color: var(--on-surface);
     font-family: 'Space Grotesk', sans-serif;
   }
@@ -538,7 +538,7 @@
   }
 
   .profile-edit-input {
-    @apply text-5xl font-black tracking-tight uppercase italic p-2 outline-none;
+    @apply text-5xl font-black tracking-tight italic p-2 outline-none;
     background-color: var(--surface-container-low);
     color: var(--on-surface);
     border-bottom: 2px solid var(--primary);

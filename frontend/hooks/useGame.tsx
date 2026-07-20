@@ -62,11 +62,25 @@ export function useGame(id: string) {
 
 	const stateRef    = useRef<GameState | null>(null);
 	const myColorRef  = useRef<PlayerColor | 0>(0);
+	const profilesRef = useRef(new Map<string, PublicUser>());
 	const turnCountRef = useRef(0);
 	const abandonRequestedRef = useRef(false);
+	const finishedByAbandonRef = useRef(false);
 
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
+
+	function getPlayerLabel(color: PlayerColor) {
+		const fallback = color === BLACK ? "Black" : "White";
+		if (myColorRef.current === color) return "You";
+
+		const playerId = color === BLACK
+			? stateRef.current?.players.black
+			: stateRef.current?.players.white;
+		const username = playerId ? profilesRef.current.get(playerId)?.username : undefined;
+		if (!username) return fallback;
+		return myColorRef.current === 0 ? username + " (" + fallback + ")" : username;
+	}
 
 	// --- Handler functions start ---
 	function onStateInit(payload: ByteReader) {
@@ -128,11 +142,12 @@ export function useGame(id: string) {
 	}
 
 	function onBlackAbandon(_: ByteReader) {
+		finishedByAbandonRef.current = true;
 		if (myColorRef.current === BLACK) {
 			if (!abandonRequestedRef.current) message("You abandoned the game");
 			router.push("/lobby");
 			return;
-		} else message("Black abandoned the game");
+		} else message(getPlayerLabel(BLACK) + " abandoned the game");
 		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
 		setState(prev => {
 			if (!prev) return prev;
@@ -143,11 +158,12 @@ export function useGame(id: string) {
 	}
 
 	function onWhiteAbandon(_: ByteReader) {
+		finishedByAbandonRef.current = true;
 		if (myColorRef.current === WHITE) {
 			if (!abandonRequestedRef.current) message("You abandoned the game");
 			router.push("/lobby");
 			return;
-		} else message("White abandoned the game");
+		} else message(getPlayerLabel(WHITE) + " abandoned the game");
 		setLog(prev => [{ type: 'abandon', byMe: false }, ...prev]);
 		setState(prev => {
 			if (!prev) return prev;
@@ -159,20 +175,20 @@ export function useGame(id: string) {
 
 	function onBlackDisconnect(p: ByteReader) {
 		const time = p.readUint32();
-		message(`Black disconnected, they have ${time / 1000} seconds to reconnect or it will count as an abandon`);
+		message(getPlayerLabel(BLACK) + " disconnected. Reconnect within " + (time / 1000) + " seconds to avoid forfeiting");
 	}
 
 	function onWhiteDisconnect(p: ByteReader) {
 		const time = p.readUint32();
-		message(`White disconnected, they have ${time / 1000} seconds to reconnect or it will count as an abandon`);
+		message(getPlayerLabel(WHITE) + " disconnected. Reconnect within " + (time / 1000) + " seconds to avoid forfeiting");
 	}
 
 	function onBlackReconnect(_: ByteReader) {
-		message("Black reconnected!");
+		message(getPlayerLabel(BLACK) + " reconnected");
 	}
 
 	function onWhiteReconnect(_: ByteReader) {
-		message("White reconnected!");
+		message(getPlayerLabel(WHITE) + " reconnected");
 	}
 
 	function onSpectatorJoin(p: ByteReader) {
@@ -290,15 +306,15 @@ export function useGame(id: string) {
 	}
 
 	function onBlackNoMoves() {
-		if (myColor === BLACK)
+		if (myColorRef.current === BLACK)
 			message("You don't have any moves available, so your opponent moves again");
-		else message("Black doesn't have any moves available");
+		else message(getPlayerLabel(BLACK) + " doesn't have any moves available");
 	}
 
 	function onWhiteNoMoves() {
-		if (myColor === WHITE)
+		if (myColorRef.current === WHITE)
 			message("You don't have any moves available, so your opponent moves again");
-		else message("White doesn't have any moves available");
+		else message(getPlayerLabel(WHITE) + " doesn't have any moves available");
 	}
 
 	function onGameStart(_: ByteReader) {
@@ -313,7 +329,7 @@ export function useGame(id: string) {
 
 	function onGameEnd(p: ByteReader) {
 		const result = p.readUint8() as PlayerColor | 0;
-		message("Game finished");
+		if (!finishedByAbandonRef.current) message("Game finished");
 		setUser({ ...user!, currentGame: undefined });
 		socket.handlers = globalHandler;
 		setInGame(false);
@@ -413,6 +429,7 @@ export function useGame(id: string) {
 			for (const user of u)
 				newProfiles.set(user.id, user);
 
+			profilesRef.current = newProfiles;
 			setProfiles(newProfiles);
 		});
 	}, [spectators, state]);
@@ -438,6 +455,7 @@ export function useGame(id: string) {
 		if (!current || current.status === "FINISHED") return;
 
 		abandonRequestedRef.current = true;
+		finishedByAbandonRef.current = true;
 		const finished = { ...current, status: "FINISHED" as GameStatus };
 		stateRef.current = finished;
 		setState(finished);
