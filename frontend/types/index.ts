@@ -112,6 +112,16 @@ export type GameData = {
   winner: Winner,
 };
 
+export type CompletedGameData = {
+  gameId: string;
+  whiteId: string;
+  blackId: string;
+  winner: PlayerColor | 0;
+  board: Board;
+  scores: { black: number; white: number };
+  finishedAt: string;
+};
+
 // ─── Lobby / Matchmaking ─────────────────────────────────────────────────────
 
 export type GameMode = "ranked" | "casual" | "private";

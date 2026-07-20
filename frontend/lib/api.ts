@@ -1,5 +1,5 @@
 
-import type { User, LeaderboardEntry, PublicUser, ChatMessage, GameData } from "@/types";
+import type { User, LeaderboardEntry, PublicUser, ChatMessage, GameData, CompletedGameData } from "@/types";
 import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
@@ -285,6 +285,16 @@ export const gamesApi = {
 		const res = await apiFetch<{ success: boolean, data: GameData }>(
 			`/games/${gameId}`, {
 				headers: { "Content-Type": "application/json" }
+			}
+		);
+		return res.data;
+	},
+
+	getResult: async (gameId: string): Promise<CompletedGameData> => {
+		const tokens = getTokens();
+		const res = await apiFetch<{ success: boolean, data: CompletedGameData }>(
+			"/games/" + gameId + "/result", {
+				headers: tokens?.accessToken ? { "Authorization": "Bearer " + tokens.accessToken } : undefined
 			}
 		);
 		return res.data;

@@ -18,6 +18,16 @@ export type GameData = {
   winner: Winner,
 };
 
+export type CompletedGameData = {
+  gameId: string;
+  whiteId: string;
+  blackId: string;
+  winner: 1 | 2 | 0;
+  board: number[][];
+  scores: { black: number; white: number };
+  finishedAt: string;
+};
+
 export type Move = {
   row: number;
   col: number;
