@@ -316,16 +316,16 @@ export function useGame(id: string) {
 		setUser({ ...user!, currentGame: undefined });
 		socket.handlers = globalHandler;
 		setInGame(false);
-		setState(prev => {
-			if (!prev) return prev;
+		const current = stateRef.current;
+		if (current) {
 			const next = {
-				...prev,
+				...current,
 				status: "FINISHED" as GameStatus,
 				winner: result
 			};
 			stateRef.current = next;
-			return next;
-		});
+			setState(next);
+		}
 	}
 
 	function onXpUpdate(p: ByteReader) {

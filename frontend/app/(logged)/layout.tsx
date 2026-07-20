@@ -33,6 +33,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [pendingFriendAction, setPendingFriendAction] = useState<string | null>(null);
   const [inQueue, setInQueue] = useState(false);
   const [inGame, setInGame] = useState(false);
+  const previousInGameRef = useRef(false);
   const [handlers, setHandlers] = useState<((p: ByteReader) => void)[]>([]);
 
   const loadSocialState = useCallback(async () => {
@@ -81,6 +82,11 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       window.removeEventListener("focus", refresh);
     };
   }, [isAuthenticated, loadSocialState]);
+
+  useEffect(() => {
+    if (previousInGameRef.current && !inGame) loadSocialState();
+    previousInGameRef.current = inGame;
+  }, [inGame, loadSocialState]);
 
   useEffect(() => {
     chatsRef.current = chats;
