@@ -44,7 +44,13 @@ export async function addGameMovement(gameId: string, userId: string, row: numbe
 export async function reportFinishedGame(gameId: string, winner: string | null): Promise<number | null>
 {
   const res = await pool.query(sql`
-	SELECT report_game($1, $2) as xp
+	WITH report AS MATERIALIZED (
+		SELECT report_game($1, $2) AS xp
+	)
+	UPDATE games
+		SET finished_at = COALESCE(finished_at, CURRENT_TIMESTAMP)
+		WHERE id = $1
+	RETURNING (SELECT xp FROM report) AS xp
   `, [gameId, winner]);
   return res.rows[0]?.xp ?? null;
 }
@@ -56,7 +62,7 @@ export async function selectCompletedGame(gameId: string, userId: string): Promi
 			g.black_player_id,
 			g.white_player_id,
 			g.winner_id,
-			g.finished_at,
+			COALESCE(g.finished_at, g.created_at) AS finished_at,
 			COALESCE(
 				(SELECT json_agg(
 					json_build_object('row', m.row, 'col', m.col, 'player', m.player)
@@ -67,7 +73,7 @@ export async function selectCompletedGame(gameId: string, userId: string): Promi
 			) AS moves
 		FROM games g
 		WHERE g.id = $1
-			AND g.finished_at IS NOT NULL
+			AND (g.finished_at IS NOT NULL OR g.winner_id IS NOT NULL)
 			AND $2 IN (g.black_player_id, g.white_player_id)
 	`, [gameId, userId]);
 	return res.rows[0] ?? null;
@@ -101,7 +107,8 @@ export async function getUnfinishedGames(): Promise<FullGame[]> {
 			'[]'
 		) AS moves
 		FROM games g
-		WHERE g.finished_at IS NULL;
+		WHERE g.finished_at IS NULL
+			AND g.winner_id IS NULL;
 	`);
 	return res.rows;
 }
