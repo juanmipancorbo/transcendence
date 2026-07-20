@@ -7,11 +7,15 @@ import type { PublicUser } from "@/types";
 import { useMsg } from "@/hooks/useMsg";
 
 export default function ProfilePage() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, refreshUser } = useAuth();
   const { message, error } = useMsg();
+
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [friends, setFriends] = useState<PublicUser[]>([]);
   const [showAllFriends, setShowAllFriends] = useState(false);
+
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id)
@@ -68,6 +72,30 @@ export default function ProfilePage() {
 
   function handleCancel() {
     setEditing(false);
+  }
+
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    const token = getTokens()?.accessToken;
+
+    if (!file || !token) {
+      setAvatarError("Please select an image and make sure you are logged in.");
+      return;
+    }
+
+    setAvatarUploading(true);
+    setAvatarError(null);
+
+    try {
+      const avatarUrl = await userApi.uploadAvatar(file, token);
+      setProfile(prev => prev ? { ...prev, avatarUrl } : prev);
+      await refreshUser();
+    } catch (error) {
+      setAvatarError(error instanceof Error ? error.message : "Failed to upload profile picture.");
+    } finally {
+      setAvatarUploading(false);
+      event.target.value = "";
+    }
   }
 
   const displayName   = user?.username ?? "User";
@@ -127,7 +155,7 @@ export default function ProfilePage() {
                 <p className="profile-bio">{bio || <span className="text-on-surface-variant/40 italic">No bio yet.</span>}</p>
               )}
 
-              <div className="flex justify-center md:justify-start gap-3">
+              <div className="flex justify-center md:justify-start gap-3 flex-wrap">
                 {editing ? (
                   <>
                     <button onClick={handleSave} className="btn-primary" style={{ width: "auto", padding: "0.75rem 2rem" }}>
@@ -138,7 +166,14 @@ export default function ProfilePage() {
                 ) : !profileLocked ? (
                   <button onClick={handleEdit} className="profile-edit-btn">Edit Profile</button>
                 ) : null}
+                
+                <label className="profile-edit-btn cursor-pointer">
+                  {avatarUploading ? "Uploading..." : "Change Photo"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                </label>
               </div>
+
+              {avatarError && <p className="mt-3 text-sm text-red-400">{avatarError}</p>}
             </div>
           </section>
 

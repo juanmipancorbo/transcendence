@@ -35,6 +35,20 @@ export async function updateBio(userId: string, bio: string): Promise<boolean> {
 		UPDATE users SET bio = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2
 	`, [bio, userId]);
 	return res.rowCount != 0;
+
+export async function updateAvatar(userId: string, avatarUrl: string): Promise<string> {
+	const res = await pool.query(sql`
+		UPDATE users
+		SET avatar_url = $1, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $2
+		RETURNING avatar_url
+	`, [avatarUrl, userId]);
+
+	if (res.rowCount === 0 || !res.rows[0]?.avatar_url) {
+		throw new Error("User not found");
+	}
+
+	return res.rows[0].avatar_url;
 }
 
 export async function selectProfile(userId: string): Promise<PublicUser | null>

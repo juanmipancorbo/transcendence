@@ -13,12 +13,14 @@ type AuthPayload = {
 };
 
 async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false): Promise<T> {
+  const headers = new Headers(options?.headers);
+  if (!(options?.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
+    headers,
   });
 
   if (res.status === 401 && !_isRetry) {
@@ -166,8 +168,22 @@ export const userApi = {
         body: JSON.stringify({ bio: data.bio }),
       });
     }
-
     return true;
+  },
+
+  uploadAvatar: async (file: File, accessToken: string): Promise<string> => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const res = await apiFetch<{ success: boolean; data: { avatarUrl: string } }> ("/users/avatar", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+
+    return res.data.avatarUrl;
   },
 };
 

@@ -24,10 +24,14 @@ export async function updateUsername(userId: string, newUsername: string): Promi
 	return Repo.updateUsername(userId, newUsername);
 }
 
+
 export async function updateBio(userId: string, bio: string): Promise<boolean> {
 	if (!ensureProfileEditable(await Repo.selectProfile(userId)))
 		return false;
 	return Repo.updateBio(userId, bio);
+
+export async function updateAvatar(userId: string, avatarUrl: string): Promise<string> {
+	return Repo.updateAvatar(userId, avatarUrl);
 }
 
 export async function updateUserGame(userId: string, gameId: string) {
