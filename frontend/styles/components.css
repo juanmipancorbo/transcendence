@@ -447,7 +447,7 @@
   }
 
   .profile-username {
-    @apply text-5xl font-black tracking-tight uppercase italic;
+    @apply text-5xl font-black tracking-tight italic;
     color: var(--on-surface);
     font-family: 'Space Grotesk', sans-serif;
   }
@@ -514,7 +514,7 @@
   .friend-status-dot.busy { background-color: #d575ff; }
 
   .friend-name {
-    @apply hidden sm:block text-xs font-bold uppercase transition-colors;
+    @apply hidden sm:block text-xs font-bold transition-colors;
     color: var(--on-surface);
     font-family: 'Space Grotesk', sans-serif;
   }

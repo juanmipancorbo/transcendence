@@ -59,7 +59,7 @@ export default function GamePage() {
     if (isSpectator) {
       const winnerId = winner === BLACK ? game.state.players.black : game.state.players.white;
       const winnerName = game.profiles.get(winnerId)?.username ?? "Player";
-      return winnerName.toUpperCase() + "_WINS";
+      return winnerName + "_WINS";
     }
     return winner === game.myColor ? "YOU_WIN" : "YOU_LOSE";
   })();
@@ -89,7 +89,7 @@ export default function GamePage() {
         <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-2 xl:order-1">
           <PlayerPanel
             name={username}
-            label={username.toUpperCase()}
+            label={username}
             pieceColor={game.myColor === WHITE ? WHITE : BLACK}
             score={score}
             total={64}
@@ -128,7 +128,7 @@ export default function GamePage() {
                   ? "WAITING FOR PLAYERS…"
                   : game.yourTurn
                     ? "your turn"
-                    : currentTurnName.toLowerCase() + " turn"}
+                    : currentTurnName + " turn"}
             </span>
           </div>
 
@@ -186,7 +186,7 @@ export default function GamePage() {
         <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-3">
           <PlayerPanel
             name={username1}
-            label={username1.toUpperCase()}
+            label={username1}
             pieceColor={game.myColor === WHITE ? BLACK : WHITE}
             score={score1}
             total={64}
