@@ -538,7 +538,7 @@
   }
 
   .profile-edit-input {
-    @apply text-5xl font-black tracking-tight uppercase italic p-2 outline-none;
+    @apply text-5xl font-black tracking-tight italic p-2 outline-none;
     background-color: var(--surface-container-low);
     color: var(--on-surface);
     border-bottom: 2px solid var(--primary);

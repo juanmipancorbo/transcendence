@@ -8,7 +8,7 @@ const router = Router();
 
 // Profile routes
 router.get("/profile/:id", validateParams(EPSchema.ProfileReqSchema), getProfile);
-router.patch("/username", authMiddleware, updateUsername);
+router.patch("/username", authMiddleware, validateBody(EPSchema.FullUserReqSchema), updateUsername);
 router.patch("/bio", authMiddleware, validateBody(EPSchema.UpdateBioReqSchema), updateBio);
 
 export { router };
