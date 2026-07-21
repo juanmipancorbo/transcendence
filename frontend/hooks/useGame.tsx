@@ -134,6 +134,7 @@ export function useGame(id: string) {
 			timeLimit
 		}; 
 		setMyColor(as);  myColorRef.current = as;
+		if (as === 0 && user) setUser({ ...user, currentGame: undefined });
 		if (timeLimit !== -1) {
 			const format = formatMs(timeLimit);
 			setBlackTimeLeftFormat(format);
@@ -479,6 +480,7 @@ export function useGame(id: string) {
 		spectators,
 		validSet,
 		messages,
+		userId: user?.id ?? "",
 		makeMove,
 		chat,
 		abandon,
