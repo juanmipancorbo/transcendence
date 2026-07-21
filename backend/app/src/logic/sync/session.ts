@@ -159,12 +159,8 @@ export class GameSession {
 		this.whiteAbandonTimer = undefined;
 	}
 
-	private releaseUserSockets(id: UUID) {
-		getSocksById(id)?.forEach(conn => {
-			conn.handler = globalHandler;
-			conn.status = "online";
-			conn.player = undefined;
-		});
+	private releaseUserSockets(player: SessionPlayer) {
+		player.conn.forEach(conn => conn.restoreGlobalState());
 	}
 
 	closeSession() {
@@ -172,20 +168,15 @@ export class GameSession {
 		SESSIONS.delete(this.id);
 		clearUserGame(this.blackPlayer.id).catch(e => console.error(e));
 		clearUserGame(this.whitePlayer.id).catch(e => console.error(e));
-		this.releaseUserSockets(this.blackPlayer.id);
-		this.releaseUserSockets(this.whitePlayer.id);
-		this.spectators.forEach(s => s.conn.forEach(c => {
-			c.handler = globalHandler;
-			c.status = "online";
-			c.player = undefined;
-		}));
+		this.releaseUserSockets(this.blackPlayer);
+		this.releaseUserSockets(this.whitePlayer);
+		this.spectators.forEach(s => this.releaseUserSockets(s));
 	}
 
 	// Determines the winner, if no winner is set it stops the game with a draw
 	reportFinished() {
-		if (this.closing) return;
+		if (this.closing) return
 		this.closing = true;
-		this.clearSessionTimers();
 		this.finishedAt = Date.now();
 		const winner = this.state.winner !== null ?
 			(this.state.winner === BLACK ?
@@ -243,6 +234,7 @@ export class GameSession {
 	}
 
 	consumeTurn(conn: SessionPlayer, pos: Position) {
+		if (this.state.status !== "ACTIVE") return;
 		if (this.state.currentTurn !== conn.player) {
 			conn.send(buildGameError("It's not your turn"));
 			return;
@@ -330,9 +322,7 @@ export class GameSession {
 			if (spec.id === conn.id && spec.conn.has(conn)) {
 				this.broadcast(buildSpectatorLeave(spec.id));
 				this.spectators.delete(spec);
-				conn.handler = globalHandler;
-				conn.status = "online";
-				conn.player = undefined;
+				conn.restoreGlobalState();
 				return;
 			}
 		}
@@ -348,9 +338,7 @@ export class GameSession {
 					this.spectators.delete(spec);
 				}
 				spec.conn.delete(conn);
-				conn.handler = globalHandler;
-				conn.status = "online";
-				conn.player = undefined;
+				conn.restoreGlobalState();
 				return;
 			}
 		}
@@ -362,9 +350,7 @@ export class GameSession {
 			this.broadcast(buildWhiteDisconnect(RECONNECT_TIME_MS));
 			this.whiteAbandonTimer = setTimeout(() => this.abandon(conn), RECONNECT_TIME_MS);
 		}
-		conn.handler = globalHandler;
-		conn.status = "busy";
-		conn.player = undefined;
+		conn.restoreGlobalState();
 	}
 }
 

@@ -3,6 +3,7 @@ import { type SessionPlayer } from "./session";
 import { WebSocket, RawData, MessageEvent } from "ws";
 import { PublicUser } from "@endpoints/users-response";
 import { unsetQuickplay, waiting } from "./handlers/global-handler";
+import globalHandler from "./handlers/global-handler";
 
 export enum CloseCodes {
 	Error = 4444,
@@ -99,6 +100,12 @@ export class Socket {
 				this.player.game.playerDisconnect(this);
 			this.ws.close();
 		}, 20000);
+	}
+
+	restoreGlobalState() {
+		this.handler = globalHandler;
+		this.status = "online";
+		this.player = undefined;
 	}
 
 	close(code?: number, msg?: string) {
