@@ -62,10 +62,10 @@ export default function RegisterPage() {
   }
 
   const FIELDS = [
-    { key: "username"        as const, label: "Username",  type: "text",     placeholder: "USERNAME"        },
-    { key: "email"           as const, label: "Email",   type: "email",    placeholder: "EMAIL ADDRESS"   },
-    { key: "password"        as const, label: "Password",   type: "password", placeholder: "MIN 8 CHARS"     },
-    { key: "confirmPassword" as const, label: "Confirm password",  type: "password", placeholder: "REPEAT PASSWORD" },
+    { key: "username"        as const, label: "Username", type: "text",     placeholder: "USERNAME",       autoComplete: "username" },
+    { key: "email"           as const, label: "Email",    type: "email",    placeholder: "EMAIL ADDRESS",  autoComplete: "email" },
+    { key: "password"        as const, label: "Password", type: "password", placeholder: "MIN 8 CHARS",    autoComplete: "new-password" },
+    { key: "confirmPassword" as const, label: "Confirm password", type: "password", placeholder: "REPEAT PASSWORD", autoComplete: "new-password" },
   ];
 
   return (
@@ -96,12 +96,14 @@ export default function RegisterPage() {
 
           <div className="pixel-auth-card glass-panel p-10">
             <form className="space-y-5" onSubmit={handleSubmit}>
-              {FIELDS.map(({ key, label, type, placeholder }) => (
+              {FIELDS.map(({ key, label, type, placeholder, autoComplete }) => (
                 <div key={key} className="field-group">
                   <label htmlFor={`register-${key}`} className="field-label">{label}</label>
                   <div className="field-wrap">
                     <input
                       id={`register-${key}`}
+                      name={key}
+                      autoComplete={autoComplete}
                       type={type}
                       placeholder={placeholder}
                       className="field-input"

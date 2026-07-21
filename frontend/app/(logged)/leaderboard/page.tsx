@@ -16,7 +16,7 @@ export default function LeaderboardPage() {
     function fetchLeaderboard() {
       leaderboardApi.getTop()
         .then(data => { setEntries(data); setFetchError(null); })
-        .catch(e => { console.error("[leaderboard] fetch failed:", e); setFetchError(e?.message ?? "Unknown error"); })
+        .catch(e => setFetchError(e?.message ?? "Unknown error"))
         .finally(() => setLoading(false));
     }
     fetchLeaderboard();
