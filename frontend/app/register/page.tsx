@@ -131,9 +131,9 @@ export default function RegisterPage() {
 
             <p className="text-center mt-6 label-micro tracking-wider">
               By registering you accept our{" "}
-              <Link href="/terms" className="text-on-surface underline underline-offset-4">
-                Terms & Privacy
-              </Link>
+              <Link href="/legal/terms" className="text-on-surface underline underline-offset-4">Terms</Link>
+              {" and "}
+              <Link href="/legal/privacy" className="text-on-surface underline underline-offset-4">Privacy Policy</Link>
             </p>
           </div>
 
