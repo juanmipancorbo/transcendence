@@ -438,11 +438,9 @@ export function useGame(id: string) {
 	const makeMove = (row: number, col: number) => {
 		const state    = stateRef.current;
 
-		if (!state)                    { console.log("makeMove blocked: no state");      return; }
-		if (state.status !== "ACTIVE") { console.log("makeMove blocked: not ACTIVE");    return; }
-		if (!yourTurn)                 { console.log("makeMove blocked: not your turn"); return; }
-
-		console.log("Move sent row:", row, "col:", col);
+		if (!state) return;
+		if (state.status !== "ACTIVE") return;
+		if (!yourTurn) return;
 		socket.send(buildConsumeTurn(row, col));
 	};
 	

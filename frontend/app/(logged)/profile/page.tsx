@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const { message, error } = useMsg();
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [friends, setFriends] = useState<PublicUser[]>([]);
+  const [showAllFriends, setShowAllFriends] = useState(false);
 
   useEffect(() => {
     if (user?.id)
@@ -159,19 +160,32 @@ export default function ProfilePage() {
           </section>
 
           {/* ── Friends bar ───────────────────────────────────────────── */}
-          <div className="friends-bar">
-            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-1 min-w-0">
-              <div className="flex gap-10">
-                {friends.length === 0
-                  ? <p className="text-xs text-on-surface-variant italic">No friends yet.</p>
-                  : friends.map(friend => <FriendEntry key={friend.id} friend={friend} />)
-                }
-              </div>
+          <div className="friends-bar !flex-col !items-stretch">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+              {friends.length === 0
+                ? <p className="text-xs text-on-surface-variant italic col-span-full">No friends yet.</p>
+                : (showAllFriends ? friends : friends.slice(0, 4))
+                    .map(friend => <FriendEntry key={friend.id} friend={friend} />)
+              }
             </div>
 
-            <button className="btn-view-friends flex-shrink-0">
-              View All Friends
-            </button>
+            {friends.length > 4 && (
+              <button
+                type="button"
+                className="btn-view-friends self-end"
+                onClick={() => setShowAllFriends(show => !show)}
+                aria-expanded={showAllFriends}
+              >
+                {showAllFriends ? (
+                  "Show Fewer"
+                ) : (
+                  <>
+                    <span aria-hidden="true" className="mr-2 text-base leading-none">...</span>
+                    View All Friends (+{friends.length - 4})
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
         </div>

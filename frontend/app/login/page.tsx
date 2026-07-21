@@ -12,6 +12,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const errorLines = error
     ? error.split(/;|\n/).map((line) => line.trim()).filter(Boolean)
@@ -101,6 +106,8 @@ export default function LoginPage() {
                   <div className="field-wrap">
                     <input
                       id="login-email"
+                      name="email"
+                      autoComplete="email"
                       className="field-input"
                       placeholder="EMAIL ADDRESS"
                       type="email"
@@ -117,6 +124,8 @@ export default function LoginPage() {
                   <div className="field-wrap">
                     <input
                       id="login-password"
+                      name="password"
+                      autoComplete="current-password"
                       className="field-input"
                       placeholder="PASSWORD"
                       type="password"
@@ -136,8 +145,8 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <button type="submit" className="retro-shell auth btn-primary mt-8" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
+                <button type="submit" className="retro-shell auth btn-primary mt-8" disabled={mounted ? isLoading : false}>
+                  {mounted && isLoading ? "Signing in..." : "Sign In"}
                 </button>
 
                 <div className="flex items-center gap-4">
@@ -146,7 +155,7 @@ export default function LoginPage() {
                   <div className="h-px flex-1 bg-white opacity-[0.15]" />
                 </div>
 
-                <button onClick={googleLogin} type="button" className="btn-secondary auth-google" disabled={isLoading}>
+                <button onClick={googleLogin} type="button" className="btn-secondary auth-google" disabled={mounted ? isLoading : false}>
                   <img src="/google.svg" alt="" className="w-5 h-5" />
                   Continue with Google
                 </button>

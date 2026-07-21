@@ -5,8 +5,8 @@ import { MsgProvider } from "@/hooks/useMsg";
 import MsgBox from "@/components/layout/MsgBox";
 
 export const metadata: Metadata = {
-  title: "FT_TRANSCENDANCE | Reversi Arena",
-  description: "High-performance Reversi / Othello online — Velocity Noir.",
+  title: "FT_TRANSCENDENCE | Reversi Club",
+  description: "Online multiplayer Reversi with matchmaking, friends, chat, and spectator mode.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

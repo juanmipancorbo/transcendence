@@ -107,7 +107,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
         error(message);
         if (code === ProtocolCodes.QueueFailed) {
           setInQueue(false);
-          console.log("[Matchmaking] Left queue");
         }
       }
 
@@ -120,7 +119,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
         const _opponent = p.readPrefixedUTF(); // TODO: An animation or something maybe?
 
         setInQueue(false);
-        console.log(`Match found with id ${gameId}`);
         router.push(`/game?id=${gameId}`);
       }
 
@@ -270,13 +268,11 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   function joinQueue() {
     socket?.send(buildJoinQueue());
     setInQueue(true);
-    console.log("[Matchmaking] Joined queue");
   }
 
   function leaveQueue() {
     socket?.send(buildLeaveQueue());
     setInQueue(false);
-    console.log("[Matchmaking] Left queue");
   }
   // ------- Ws Context Functions End -------
 
