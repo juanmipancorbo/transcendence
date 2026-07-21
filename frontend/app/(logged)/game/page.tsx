@@ -72,6 +72,13 @@ export default function GamePage() {
         ? "result-spectator"
         : game.state.winner === game.myColor ? "result-win" : "result-lose";
 
+  const playerIds = new Set([
+    game.state?.players.black,
+    game.state?.players.white,
+  ].filter((playerId): playerId is string => Boolean(playerId)));
+  const playerMessages = game.messages.filter(chatMessage => playerIds.has(chatMessage.sender));
+  const spectatorMessages = game.messages.filter(chatMessage => !playerIds.has(chatMessage.sender));
+
   const getLogPlayerName = (entry: LogEntry) => {
     if (entry.byMe) return "You";
     if (entry.type === "abandon") return username1;
@@ -96,7 +103,7 @@ export default function GamePage() {
             accentClass="border-primary"
             scoreColorClass="text-primary"
             glowColor="#d5a62b"
-            isMyTurn={game.yourTurn ?? false}
+            isMyTurn={isSpectator ? currentTurn === BLACK : game.yourTurn ?? false}
             timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
           />
@@ -193,19 +200,40 @@ export default function GamePage() {
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
             glowColor="#3ca6a0"
-            isMyTurn={game.yourTurn === false}
+            isMyTurn={isSpectator ? currentTurn === WHITE : game.yourTurn === false}
             timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
             profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
             addFriendUserId={isSpectator ? undefined : rightPlayerId}
           />
-          <ChatPanel
-            messages={game.messages}
-            profiles={game.profiles}
-            myId={game.state?.players[game.myColor === WHITE ? "white" : "black"] ?? ""}
-            onSend={game.chat}
-            readOnly={isSpectator}
-            disabled={game.state?.status === "FINISHED"}
-          />
+          {isSpectator ? (
+            <>
+              <ChatPanel
+                title="Game_Chat"
+                messages={playerMessages}
+                profiles={game.profiles}
+                myId={game.userId}
+                onSend={game.chat}
+                readOnly
+              />
+              <ChatPanel
+                title="Spectator_Chat"
+                messages={spectatorMessages}
+                profiles={game.profiles}
+                myId={game.userId}
+                onSend={game.chat}
+                disabled={game.state?.status === "FINISHED"}
+              />
+            </>
+          ) : (
+            <ChatPanel
+              title="Game_Chat"
+              messages={playerMessages}
+              profiles={game.profiles}
+              myId={game.userId}
+              onSend={game.chat}
+              disabled={game.state?.status === "FINISHED"}
+            />
+          )}
           <SpectatorList spectators={game.spectators} profiles={game.profiles} />
         </aside>
       </main>
@@ -362,7 +390,8 @@ function PlayerPanel({ name, label, pieceColor, score, total, accentClass, score
   );
 }
 
-function ChatPanel({ messages, profiles, myId, onSend, readOnly = false, disabled = false }: {
+function ChatPanel({ title, messages, profiles, myId, onSend, readOnly = false, disabled = false }: {
+  title: string;
   messages: Array<{ sender: string; message: string }>;
   profiles: Map<string, { username?: string }>;
   myId: string;
@@ -391,7 +420,7 @@ function ChatPanel({ messages, profiles, myId, onSend, readOnly = false, disable
 
   return (
     <div className="match-log flex flex-col gap-2">
-      <div className="match-log-title">Chat</div>
+      <div className="match-log-title">{title}</div>
 
       <div className="overflow-y-auto max-h-48 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {messages.length === 0
@@ -414,7 +443,7 @@ function ChatPanel({ messages, profiles, myId, onSend, readOnly = false, disable
       </div>
 
       {readOnly
-        ? <p className="text-[10px] text-on-surface-variant/40 italic mt-1">Spectators cannot send messages</p>
+        ? <p className="text-[10px] text-on-surface-variant/40 italic mt-1">Player messages are read-only</p>
         : <div className="flex gap-2 mt-1">
         <input
           className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-2 py-1 outline-none border border-outline/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"

@@ -113,9 +113,13 @@ export class GameSession {
 			if (s.id === conn.id) {
 				s.conn.add(conn);
 				conn.player = s;
+				this.spectators.forEach(existing => {
+					if (existing !== s) conn.send(buildSpectatorJoin(existing.id));
+				});
 				return;
 			}
 		}
+		this.spectators.forEach(existing => conn.send(buildSpectatorJoin(existing.id)));
 		const player = new SessionPlayer(conn.id, -1, this);
 		player.conn.add(conn);
 		conn.player = player;
