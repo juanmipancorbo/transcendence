@@ -167,9 +167,9 @@ export default function LoginPage() {
                   Create account
                 </Link>
                 {" · "}
-                <Link href="/terms" className="text-on-surface underline underline-offset-4">
-                  Terms & Privacy
-                </Link>
+                <Link href="/legal/terms" className="text-on-surface underline underline-offset-4">Terms</Link>
+                {" · "}
+                <Link href="/legal/privacy" className="text-on-surface underline underline-offset-4">Privacy</Link>
               </p>
             </div>
           </div>

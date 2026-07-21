@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/leaderboard", label: "Rankings" },
   { href: "/profile",     label: "Profile"  },
   { href: "/terms",       label: "Terms"    },
+  { href: "/privacy",     label: "Privacy"  },
 ];
 
 export default function Sidebar() {
