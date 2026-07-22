@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.router = void 0;
+const game_request_1 = require("@endpoints/game-request");
+const validation_middelwares_1 = require("@utils/validation-middelwares");
+const auth_middleware_1 = require("../../middleware/auth-middleware");
+const express_1 = require("express");
+const controller_1 = require("./controller");
+const router = (0, express_1.Router)();
+exports.router = router;
+router.get("/:id/result", auth_middleware_1.authMiddleware, (0, validation_middelwares_1.validateParams)(game_request_1.GameReqSchema), controller_1.getCompletedGame);
+router.get("/:id", (0, validation_middelwares_1.validateParams)(game_request_1.GameReqSchema), controller_1.getGame);

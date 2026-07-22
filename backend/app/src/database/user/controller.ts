@@ -10,14 +10,24 @@ export async function getProfile(req: Request<ProfileReq>, res: Response) {
 }
 
 export async function updateUsername(req: Request<unknown, unknown, FullUserReq>, res: Response) {
-	if (!(await Service.updateUsername(req.userId!, req.body.username)))
+	const userId = req.userId;
+	if (!userId) {
+		return res.status(401).json({ success: false, data: "User not authenticated" });
+	}
+
+	if (!(await Service.updateUsername(userId, req.body.username)))
 		return res.status(404).json({ success: false, data: "User likely doesn't exist" });
 
 	res.status(200).json({ success: true, data: null });
 }
 
 export async function updateBio(req: Request<unknown, unknown, UpdateBioReq>, res: Response) {
-	if (!(await Service.updateBio(req.userId!, req.body.bio)))
+	const userId = req.userId;
+	if (!userId) {
+		return res.status(401).json({ success: false, data: "User not authenticated" });
+	}
+
+	if (!(await Service.updateBio(userId, req.body.bio)))
 		return res.status(404).json({ success: false, data: "User likely doesn't exist" });
 
 	res.status(200).json({ success: true, data: null });
@@ -26,6 +36,10 @@ export async function updateBio(req: Request<unknown, unknown, UpdateBioReq>, re
 export async function updateAvatar(req: Request, res: Response) {
 	const userId = req.userId;
 	const file = (req as Request & { file?: { filename?: string } }).file;
+
+	if (!userId) {
+		return res.status(401).json({ success: false, data: "User not authenticated" });
+	}
 
 	if (!file?.filename) {
 		return res.status(400).json({ success: false, data: "No image file provided" });

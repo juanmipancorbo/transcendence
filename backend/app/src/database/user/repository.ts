@@ -35,6 +35,7 @@ export async function updateBio(userId: string, bio: string): Promise<boolean> {
 		UPDATE users SET bio = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2
 	`, [bio, userId]);
 	return res.rowCount != 0;
+}
 
 export async function updateAvatar(userId: string, avatarUrl: string): Promise<string> {
 	const res = await pool.query(sql`

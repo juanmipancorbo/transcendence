@@ -1,0 +1,119 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getFriends = getFriends;
+exports.getFriendProfiles = getFriendProfiles;
+exports.getIncomingRequests = getIncomingRequests;
+exports.getOutgoingRequests = getOutgoingRequests;
+exports.getFriendStatus = getFriendStatus;
+exports.sendRequest = sendRequest;
+exports.acceptRequest = acceptRequest;
+exports.declineRequest = declineRequest;
+exports.cancelRequest = cancelRequest;
+exports.removeFriend = removeFriend;
+const Service = __importStar(require("./service"));
+const socket_1 = require("@gameLogic/sync/socket");
+function getFriends(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const data = yield Service.readFriends(req.userId);
+        res.status(200).json({ success: true, data });
+    });
+}
+function getFriendProfiles(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const data = yield Service.readFriendProfiles(req.userId);
+        (0, socket_1.injectStatus)(data);
+        res.status(200).json({ success: true, data });
+    });
+}
+function getIncomingRequests(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const data = yield Service.readIncomingRequests(req.userId);
+        (0, socket_1.injectStatus)(data);
+        res.status(200).json({ success: true, data });
+    });
+}
+function getOutgoingRequests(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const data = yield Service.readOutgoingRequests(req.userId);
+        (0, socket_1.injectStatus)(data);
+        res.status(200).json({ success: true, data });
+    });
+}
+function getFriendStatus(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const data = yield Service.areFriends(req.userId, req.params.id);
+        res.status(200).json({ success: true, data });
+    });
+}
+function sendRequest(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield Service.sendFriendRequest(req.userId, req.body.userId);
+        res.status(201).json({ success: true, data: null });
+    });
+}
+function acceptRequest(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield Service.acceptFriendRequest(req.userId, req.body.senderId);
+        res.status(201).json({ success: true, data: null });
+    });
+}
+function declineRequest(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield Service.declineFriendRequest(req.userId, req.body.senderId);
+        res.status(200).json({ success: true, data: null });
+    });
+}
+function cancelRequest(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield Service.cancelFriendRequest(req.userId, req.body.userId);
+        res.status(200).json({ success: true, data: null });
+    });
+}
+function removeFriend(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield Service.removeFriend(req.userId, req.body.userId);
+        res.status(200).json({ success: true, data: null });
+    });
+}

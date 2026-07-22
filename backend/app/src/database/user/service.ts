@@ -18,19 +18,24 @@ function ensureProfileEditable(user: PublicUser | null): user is PublicUser {
 	return true;
 }
 
-export async function updateUsername(userId: string, newUsername: string): Promise<boolean> {
-	if (!ensureProfileEditable(await Repo.selectProfile(userId)))
-		return false;
-	return Repo.updateUsername(userId, newUsername);
+export async function updateUsername(userId: string | undefined, newUsername: string): Promise<boolean> {
+        if (!userId) return false;
+        if (!ensureProfileEditable(await Repo.selectProfile(userId)))
+                return false;
+        return Repo.updateUsername(userId, newUsername);
 }
 
+export async function updateBio(userId: string | undefined, bio: string): Promise<boolean> {
+        if (!userId) return false;
+        if (!ensureProfileEditable(await Repo.selectProfile(userId)))
+                return false;
+        return Repo.updateBio(userId, bio);
+}
 
-export async function updateBio(userId: string, bio: string): Promise<boolean> {
-	if (!ensureProfileEditable(await Repo.selectProfile(userId)))
-		return false;
-	return Repo.updateBio(userId, bio);
-
-export async function updateAvatar(userId: string, avatarUrl: string): Promise<string> {
+export async function updateAvatar(userId: string | undefined, avatarUrl: string): Promise<string> {
+        if (!userId) {
+                throw new ApiError("User id is required", 400);
+        }
 	return Repo.updateAvatar(userId, avatarUrl);
 }
 
