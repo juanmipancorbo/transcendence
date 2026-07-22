@@ -83,6 +83,15 @@ export default function ProfilePage() {
       return;
     }
 
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxAvatarSizeBytes = 5 * 1024 * 1024;
+
+    if (!allowedMimeTypes.includes(file.type) || file.size > maxAvatarSizeBytes) {
+      setAvatarError("Please choose a JPG, PNG, or WebP image up to 5MB.");
+      event.target.value = "";
+      return;
+    }
+
     setAvatarUploading(true);
     setAvatarError(null);
 
@@ -169,7 +178,7 @@ export default function ProfilePage() {
                 
                 <label className="profile-edit-btn cursor-pointer">
                   {avatarUploading ? "Uploading..." : "Change Photo"}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  <input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
                 </label>
               </div>
 

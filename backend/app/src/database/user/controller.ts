@@ -24,8 +24,8 @@ export async function updateBio(req: Request<unknown, unknown, UpdateBioReq>, re
 }
 
 export async function updateAvatar(req: Request, res: Response) {
-	const userId = (req as any).userId;
-	const file = (req as any).file as { filename?: string } | undefined;
+	const userId = req.userId;
+	const file = (req as Request & { file?: { filename?: string } }).file;
 
 	if (!file?.filename) {
 		return res.status(400).json({ success: false, data: "No image file provided" });
