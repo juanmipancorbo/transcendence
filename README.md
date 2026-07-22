@@ -4,7 +4,7 @@
 
 > A real-time, server-authoritative online **Reversi (Othello)** platform, built for
 > *ft_transcendence* of the 42 curriculum.
-> Frontend design system: **Velocity Noir**.
+> Frontend design: a custom **retro pixel-art** design system.
 
 ---
 
@@ -75,7 +75,7 @@ The realtime layer runs over a **single binary WebSocket** with a custom, per-st
 | Login | Name | Role | Main Responsibilities |
 |-------|------|------|-----------------------|
 | **inthernam** | Inti Hernández Servitja | _TBD_ | Realtime WebSocket subsystem (binary protocol, socket lifecycle, sessions, crash recovery), backend backbone & DB integration, frontend WS client and game hooks, project documentation. |
-| **jpancorb** | Juan Miguel Pancorbo Gutiérrez | _TBD_ | Frontend architecture & UI (game board, lobby, profile, leaderboard, friends), the *Velocity Noir* design system, shared layout components, plus backend leaderboard/user/game work. |
+| **jpancorb** | Juan Miguel Pancorbo Gutiérrez | _TBD_ | Frontend architecture & UI (game board, lobby, profile, leaderboard, friends), the retro pixel-art design system, shared layout components, plus backend leaderboard/user/game work. |
 | **cmarrued** | Carlos Marruedo | _TBD_ | Frontend pages and components (login/register, game view, profile, lobby, leaderboard) and supporting backend user/friend endpoints. |
 | **anguil-l** | Antonio Guil Luque | _TBD_ | Authentication & security foundation: JWT access/refresh strategy, Argon2 password hashing, auth middleware, login/register integration. |
 | **pmorello** | Pau Anand Morello | _TBD_ | User profile media (avatar/photo) features and repository housekeeping. |
@@ -109,7 +109,7 @@ See [Individual Contributions](#individual-contributions) for a detailed breakdo
 ### Frontend
 - **Next.js 16** (App Router) + **React 19**
 - **TypeScript**
-- **Tailwind CSS 3** (the in-house *Velocity Noir* pixel/neon design system)
+- **Tailwind CSS 3** (an in-house **retro pixel-art** design system)
 - A custom **binary WebSocket client** (`frontend/lib/ws/`) and React hooks
   (`useAuth`, `useWs`, `useGame`, `useMsg`, `useGlobalRank`).
 
@@ -274,7 +274,7 @@ Attribution reflects primary ownership from the git history; most features were 
 | **XP / level & stats** | DB-driven XP awards, derived levels, win/loss counts. | inthernam, jpancorb |
 | **Leaderboard** | Global top-players ranking. | jpancorb |
 | **User profiles** | Editable username/bio, avatar/photo, public profile pages. | cmarrued, pmorello |
-| **Design system (Velocity Noir)** | Tailwind-based pixel/neon UI, shared layout (navbar, sidebar, chat window). | jpancorb |
+| **Retro design system** | Tailwind-based retro pixel-art UI, shared layout (navbar, sidebar, chat window). | jpancorb |
 | **Terms & Privacy page** | In-app terms of service and privacy policy. | jpancorb |
 
 ---
@@ -303,7 +303,7 @@ This project implements **17 points** — the 14 required plus **3 points of bon
 | 8 | User Management | **Game statistics & match history** | Win/loss counts, XP/level ranking, finished-game records, and a global leaderboard. | jpancorb, inthernam |
 | 9 | Gaming | **Game customization options** | Configurable match settings: timed vs. untimed, ranked vs. friendly, spectators on/off (with sensible defaults). | inthernam, jpancorb |
 | 10 | Gaming | **Spectator mode** | Join a live game as a viewer with real-time state updates and shared in-game chat. | inthernam, jpancorb |
-| 11 | Web | **Custom-made design system** | The *Velocity Noir* system — 200+ reusable component classes plus shared React components, a defined color palette, typography, and pixel/neon iconography. | jpancorb |
+| 11 | Web | **Custom-made design system** | A custom retro pixel-art system — 200+ reusable component classes plus shared React components, a defined color palette, typography, and pixel iconography. | jpancorb |
 
 ### Point calculation
 
@@ -328,7 +328,7 @@ The module set follows the shape of a competitive online board game:
 
 No "Modules of choice" (custom) modules were claimed — every module above maps to a listed subject module.
 
-> **Demo checklist for evaluation:** for (8) show the per-user *match-history* view (dates/opponents/results), not just the leaderboard; for (11) the *Velocity Noir* system exceeds the required 10 reusable components (200+ component classes + shared React components). Everything else is demonstrable directly from the running app.
+> **Demo checklist for evaluation:** for (8) show the per-user *match-history* view (dates/opponents/results), not just the leaderboard; for (11) the retro design system exceeds the required 10 reusable components (200+ component classes + shared React components). Everything else is demonstrable directly from the running app.
 
 ---
 
@@ -345,7 +345,7 @@ The subject's general/technical requirements are met as follows:
 | Email/password auth with hashed passwords | ✅ | Argon2 (`utils/password-utils.ts`) |
 | Frontend **and** backend input validation | ✅ | Zod schemas (backend) + form validation (frontend) |
 | Clear DB schema with well-defined relations | ✅ | [`database/schema.sql`](database/schema.sql) |
-| CSS framework / styling solution | ✅ | Tailwind CSS (*Velocity Noir*) |
+| CSS framework / styling solution | ✅ | Tailwind CSS (custom retro design system) |
 | Multi-user, concurrent, real-time | ✅ | Per-user socket registry; live broadcast to all clients |
 | Privacy Policy & Terms of Service pages | ✅ | In-app **Terms & Privacy** page (`app/(logged)/terms`) |
 | Commits from all team members, clear messages | ✅ | Git history |
@@ -463,7 +463,7 @@ cd frontend && npm install && npm run dev         # next dev on :3000
   60s reconnect grace period and replay-based recovery.
 
 ### jpancorb — Juan Miguel Pancorbo Gutiérrez
-- **Frontend architecture & the *Velocity Noir* design system:** the game board UI, lobby,
+- **Frontend architecture & the retro design system:** the game board UI, lobby,
   profile, leaderboard, and friends pages, plus shared layout (navbar, sidebar, chat window,
   current-game widget) and the app's styling.
 - **Backend contributions:** leaderboard, and parts of the user/game domains and the sync
