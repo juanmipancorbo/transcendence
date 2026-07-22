@@ -2,8 +2,8 @@
 
 # ft_transcendence — Reversi
 
-> A real-time, server-authoritative online **Reversi (Othello)** platform, built for the
-> *ft_transcendence — Surprise* edition of the 42 curriculum.
+> A real-time, server-authoritative online **Reversi (Othello)** platform, built for
+> *ft_transcendence* of the 42 curriculum.
 > Frontend design system: **Velocity Noir**.
 
 ---
