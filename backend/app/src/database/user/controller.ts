@@ -36,10 +36,12 @@ export async function updateAvatar(req: Request, res: Response) {
 	}
 
 	try {
-		const avatarUrl = `/uploads/avatars/${file.filename}`;
+		const avatarUrl = `/api/uploads/avatars/${file.filename}`;
 		const savedAvatarUrl = await Service.updateAvatar(userId, avatarUrl);
 		return res.status(200).json({ success: true, data: { avatarUrl: savedAvatarUrl } });
 	} catch (e) {
-		return res.status(500).json({ success: false, data: "Unknown error" });
+		const message = e instanceof Error ? e.message : "Unknown error";
+		console.error("Avatar upload failed", message);
+		return res.status(500).json({ success: false, data: message });
 	}
 }

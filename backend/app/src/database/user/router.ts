@@ -56,6 +56,8 @@ router.post("/avatar", authMiddleware, (req: Request, res: Response, _next: Next
 					: "Unknown upload error";
 			return res.status(400).json({ success: false, data: message });
 		}
+		//return updateAvatar(req, res);
+		console.log("UPLOAD FILE:", req.file);
 		return updateAvatar(req, res);
 	});
 });

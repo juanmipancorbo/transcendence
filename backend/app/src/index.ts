@@ -67,5 +67,6 @@ app.use("/chats", routerChat);
 app.use("/google", googleAuth);
 app.use("/games", routerGames);
 
+
 // Error Handler (has to be last one)
 app.use(errorHandler);
