@@ -26,7 +26,7 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 	const [draft, setDraft] = useState("");
 	const [loadingHistory, setLoadingHistory] = useState(false);
 
-	const bottomRef = useRef<HTMLDivElement>(null);
+	const messagesRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const lastMessageAt = useRef<string | undefined>(undefined);
 
@@ -46,7 +46,9 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 	}, [chat.friendId, friendProfile]);
 
 	useEffect(() => {
-		if (!collapsed) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+		const container = messagesRef.current;
+		if (!collapsed && container)
+			container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
 	}, [messages[0]?.createdAt, collapsed]);
 
 	useEffect(() => {
@@ -138,7 +140,7 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 			{!collapsed && (
 				<>
 					{/* Messages */}
-					<div className="pixel-chat-messages flex flex-col overflow-y-auto h-80 px-4 py-3 gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+					<div ref={messagesRef} className="pixel-chat-messages flex flex-col overflow-y-auto h-80 px-4 py-3 gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 						{hasMore && ordered.length > 0 && (
 							<button
 								onClick={loadMore}
@@ -166,7 +168,6 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 									);
 								})
 						}
-						<div ref={bottomRef} />
 					</div>
 
 					{/* Composer */}

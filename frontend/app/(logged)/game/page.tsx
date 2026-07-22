@@ -397,11 +397,13 @@ function ChatPanel({ title, messages, profiles, myId, onSend, readOnly = false, 
   disabled?: boolean;
 }) {
   const [draft, setDraft] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const lastSentAt = useRef(0);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesRef.current;
+    if (container)
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   function submit() {
@@ -419,7 +421,7 @@ function ChatPanel({ title, messages, profiles, myId, onSend, readOnly = false, 
     <div className="match-log flex flex-col gap-2">
       <div className="match-log-title">{title}</div>
 
-      <div className="overflow-y-auto max-h-48 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div ref={messagesRef} className="overflow-y-auto max-h-48 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {messages.length === 0
           ? <p className="text-xs text-on-surface-variant italic">No messages yet…</p>
           : messages.map((m, i) => {
@@ -436,7 +438,6 @@ function ChatPanel({ title, messages, profiles, myId, onSend, readOnly = false, 
               );
             })
         }
-        <div ref={bottomRef} />
       </div>
 
       {readOnly
