@@ -8,8 +8,8 @@ The initial MVP — register/log in, two users join a match, play a server-valid
 Reversi game to completion, and store the result — is implemented. The project has
 since grown well past it: matchmaking, spectators, timed games, an XP/level system,
 friends, and direct chat all exist today. The sections below describe the system as
-it is now; the "Git Workflow", "Team Ownership", and "Immediate Development
-Priorities" notes near the end are kept as original planning context.
+it is now; the "Team Ownership" and "Immediate Development Priorities" notes near
+the end are kept as original planning context.
 
 ---
 
@@ -228,20 +228,22 @@ Auth specifics live in `AUTH.md` at the repo root.
 
 ### Main branch
 
-- `main` is the main branch
+- `main` is the main branch — shared and unprotected
 
 ### Rule
 
-- nobody works directly on `main`
-- each feature must be developed in its own branch
+- **features and significant changes** are developed in their own branch and merged
+  into `main` once working
+- **quick fixes and small, non-breaking additions** are pushed directly to `main`
 
-### Example branch names
+### Example branch names (from the actual history)
 
 - `feature/game-logic`
-- `feature/backend-games`
-- `feature/frontend-board`
-- `feature/realtime-sockets`
-- `feature/auth-login`
+- `feature/backend-leaderboard-functionality`
+- `feat/profile-bio-persistence`
+- `fix/quickplay-join-game`
+- `style/retro-ui-prototype`
+- `auth`, `sync`, `ws-global`
 
 ### Commits
 
