@@ -1,0 +1,24 @@
+- backend/app/src/database/user/router.ts
+- backend/app/src/database/user/controller.ts
+- frontend/app/(logged)/profile/page.tsx
+- backend/app/package.json
+- backend/app/package-lock.json
+
+Qué hacen estos cambios:
+1. Backend: subida de avatar segura
+- Se añadió soporte para subir imágenes de avatar desde el backend.
+- Se limita la subida a archivos JPG, PNG y WebP.
+- Se impide subir archivos demasiado grandes (máximo 5 MB).
+- Se mantiene el flujo actual de actualización de username y bio.
+
+2. Backend: manejo de la petición
+- El controlador recibe el archivo subido y genera la URL pública del avatar.
+- Se guarda la ruta del avatar para que pueda mostrarse en la app.
+
+3. Frontend: selección y validación de imagen
+- La pantalla de perfil ahora permite elegir una foto nueva.
+- Antes de enviarla, valida que el archivo sea una imagen permitida y que no supere el tamaño máximo.
+- Muestra un mensaje de error si el usuario intenta subir un archivo no válido.
+
+4. Dependencias
+- Se añadió el soporte necesario para multer y sus tipos, para que el backend pueda procesar archivos subidos correctamente.
