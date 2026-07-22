@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
 import { buildFriendChat } from "@/lib/ws/stream-utils";
 import { PublicUser } from "@/types";
+import Avatar from "@/components/ui/Avatar";
 
 interface ChatWindowProps {
 	chat: Chat;
@@ -103,12 +104,9 @@ export default function ChatWindow({ chat, friendProfile, onClose }: ChatWindowP
 				onClick={toggleCollapsed}
 			>
 				<div className="flex items-center gap-2 min-w-0">
-					<div className="relative w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0">
-						<span className="font-headline font-bold text-xs text-primary">
-							{friend?.username?.[0]?.toUpperCase() ?? "?"}
-						</span>
+					<Avatar avatarUrl={friend?.avatarUrl} name={friend?.username ?? "Friend"} className="relative w-8 h-8 bg-surface-container-highest shrink-0">
 						{friend && <span className={`friend-status-dot ${friend.status}`} />}
-					</div>
+					</Avatar>
 					<div className="min-w-0">
 						<span className="block font-headline font-bold text-sm truncate">
 							{friend?.username ?? "Loading…"}

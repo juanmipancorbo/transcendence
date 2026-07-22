@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
 import { useMsg } from "@/hooks/useMsg";
+import Avatar from "@/components/ui/Avatar";
 
 export default function GamePage() {
   const router = useRouter();
@@ -106,6 +107,7 @@ export default function GamePage() {
             isMyTurn={isSpectator ? currentTurn === BLACK : game.yourTurn ?? false}
             timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
+            avatarUrl={leftPlayerId ? game.profiles.get(leftPlayerId)?.avatarUrl : undefined}
           />
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
@@ -204,6 +206,7 @@ export default function GamePage() {
             timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
             profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
             addFriendUserId={isSpectator ? undefined : rightPlayerId}
+            avatarUrl={rightPlayerId ? game.profiles.get(rightPlayerId)?.avatarUrl : undefined}
           />
           {isSpectator ? (
             <>
@@ -246,13 +249,14 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, pieceColor, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft }: {
+function PlayerPanel({ name, label, pieceColor, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft, avatarUrl }: {
   name: string; label: string; score: number; total: number;
   pieceColor: typeof BLACK | typeof WHITE;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
   profileHref?: string;
   addFriendUserId?: string;
   timeLeft?: string;
+  avatarUrl?: string;
 }) {
   const { message, error } = useMsg();
   const [friendRelation, setFriendRelation] = useState<"loading" | "none" | "incoming" | "sent" | "friends" | "sending">("loading");
@@ -309,14 +313,7 @@ function PlayerPanel({ name, label, pieceColor, score, total, accentClass, score
   }
 
   const avatar = (
-    <div
-      className={`pixel-player-avatar w-24 h-24 flex items-center justify-center ${profileHref ? "cursor-pointer" : ""}`}
-      style={{ borderColor: glowColor }}
-    >
-      <span className={`font-headline font-black text-3xl ${scoreColorClass}`}>
-        {name[0].toUpperCase()}
-      </span>
-    </div>
+    <Avatar avatarUrl={avatarUrl} name={name} className={`pixel-player-avatar w-24 h-24 ${profileHref ? "cursor-pointer" : ""}`} />
   );
 
   const namePlateStyle = pieceColor === BLACK

@@ -5,6 +5,7 @@ import { getTokens, useAuth } from "@/hooks/useAuth";
 import { friendApi, userApi } from "@/lib/api";
 import type { PublicUser } from "@/types";
 import { useMsg } from "@/hooks/useMsg";
+import Avatar from "@/components/ui/Avatar";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -83,21 +84,7 @@ export default function ProfilePage() {
           <section className="profile-card">
 
             {/* Avatar */}
-            <div className="profile-avatar-frame">
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt="Profile picture"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-5xl font-black" style={{ color: "var(--primary)" }}>
-                    {(user?.username ?? "?")[0].toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </div>
+            <Avatar avatarUrl={user?.avatarUrl} name={user?.username ?? "User"} className="profile-avatar-frame" />
 
             {/* Info */}
             <div className="flex-grow text-center md:text-left">
@@ -229,14 +216,9 @@ function FriendEntry({ friend }: { friend: PublicUser }) {
 
   return (
     <div className="friend-entry flex-shrink-0" ref={ref} onClick={handleClick}>
-      <div className="friend-avatar">
-        <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--surface-container-highest)" }}>
-          <span className="text-sm font-black" style={{ color: "var(--on-surface-variant)", fontFamily: "Space Grotesk, sans-serif" }}>
-            {friend.username[0].toUpperCase()}
-          </span>
-        </div>
+      <Avatar avatarUrl={friend.avatarUrl} name={friend.username} className="friend-avatar">
         <div className={`friend-status-dot ${friend.status}`} />
-      </div>
+      </Avatar>
 
       <div className="hidden sm:block">
         <div className="friend-name">{friend.username}</div>

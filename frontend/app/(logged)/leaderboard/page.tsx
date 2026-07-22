@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { leaderboardApi } from "@/lib/api";
 import type { LeaderboardEntry } from "@/types";
+import Avatar from "@/components/ui/Avatar";
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
@@ -88,13 +89,7 @@ export default function LeaderboardPage() {
 
                     {/* Competitor */}
                     <Link href={isMe ? "/profile" : `/friend?id=${entry.user.id}`} className="lb-competitor col-span-4 flex items-center gap-4 hover:brightness-125">
-                      <div className="lb-avatar overflow-hidden">
-                        {entry.user.avatarUrl ? (
-                          <img src={entry.user.avatarUrl} alt={entry.user.username} className="w-full h-full object-cover" />
-                        ) : (
-                          entry.user.username[0].toUpperCase()
-                        )}
-                      </div>
+                      <Avatar avatarUrl={entry.user.avatarUrl} name={entry.user.username} className="lb-avatar" />
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-headline font-bold text-on-surface text-sm">{entry.user.username}</p>
