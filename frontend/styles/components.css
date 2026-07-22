@@ -513,12 +513,16 @@
   .friend-status-dot.offline { background-color: var(--outline-variant); }
   .friend-status-dot.busy { background-color: #d575ff; }
 
-  .retro-avatar {
+  .retro-avatar.retro-avatar.retro-avatar {
+    --gb-darkest: #14251a;
+    --gb-dark: #324c36;
+    --gb-light: #6f8968;
+    --gb-lightest: #a7b996;
     position: relative;
     overflow: hidden;
     isolation: isolate;
     container-type: inline-size;
-    background: var(--pixel-mustard);
+    background-color: var(--gb-lightest);
   }
 
   .retro-avatar-image {
@@ -543,15 +547,15 @@
     opacity: 0.22;
     mix-blend-mode: multiply;
     background-image:
-      linear-gradient(45deg, var(--pixel-line) 25%, transparent 25%, transparent 75%, var(--pixel-line) 75%),
-      linear-gradient(45deg, var(--pixel-line) 25%, transparent 25%, transparent 75%, var(--pixel-line) 75%);
+      linear-gradient(45deg, var(--gb-darkest) 25%, transparent 25%, transparent 75%, var(--gb-darkest) 75%),
+      linear-gradient(45deg, var(--gb-darkest) 25%, transparent 25%, transparent 75%, var(--gb-darkest) 75%);
     background-position: 0 0, 2px 2px;
     background-size: 4px 4px;
   }
 
   .retro-avatar::after {
     opacity: 0.12;
-    background-image: repeating-linear-gradient(0deg, transparent 0, transparent 3px, var(--pixel-line) 3px, var(--pixel-line) 4px);
+    background-image: repeating-linear-gradient(0deg, transparent 0, transparent 3px, var(--gb-dark) 3px, var(--gb-dark) 4px);
   }
 
   .retro-avatar-fallback {
@@ -559,7 +563,7 @@
     height: 100%;
     display: grid;
     place-items: center;
-    background: var(--pixel-mustard);
+    background: var(--gb-lightest);
   }
 
   .retro-avatar-head {
@@ -567,9 +571,9 @@
     display: block;
     width: 56%;
     aspect-ratio: 1;
-    border: max(2px, 0.08em) solid var(--pixel-line);
-    background: var(--pixel-cream);
-    box-shadow: 0.13em 0.13em 0 var(--pixel-line);
+    border: max(2px, 0.08em) solid var(--gb-darkest);
+    background: var(--gb-light);
+    box-shadow: 0.13em 0.13em 0 var(--gb-darkest);
     font-size: clamp(12px, 20cqi, 28px);
   }
 
@@ -577,7 +581,7 @@
   .retro-avatar-mouth {
     position: absolute;
     display: block;
-    background: var(--pixel-line);
+    background: var(--gb-darkest);
   }
 
   .retro-avatar-eye { top: 28%; width: 13%; height: 18%; }
