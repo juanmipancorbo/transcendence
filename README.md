@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by inthernam, jpancorb, anguil-l, cmarrued, pmorello.*
+*This project has been created as part of the 42 curriculum by intherna, jpancorb, anguil-l, cmarrued, pmorello.*
 
 # ft_transcendence — Reversi
 
