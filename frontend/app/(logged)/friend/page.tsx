@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { friendApi, userApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
 import type { PublicUser } from "@/types";
+import Avatar from "@/components/ui/Avatar";
 
 type RelationStatus = "loading" | "friends" | "request-sent" | "request-received" | "none";
 
@@ -175,21 +176,7 @@ export default function FriendProfilePage() {
               <section className="profile-card">
 
                 {/* Avatar */}
-                <div className="profile-avatar-frame">
-                  {profile.avatarUrl ? (
-                    <img
-                      src={profile.avatarUrl}
-                      alt="Profile picture"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-5xl font-black" style={{ color: "var(--primary)" }}>
-                        {(profile.username ?? "?")[0].toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <Avatar avatarUrl={profile.avatarUrl} name={profile.username ?? "User"} className="profile-avatar-frame" />
 
                 {/* Info */}
                 <div className="flex-grow text-center md:text-left">

@@ -8,6 +8,7 @@ import { useMsg } from "@/hooks/useMsg";
 import { gamesApi, userApi } from "@/lib/api";
 import { BLACK, CompletedGameData, PlayerColor, PublicUser, WHITE } from "@/types";
 import PixelLoader from "@/components/ui/PixelLoader";
+import Avatar from "@/components/ui/Avatar";
 
 export default function CompletedGamePage() {
   const router = useRouter();
@@ -130,13 +131,7 @@ function ResultPlayer({ player, profile, isMe = false }: {
     <aside className="pixel-player-panel player-panel flex flex-col items-center gap-5 p-6">
       <div className="relative">
         <Link href={profileHref} aria-label={`View ${name} profile`}>
-          <div className="pixel-player-avatar w-24 h-24 flex items-center justify-center cursor-pointer">
-            {profile?.avatarUrl ? (
-              <img src={profile.avatarUrl} alt={name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="font-headline font-black text-3xl">{name[0]?.toUpperCase() ?? "?"}</span>
-            )}
-          </div>
+          <Avatar avatarUrl={profile?.avatarUrl} name={name} className="pixel-player-avatar w-24 h-24 cursor-pointer" />
         </Link>
         <Link
           href={profileHref}

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { PublicUser } from "@/types";
 import CurrentGame from "./CurrentGame";
 import { useWs } from "@/hooks/useWs";
+import Avatar from "@/components/ui/Avatar";
 
 interface TopBarProps {
   withSidebar?: boolean;
@@ -130,8 +131,8 @@ export default function TopBar({
               </div>
             )}
           </div>
-          <Link href="/profile" className="w-10 h-10 rounded-full border border-violet-500/30 bg-surface-container-highest flex items-center justify-center font-headline font-bold text-sm text-primary hover:border-violet-400 transition-colors">
-            {user?.username?.[0]?.toUpperCase() ?? "?"}
+          <Link href="/profile" aria-label="View your profile" className="block w-10 h-10 border border-violet-500/30 bg-surface-container-highest hover:border-violet-400 transition-colors">
+            <Avatar avatarUrl={user?.avatarUrl} name={user?.username ?? "User"} className="h-full w-full" />
           </Link>
           <button
             onClick={handleLogout}

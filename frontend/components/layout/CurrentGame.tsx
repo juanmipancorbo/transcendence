@@ -5,6 +5,7 @@ import { useMsg } from "@/hooks/useMsg";
 import { useWs } from "@/hooks/useWs";
 import { gamesApi, userApi } from "@/lib/api";
 import { CompletedGameData, GameData, PublicUser } from "@/types";
+import Avatar from "@/components/ui/Avatar";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -138,13 +139,7 @@ export default function CurrentGame() {
 			title={isEnded ? `View match result vs ${opponentName}` : `Rejoin your match vs ${opponentName}`}
 			className={`current-game-chip ${isEnded ? "ended" : ""}`}
 		>
-			<div className="current-game-avatar">
-				{avatarUrl ? (
-					<img src={avatarUrl} alt={opponentName} className="h-full w-full object-cover" />
-				) : (
-					<span>{opponentName[0]?.toUpperCase() ?? "?"}</span>
-				)}
-			</div>
+			<Avatar avatarUrl={avatarUrl} name={opponentName} className="current-game-avatar" />
 			<div className="current-game-copy">
 				<span><i /> {isEnded ? "Match ended" : "Live match"}</span>
 				<strong>vs {opponentName}</strong>
