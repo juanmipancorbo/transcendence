@@ -22,3 +22,24 @@ export async function updateBio(req: Request<unknown, unknown, UpdateBioReq>, re
 
 	res.status(200).json({ success: true, data: null });
 }
+
+export async function updateAvatar(req: Request, res: Response) {
+	const userId = req.userId;
+	const file = (req as Request & { file?: { filename?: string } }).file;
+
+	if (!userId) {
+		return res.status(401).json({ success: false, data: "User not authenticated" });
+	}
+
+	if (!file?.filename) {
+		return res.status(400).json({ success: false, data: "No image file provided" });
+	}
+
+	try {
+		const avatarUrl = `/uploads/avatars/${file.filename}`;
+		const savedAvatarUrl = await Service.updateAvatar(userId, avatarUrl);
+		return res.status(200).json({ success: true, data: { avatarUrl: savedAvatarUrl } });
+	} catch (e) {
+		return res.status(500).json({ success: false, data: "Unknown error" });
+	}
+}
