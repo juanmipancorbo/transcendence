@@ -13,7 +13,9 @@ import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-uti
 import { chatApi, friendApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
 import PixelLoader from "@/components/ui/PixelLoader";
-import { GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
+import { DuelRequest, GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
+import StackLayout from "@/components/ui/StackLayout";
+import DuelPrompt from "@/components/layout/DuelPrompt";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -33,6 +35,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [pendingFriendAction, setPendingFriendAction] = useState<string | null>(null);
   const [inQueue, setInQueue] = useState(false);
   const [inGame, setInGame] = useState(false);
+  const [duels, setDuels] = useState<DuelRequest[]>([]);
   const previousInGameRef = useRef(false);
   const [handlers, setHandlers] = useState<((p: ByteReader) => void)[]>([]);
 
@@ -128,6 +131,15 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
         loadSocialState();
       }
 
+	  function onDuelReceive(p: ByteReader) {
+        const from = p.readPrefixedUTF();
+		const allowSpectators = p.readBool();
+		const secsLimit = p.readInt32();
+
+		setDuels(prev => [...prev.filter(d => d.from !== from), { from, allowSpectators, secsLimit }]);
+		setTimeout(() => setDuels(prev => prev.filter(d => d.from !== from)), 15000); // Clean after 15 secs
+	  }
+
       function onFriendChatMessage(p: ByteReader) {
         const sender = p.readPrefixedUTF();
         const content = p.readPrefixedUTF();
@@ -154,6 +166,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       handlers[GlobalProtocol.Info] = onInfoMessage;
       handlers[GlobalProtocol.MatchFound] = onMatchFound;
       handlers[GlobalProtocol.FriendReqSend] = onFriendRequest;
+	  handlers[GlobalProtocol.DuelRequest] = onDuelReceive;
       handlers[GlobalProtocol.Chat] = onFriendChatMessage;
 
       socket.handlers = handlers;
@@ -299,6 +312,15 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
               />
             )}
           </main>
+		  <StackLayout>
+            {duels.map(duel => (
+              <DuelPrompt
+                key={duel.from}
+                duel={duel}
+                onDismiss={() => setDuels(prev => prev.filter(d => d.from !== duel.from))}
+              />
+            ))}
+		  </StackLayout>
         </WsContext.Provider>
       </div>
       <Sidebar />

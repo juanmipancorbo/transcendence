@@ -4,9 +4,24 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { friendApi, userApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
+import { useWs } from "@/hooks/useWs";
+import { buildDuelRequest } from "@/lib/ws/stream-utils";
 import type { PublicUser } from "@/types";
 
 type RelationStatus = "loading" | "friends" | "request-sent" | "request-received" | "none";
+
+const TIME_LIMITS: { label: string; secs: number }[] = [
+  { label: "30 sec", secs: 30 },
+  { label: "1 min", secs: 60 },
+  { label: "3 min", secs: 180 },
+  { label: "5 min", secs: 300 },
+  { label: "10 min", secs: 600 },
+  { label: "30 min", secs: 1800 },
+  { label: "1 hour", secs: 3600 },
+  { label: "Infinite", secs: -1 },
+];
+
+const DEFAULT_TIME_LIMIT = 300;
 
 const ERROR_LABELS: Record<string, string> = {
   ALREADY_FRIENDS:    "You're already friends",
@@ -38,6 +53,7 @@ const STATUS_LABEL: Record<PublicUser["status"], string> = {
 export default function FriendProfilePage() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("id");
+  const { socket, inGame } = useWs();
 
   const [profile,  setProfile]  = useState<PublicUser | null>(null);
   const [loading,  setLoading]  = useState(true);
@@ -46,6 +62,9 @@ export default function FriendProfilePage() {
   const [busy,      setBusy]      = useState(false);
   const [errorMsg,  setErrorMsg]  = useState<string | null>(null);
   const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [duelOpen,        setDuelOpen]        = useState(false);
+  const [allowSpectators, setAllowSpectators] = useState(true);
+  const [secsLimit,       setSecsLimit]       = useState(DEFAULT_TIME_LIMIT);
 
   function showError(err: unknown) {
     if (errorTimer.current) clearTimeout(errorTimer.current);
@@ -149,8 +168,15 @@ export default function FriendProfilePage() {
     try {
       await friendApi.removeFriend(token, userId);
       setRelation("none");
+      setDuelOpen(false);
     } catch (err) { showError(err); }
     setBusy(false);
+  }
+
+  function handleSendDuel() {
+    if (!userId || inGame) return;
+    socket.send(buildDuelRequest(userId, allowSpectators, secsLimit));
+    setDuelOpen(false);
   }
 
   const matchesPlayed = profile ? profile.gamesWon + profile.gamesLost : 0;
@@ -237,11 +263,63 @@ export default function FriendProfilePage() {
                       </>
                     )}
                     {relation === "friends" && (
-                      <button onClick={handleRemoveFriend} disabled={busy} className="profile-edit-btn">
-                        Remove Friend
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setDuelOpen(open => !open)}
+                          disabled={busy || inGame}
+                          className="profile-edit-btn"
+                        >
+                          Duel
+                        </button>
+                        <button onClick={handleRemoveFriend} disabled={busy} className="profile-edit-btn">
+                          Remove Friend
+                        </button>
+                      </>
                     )}
                   </div>
+                  {relation === "friends" && duelOpen && (
+                    <div className="duel-setup">
+                      <p className="duel-setup-title">Duel setup</p>
+
+                      <div className="duel-setup-field">
+                        <span>Spectators</span>
+                        <div className="duel-setup-options">
+                          <button
+                            onClick={() => setAllowSpectators(true)}
+                            className={allowSpectators ? "selected" : ""}
+                          >
+                            Allowed
+                          </button>
+                          <button
+                            onClick={() => setAllowSpectators(false)}
+                            className={allowSpectators ? "" : "selected"}
+                          >
+                            Blocked
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="duel-setup-field">
+                        <span>Time per player</span>
+                        <div className="duel-setup-options">
+                          {TIME_LIMITS.map(limit => (
+                            <button
+                              key={limit.secs}
+                              onClick={() => setSecsLimit(limit.secs)}
+                              className={secsLimit === limit.secs ? "selected" : ""}
+                            >
+                              {limit.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="duel-setup-actions">
+                        <button onClick={handleSendDuel} className="duel-setup-send">Send</button>
+                        <button onClick={() => setDuelOpen(false)} className="duel-setup-cancel">Cancel</button>
+                      </div>
+                    </div>
+                  )}
                   {errorMsg && (
                     <p className="text-xs px-3 py-1.5 rounded-lg"
                       style={{ background: "rgba(239,68,68,0.08)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }}>
