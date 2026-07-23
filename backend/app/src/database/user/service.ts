@@ -30,6 +30,20 @@ export async function updateBio(userId: string, bio: string): Promise<boolean> {
 	return Repo.updateBio(userId, bio);
 }
 
+export async function updateAvatar(userId: string, avatarUrl: string): Promise<{
+	avatarUrl: string;
+	previousAvatarUrl?: string;
+}> {
+	const user = await Repo.selectProfile(userId);
+	if (!ensureProfileEditable(user))
+		throw new ApiError("User not found", 404);
+
+	return {
+		avatarUrl: await Repo.updateAvatar(userId, avatarUrl),
+		previousAvatarUrl: user.avatarUrl,
+	};
+}
+
 export async function updateUserGame(userId: string, gameId: string) {
   const user = await Repo.selectProfile(userId);
   if (!user)

@@ -1,5 +1,6 @@
 import express from "express";
 import expressWs from "express-ws";
+import path from "path";
 import { router as routerUser } from "@databaseAccess/user/router";
 import { router as routerAuth } from "@databaseAccess/auth/router";
 import { router as routerFriend } from "@databaseAccess/friend/router";
@@ -22,6 +23,7 @@ const RESET_COLOR = "\x1b[0m";
 const port = Number(process.env.PORT ?? "3000");
 
 app.use(express.json());
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.use((req, res, next) => {
 	res.header("Access-Control-Allow-Origin", "*");
@@ -64,6 +66,7 @@ app.use("/leaderboard", routerLeaderboard);
 app.use("/chats", routerChat);
 app.use("/google", googleAuth);
 app.use("/games", routerGames);
+
 
 // Error Handler (has to be last one)
 app.use(errorHandler);

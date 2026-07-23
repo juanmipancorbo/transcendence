@@ -15,6 +15,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: (code: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -24,18 +25,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refreshUser = async () => {
+
+    const tokens = getTokens();
+    if (!tokens?.accessToken){
+      setUser(null);
+      return;
+    }
+    try {
+      const userData = await authApi.me(tokens.accessToken);
+      setUser(userData);
+    } catch {
+      setTokens(null);
+      setUser(null);
+    }
+  };
   // Initialize from stored tokens on mount
   useEffect(() => {
     const tokens = getTokens();
     if (tokens) {
-      authApi
-        .me(tokens.accessToken)
-        .then(setUser)
-        .catch(() => {
-          setTokens(null);
-          setUser(null);
-        })
-        .finally(() => setIsLoading(false));
+      refreshUser().finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
@@ -101,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		loginGoogle,
         register,
         logout,
+        refreshUser,
       }}
     >
       {children}
