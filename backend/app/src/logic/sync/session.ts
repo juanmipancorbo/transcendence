@@ -1,12 +1,11 @@
 import { randomUUID, UUID } from "crypto";
 import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
-import { getSocksById, Socket } from "./socket";
+import { Socket } from "./socket";
 import { build, buildBlackAbandon, buildBlackDisconnect, buildBlackNoMoves, buildBlackReconnected, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildSpectatorJoin, buildSpectatorLeave, buildWhiteAbandon, buildWhiteDisconnect, buildWhiteNoMoves, buildWhiteReconnected, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
 import { updateUserGame, clearUserGame } from "@databaseAccess/user/service";
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 import { clearTimeout } from "timers";
-import globalHandler from "./handlers/global-handler";
 import { getUnfinishedGames } from "@databaseAccess/game/repository";
 
 export const SESSIONS: Map<UUID, GameSession> = new Map();
@@ -133,9 +132,9 @@ export class GameSession {
 		this.spectators.forEach(spec => spec.conn.forEach(conn => conn.send(buf)));
 	}
 
-	joinGame(conn: Socket): void | Error {
+	joinGame(conn: Socket): void {
 		if (this.state.status === STATUS_FINISHED || this.state.status === STATUS_ABANDONED)
-			return new Error("Game has already ended");
+			throw new Error("Game has already ended");
 		if (this.whitePlayer.id === conn.id) {
 			this.whitePlayer.conn.add(conn);
 			conn.player = this.whitePlayer;
@@ -144,7 +143,7 @@ export class GameSession {
 			conn.player = this.blackPlayer;
 		} else if (this.allowSpectators) {
 			this.joinGameAsSpec(conn);
-		} else return new Error("This game doesn't allow spectators");
+		} else throw Error("This game doesn't allow spectators");
 		conn.send(buildGameState(this, (conn.player as SessionPlayer).player ?? 0));
 	}
 

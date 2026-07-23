@@ -5,6 +5,7 @@ import { GameSession, PositionUpdate } from "./session";
 
 import { Protocol as GameProtocol }  from "./handlers/game-handler";
 import { Protocol as GlobalProtocol, ProtocolCodes } from "./handlers/global-handler";
+import { DuelSettings } from "./duel-utils";
 
 export function build(typeId: number): ByteWriter {
 	return new ByteWriter().writeUint8(typeId);
@@ -42,6 +43,14 @@ export function buildFriendChatMessage(sender: UUID, message: string): BufferSou
 	return build(GlobalProtocol.Chat)
 		.writePrefixedUTF(sender)
 		.writePrefixedUTF(message)
+		.freeze();
+}
+
+export function buildDuelRequest(sender: UUID, settings: DuelSettings) {
+	return build(GlobalProtocol.DuelRequest)
+		.writePrefixedUTF(sender)
+		.writeBool(settings.allowSpectators)
+		.writeInt32(settings.timeLimit)
 		.freeze();
 }
 

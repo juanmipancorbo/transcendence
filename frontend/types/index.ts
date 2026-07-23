@@ -143,6 +143,12 @@ export interface MatchFoundPayload {
   playerColor: PlayerColor;
 }
 
+export interface DuelRequest {
+	from: string,
+	allowSpectators: boolean,
+	secsLimit: number,
+}
+
 // ─── WebSocket protocol (mirrors backend protocol.ts) ────────────────────────
 
 export enum GlobalProtocol {
@@ -155,15 +161,18 @@ export enum GlobalProtocol {
 	Chat = 6,
 	JoinGame = 7,
 	MatchFound = 8,
-	Info = 9,
-	Error = 10,
-	Notification = 11
+	DuelRequest = 9,
+	DuelAccept = 10,
+	Info = 11,
+	Error = 12,
+	Notification = 13
 }
 
 export enum ProtocolCodes {
 	Generic = 0,
 	FriendReqFailed = 1,
-	QueueFailed = 2
+	QueueFailed = 2,
+	DuelRequestFailed = 3,
 }
 
 export enum Protocol {

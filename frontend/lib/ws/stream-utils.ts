@@ -171,6 +171,20 @@ export function buildFriendChat(to: string, message: string): Uint8Array {
 		.freeze();
 }
 
+export function buildDuelRequest(to: string, allowSpectators: boolean, secsLimit: number): Uint8Array {
+	return build(GlobalProtocol.DuelRequest)
+		.writePrefixedUTF(to)
+		.writeBool(allowSpectators)
+		.writeInt32(secsLimit) // Signed: -1 means unlimited
+		.freeze();
+}
+
+export function buildDuelAccept(from: string): Uint8Array {
+	return build(GlobalProtocol.DuelAccept)
+		.writePrefixedUTF(from)
+		.freeze();
+}
+
 export function buildJoinGame(gameId: string): Uint8Array {
 	return build(GlobalProtocol.JoinGame)
 		.writePrefixedUTF(gameId)
