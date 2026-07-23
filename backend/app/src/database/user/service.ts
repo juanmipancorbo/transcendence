@@ -30,6 +30,13 @@ export async function updateBio(userId: string, bio: string): Promise<boolean> {
 	return Repo.updateBio(userId, bio);
 }
 
+export async function updateAvatar(userId: string | undefined, avatarUrl: string): Promise<string> {
+        if (!userId) {
+                throw new ApiError("User id is required", 400);
+        }
+	return Repo.updateAvatar(userId, avatarUrl);
+}
+
 export async function updateUserGame(userId: string, gameId: string) {
   const user = await Repo.selectProfile(userId);
   if (!user)
