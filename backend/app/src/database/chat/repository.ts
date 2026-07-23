@@ -1,6 +1,6 @@
 import { pool } from "@utils/pg-pool";
 import { sql } from "@utils/sql";
-import { ChatMessage } from "@endpoints/chat-response";
+import { ChatMessage, UnreadChat } from "@endpoints/chat-response";
 
 const MESSAGE_DATA = `id, chat_id AS "chatId", sender_id AS "senderId", content, created_at AS "createdAt"`;
 
@@ -45,4 +45,29 @@ export async function selectChatHistory(chatId: string, limit: number, before?: 
 		LIMIT $3
 	`, [chatId, before ?? null, limit]);
 	return (res.rows);
+}
+
+export async function selectUnreadChats(userId: string): Promise<UnreadChat[]> {
+	const res = await pool.query(sql`
+		SELECT
+			CASE WHEN c.person1_id = $1 THEN c.person2_id ELSE c.person1_id END AS "friendId",
+			COUNT(*)::int AS count
+		FROM messages m
+		JOIN chats c ON c.id = m.chat_id
+		WHERE (c.person1_id = $1 OR c.person2_id = $1)
+		  AND m.sender_id <> $1
+		  AND m.read_at IS NULL
+		GROUP BY "friendId"
+	`, [userId]);
+	return res.rows;
+}
+
+export async function markChatRead(chatId: string, senderId: string): Promise<void> {
+	await pool.query(sql`
+		UPDATE messages
+		SET read_at = CURRENT_TIMESTAMP
+		WHERE chat_id = $1
+		  AND sender_id = $2
+		  AND read_at IS NULL
+	`, [chatId, senderId]);
 }

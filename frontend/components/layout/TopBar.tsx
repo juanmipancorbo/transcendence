@@ -14,6 +14,7 @@ interface TopBarProps {
   friendRequests?: PublicUser[];
   friends?: PublicUser[];
   pendingFriendAction?: string | null;
+  unreadChats?: Record<string, number>;
   onAcceptFriend?: (senderId: string) => void;
   onDeclineFriend?: (senderId: string) => void;
   onOpenChat?: (friendId: string) => void;
@@ -24,15 +25,17 @@ export default function TopBar({
   friendRequests = [],
   friends = [],
   pendingFriendAction = null,
+  unreadChats = {},
   onAcceptFriend,
   onDeclineFriend,
   onOpenChat,
 }: TopBarProps) {
   const { user, logout } = useAuth();
-  const { inGame } = useWs();
+  const { inGame, socket } = useWs();
   const router = useRouter();
   const [friendsOpen, setFriendsOpen] = useState(false);
   const friendsRef = useRef<HTMLDivElement>(null);
+  const notificationCount = friendRequests.length + Object.values(unreadChats).reduce((sum, count) => sum + count, 0);
 
   useEffect(() => {
     if (!friendsOpen) return;
@@ -47,6 +50,7 @@ export default function TopBar({
   }, [friendsOpen]);
 
   const handleLogout = async () => {
+    socket.disconnect(1000);
     await logout();
     router.push("/login");
   };
@@ -67,9 +71,9 @@ export default function TopBar({
               className="relative h-10 rounded border border-violet-500/30 bg-surface-container-highest px-4 text-sm font-semibold text-on-surface transition-colors hover:border-violet-400 hover:text-primary"
             >
               Friends
-              {friendRequests.length > 0 && (
+              {notificationCount > 0 && (
                 <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-on-primary">
-                  {friendRequests.length > 9 ? "9+" : friendRequests.length}
+                  {notificationCount > 9 ? "9+" : notificationCount}
                 </span>
               )}
             </button>
@@ -110,6 +114,11 @@ export default function TopBar({
                           <Link href={`/friend?id=${friend.id}`} onClick={() => setFriendsOpen(false)} className="min-w-0 flex-1 truncate text-sm font-semibold text-on-surface hover:text-primary">
                             {friend.username}
                           </Link>
+                          {(unreadChats[friend.id] ?? 0) > 0 && (
+                            <span className="inline-flex min-w-5 items-center justify-center rounded bg-primary px-1.5 py-0.5 text-[9px] font-bold text-on-primary">
+                              {unreadChats[friend.id] > 9 ? "9+" : unreadChats[friend.id]}
+                            </span>
+                          )}
                           <button
                             type="button"
                             disabled={inGame || friend.status === "busy"}

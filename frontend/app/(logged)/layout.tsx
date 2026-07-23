@@ -28,6 +28,8 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const [chats, setChats] = useState<Map<string, Chat>>(new Map());
   const chatsRef = useRef(chats);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const activeChatRef = useRef<Chat | null>(null);
+  const [unreadChats, setUnreadChats] = useState<Record<string, number>>({});
   const [friendRequests, setFriendRequests] = useState<PublicUser[]>([]);
   const [friends, setFriends] = useState<PublicUser[]>([]);
   const [pendingFriendAction, setPendingFriendAction] = useState<string | null>(null);
@@ -41,16 +43,28 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     if (!token) return;
 
     try {
-      const [requests, friendProfiles] = await Promise.all([
+      const [requests, friendProfiles, unread] = await Promise.all([
         friendApi.getIncomingRequests(token),
         friendApi.getProfiles(token),
+        chatApi.getUnread(token),
       ]);
       setFriendRequests(requests);
       setFriends(friendProfiles);
+      setUnreadChats(Object.fromEntries(unread.map(item => [item.friendId, item.count])));
     } catch (err) {
       error(err instanceof Error ? err.message : "Failed to load friends");
     }
   }, [error]);
+
+  const markChatRead = useCallback((friendId: string) => {
+    const token = getTokens()?.accessToken;
+    if (!token) return;
+    setUnreadChats(current => {
+      const { [friendId]: _removed, ...rest } = current;
+      return rest;
+    });
+    chatApi.markRead(token, friendId).catch(() => loadSocialState());
+  }, [loadSocialState]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -65,9 +79,18 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       });
       sock.ondisconnect = () => {
         router.refresh();
-      }
+      };
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+    return () => socket.disconnect(1000);
+  }, [socket]);
+
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -144,6 +167,13 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
               messages: [incoming],
             };
 
+        const currentActive = activeChatRef.current;
+        if (!currentActive || currentActive.friendId === sender) {
+          markChatRead(sender);
+        } else {
+          setUnreadChats(current => ({ ...current, [sender]: (current[sender] ?? 0) + 1 }));
+        }
+
         setChats(prev => new Map(prev).set(sender, updated));
         setActiveChat(active => active?.friendId === sender ? updated : active ?? updated);
       }
@@ -160,7 +190,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 	  setHandlers(handlers);
       // ------- WS Callbacks End -------
     }
-  }, [socket, error, loadSocialState, message, router]);
+  }, [socket, error, loadSocialState, markChatRead, message, router]);
 
   async function respondToFriendRequest(senderId: string, accept: boolean) {
     const token = getTokens()?.accessToken;
@@ -230,6 +260,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
   // ------- Ws Context Functions -------
   function openChat(friendId: string) {
+    markChatRead(friendId);
     const existing = chats.get(friendId);
     if (existing) {
       setActiveChat(existing);
@@ -284,6 +315,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
             withSidebar
             friendRequests={friendRequests}
             friends={friends}
+            unreadChats={unreadChats}
             pendingFriendAction={pendingFriendAction}
             onAcceptFriend={senderId => respondToFriendRequest(senderId, true)}
             onDeclineFriend={senderId => respondToFriendRequest(senderId, false)}
