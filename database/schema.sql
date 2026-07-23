@@ -341,11 +341,13 @@ CREATE TABLE IF NOT EXISTS messages (
     chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read_at TIMESTAMP
 );
 
 -- Paginating a conversation walks messages of one chat newest-first.
 CREATE INDEX IF NOT EXISTS idx_messages_chat_id_created_at ON messages(chat_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages(chat_id, sender_id) WHERE read_at IS NULL;
 
 -- Store a message from sender to receiver in a single round-trip: resolve (or
 -- create) their chat, insert the message, and return the stored row. Lets the

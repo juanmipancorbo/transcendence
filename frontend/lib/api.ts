@@ -1,5 +1,5 @@
 
-import type { User, LeaderboardEntry, PublicUser, ChatMessage, GameData, CompletedGameData } from "@/types";
+import type { User, LeaderboardEntry, PublicUser, ChatMessage, UnreadChat, GameData, CompletedGameData } from "@/types";
 import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
@@ -346,6 +346,22 @@ export const chatApi = {
 				}
 		});
 		return res.data;
+	},
+
+	getUnread: async (accessToken: string): Promise<UnreadChat[]> => {
+		const res = await apiFetch<{ success: boolean, data: UnreadChat[] }>(
+			"/chats/unread", {
+				headers: { "Authorization": `Bearer ${accessToken}` }
+			}
+		);
+		return res.data;
+	},
+
+	markRead: async (accessToken: string, userId: string): Promise<void> => {
+		await apiFetch(`/chats/${userId}/read`, {
+			method: "PATCH",
+			headers: { "Authorization": `Bearer ${accessToken}` }
+		});
 	},
 };
 

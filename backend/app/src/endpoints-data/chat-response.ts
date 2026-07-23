@@ -8,3 +8,8 @@ export interface ChatMessage {
 	content: string,
 	createdAt: Date,
 }
+
+export interface UnreadChat {
+	friendId: UUID,
+	count: number,
+}

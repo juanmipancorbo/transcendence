@@ -1,4 +1,4 @@
-import { ChatMessage } from "@endpoints/chat-response";
+import { ChatMessage, UnreadChat } from "@endpoints/chat-response";
 import * as Repo from "./repository"
 import { ApiError } from "@utils/error";
 
@@ -19,4 +19,17 @@ export async function readChatHistory(userId: string, otherId: string, limit?: n
 	if (!chatId)
 		throw (new ApiError("NOT_FRIENDS", 404));
 	return Repo.selectChatHistory(chatId, limit ?? DEFAULT_LIMIT, before);
+}
+
+export async function readUnreadChats(userId: string): Promise<UnreadChat[]> {
+	return Repo.selectUnreadChats(userId);
+}
+
+export async function markConversationRead(userId: string, otherId: string): Promise<void> {
+	if (userId === otherId)
+		throw (new ApiError("INVALID_CREDENTIAL", 400));
+	const chatId = await Repo.selectChatId(userId, otherId);
+	if (!chatId)
+		throw (new ApiError("NOT_FRIENDS", 404));
+	await Repo.markChatRead(chatId, otherId);
 }

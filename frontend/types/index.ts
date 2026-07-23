@@ -47,6 +47,11 @@ export interface ChatMessage {
   createdAt: string;
 }
 
+export interface UnreadChat {
+  friendId: string;
+  count: number;
+}
+
 export type SChatMessage = Pick<ChatMessage, "senderId" | "content" | "createdAt">;
 
 export interface LeaderboardEntry {
