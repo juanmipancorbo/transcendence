@@ -160,10 +160,18 @@ export default function ProfilePage() {
                 ) : !profileLocked ? (
                   <button onClick={handleEdit} className="profile-edit-btn">Edit Profile</button>
                 ) : null}
-                <label className="profile-edit-btn cursor-pointer">
-                  {avatarUploading ? "Uploading..." : "Change Avatar"}
-                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
-                </label>              
+                {!profileLocked && (
+                  <label className={`profile-edit-btn cursor-pointer ${avatarUploading ? "pointer-events-none opacity-60" : ""}`}>
+                    {avatarUploading ? "Uploading..." : "Change Avatar"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={avatarUploading}
+                      onChange={handleAvatarChange}
+                    />
+                  </label>
+                )}
               </div>
               {avatarError && <p className="mt-3 text-sm text-red-400">{avatarError}</p>}
             </div>

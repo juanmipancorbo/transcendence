@@ -1,7 +1,21 @@
-import { type Response, type Request } from "express";
+import { randomUUID } from "crypto";
+import { mkdir, unlink } from "fs/promises";
+import path from "path";
+import { type NextFunction, type Response, type Request } from "express";
+import sharp from "sharp";
 import * as Service from "./service"
 import type { FullUserReq, ProfileReq, UpdateBioReq } from "@endpoints/users-request";
 import { injectStatus } from "@gameLogic/sync/socket";
+import { ApiError } from "@utils/error";
+
+const avatarDir = path.resolve(process.cwd(), "uploads", "avatars");
+const localAvatarPrefix = "/api/uploads/avatars/";
+const MAX_AVATAR_PIXELS = 4096 * 4096;
+
+async function removeLocalAvatar(avatarUrl?: string) {
+	if (!avatarUrl?.startsWith(localAvatarPrefix)) return;
+	await unlink(path.join(avatarDir, path.basename(avatarUrl))).catch(() => {});
+}
 
 export async function getProfile(req: Request<ProfileReq>, res: Response) {
 	const data = await Service.readProfile(req.params.id);
@@ -23,25 +37,37 @@ export async function updateBio(req: Request<unknown, unknown, UpdateBioReq>, re
 	res.status(200).json({ success: true, data: null });
 }
 
-export async function updateAvatar(req: Request, res: Response) {
+export async function updateAvatar(req: Request, res: Response, next: NextFunction) {
 	const userId = req.userId;
-	const file = (req as Request & { file?: { filename?: string } }).file;
+	const file = req.file;
 
-	if (!userId) {
+	if (!userId)
 		return res.status(401).json({ success: false, data: "User not authenticated" });
-	}
-
-	if (!file?.filename) {
+	if (!file?.buffer)
 		return res.status(400).json({ success: false, data: "No image file provided" });
+
+	await mkdir(avatarDir, { recursive: true });
+	const filename = `${randomUUID()}.webp`;
+	const outputPath = path.join(avatarDir, filename);
+
+	try {
+		await sharp(file.buffer, { limitInputPixels: MAX_AVATAR_PIXELS, failOn: "warning" })
+			.rotate()
+			.resize(512, 512, { fit: "cover", position: "attention" })
+			.webp({ quality: 80, effort: 4 })
+			.toFile(outputPath);
+	} catch {
+		await unlink(outputPath).catch(() => {});
+		return next(new ApiError("Invalid or unsupported image file", 400));
 	}
 
 	try {
-		const avatarUrl = `/api/uploads/avatars/${file.filename}`;
-		const savedAvatarUrl = await Service.updateAvatar(userId, avatarUrl);
-		return res.status(200).json({ success: true, data: { avatarUrl: savedAvatarUrl } });
-	} catch (e) {
-		const message = e instanceof Error ? e.message : "Unknown error";
-		console.error("Avatar upload failed", message);
-		return res.status(500).json({ success: false, data: message });
+		const avatarUrl = `${localAvatarPrefix}${filename}`;
+		const result = await Service.updateAvatar(userId, avatarUrl);
+		await removeLocalAvatar(result.previousAvatarUrl);
+		return res.status(200).json({ success: true, data: { avatarUrl: result.avatarUrl } });
+	} catch (error) {
+		await unlink(outputPath).catch(() => {});
+		return next(error);
 	}
 }
