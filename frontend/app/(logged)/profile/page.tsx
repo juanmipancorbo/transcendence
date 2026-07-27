@@ -7,6 +7,7 @@ import type { PublicUser } from "@/types";
 import { useMsg } from "@/hooks/useMsg";
 import Avatar from "@/components/ui/Avatar";
 import MatchHistory from "@/components/layout/MatchHistory";
+import Achievements from "@/components/layout/Achievements";
 
 export default function ProfilePage() {
   const { user, setUser, refreshUser } = useAuth();
@@ -108,6 +109,7 @@ export default function ProfilePage() {
   }
 
   const displayName   = user?.username ?? "User";
+  const achievementUser = profile ?? user;
   const matchesPlayed = profile ? profile.gamesWon + profile.gamesLost : (user?.gamesWon ?? 0) + (user?.gamesLost ?? 0);
   const victories     = profile?.gamesWon ?? user?.gamesWon ?? 0;
 
@@ -194,6 +196,8 @@ export default function ProfilePage() {
               <div className="profile-stat-label">Victories</div>
             </div>
           </section>
+
+          {achievementUser && <Achievements user={achievementUser} />}
 
           {/* ── Friends bar ───────────────────────────────────────────── */}
           <div className="friends-bar !flex-col !items-stretch">
