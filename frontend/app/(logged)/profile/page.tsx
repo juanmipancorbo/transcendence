@@ -61,9 +61,16 @@ export default function ProfilePage() {
     const nextBio = draftBio.trim();
     try {
       await userApi.updateProfile(user?.id ?? "", { username: draftName, bio: nextBio });
+      await refreshUser();
+      const refreshedProfile = await userApi.getProfile(user?.id ?? "");
       setBio(nextBio);
-      setUser({ ...user!, username: draftName, bio: nextBio });
+      if (user) {
+        setUser({ ...user, username: draftName, bio: nextBio });
+      }
       setProfile(current => current ? { ...current, username: draftName, bio: nextBio } : current);
+      if (refreshedProfile) {
+        setProfile(refreshedProfile);
+      }
       setEditing(false);
       message("Profile updated");
     } catch (err) {
@@ -98,8 +105,15 @@ export default function ProfilePage() {
 
     try {
       const avatarUrl = await userApi.uploadAvatar(file, token);
-      setProfile(prev => prev ? { ...prev, avatarUrl } : prev);
       await refreshUser();
+      const refreshedProfile = await userApi.getProfile(user?.id ?? "");
+      setProfile(prev => prev ? { ...prev, avatarUrl } : prev);
+      if (refreshedProfile) {
+        setProfile(refreshedProfile);
+      }
+      if (user) {
+        setUser({ ...user, avatarUrl });
+      }
     } catch (error) {
       setAvatarError(error instanceof Error ? error.message : "Failed to upload profile picture.");
     } finally {

@@ -9,12 +9,20 @@ import { injectStatus } from "@gameLogic/sync/socket";
 import { ApiError } from "@utils/error";
 
 const avatarDir = path.resolve(process.cwd(), "uploads", "avatars");
-const localAvatarPrefix = "/api/uploads/avatars/";
+const localAvatarPrefix = "/uploads/avatars/";
+const legacyAvatarPrefix = "/api/uploads/avatars/";
 const MAX_AVATAR_PIXELS = 4096 * 4096;
 
+function isLocalAvatarUrl(avatarUrl?: string) {
+	return Boolean(avatarUrl?.startsWith(localAvatarPrefix) || avatarUrl?.startsWith(legacyAvatarPrefix));
+}
+
 async function removeLocalAvatar(avatarUrl?: string) {
-	if (!avatarUrl?.startsWith(localAvatarPrefix)) return;
-	await unlink(path.join(avatarDir, path.basename(avatarUrl))).catch(() => {});
+	if (!isLocalAvatarUrl(avatarUrl)) return;
+	const relativePath = avatarUrl?.startsWith(legacyAvatarPrefix)
+		? avatarUrl.slice(legacyAvatarPrefix.length)
+		: avatarUrl?.slice(localAvatarPrefix.length) ?? "";
+	await unlink(path.join(avatarDir, path.basename(relativePath))).catch(() => {});
 }
 
 export async function getProfile(req: Request<ProfileReq>, res: Response) {
