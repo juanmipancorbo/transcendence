@@ -189,7 +189,8 @@ export enum GlobalProtocol {
 	DuelAccept = 10,
 	Info = 11,
 	Error = 12,
-	Notification = 13
+	Notification = 13,
+	DuelReject = 14
 }
 
 export enum ProtocolCodes {
