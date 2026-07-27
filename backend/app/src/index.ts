@@ -23,7 +23,9 @@ const RESET_COLOR = "\x1b[0m";
 const port = Number(process.env.PORT ?? "3000");
 
 app.use(express.json());
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+const uploadsDir = path.resolve(process.cwd(), "uploads");
+app.use("/uploads", express.static(uploadsDir));
+app.use("/api/uploads", express.static(uploadsDir));
 
 app.use((req, res, next) => {
 	res.header("Access-Control-Allow-Origin", "*");
