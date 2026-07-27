@@ -1258,9 +1258,10 @@
 .review-counter p { margin: 0; color: var(--pixel-mustard); font-size: 10px; font-weight: 900; text-transform: uppercase; }
 .review-progress { display: block; width: 100%; height: 7px; border: 2px solid var(--pixel-line); background: #8a7d69; }
 .review-progress i { display: block; height: 100%; background: var(--pixel-teal); transition: width 120ms linear; }
-@media (max-width: 560px) {
-  .review-controls { flex-wrap: wrap; justify-content: center; }
-  .review-counter { order: -1; width: 100%; }
+@media (max-width: 1535px) {
+  .review-controls { width: 100%; max-width: 34rem; flex-wrap: wrap; justify-content: center; }
+  .review-counter { order: -1; width: 100%; min-width: 0; }
+  .review-btn { flex: 1 1 80px; min-width: 0; }
 }
 
 .match-history {
