@@ -55,7 +55,7 @@ export async function reportFinishedGame(gameId: string, winner: string | null):
   return res.rows[0]?.xp ?? null;
 }
 
-export async function selectCompletedGame(gameId: string, userId: string): Promise<FullGame | null> {
+export async function selectCompletedGame(gameId: string, userId?: string): Promise<FullGame | null> {
 	const res = await pool.query<FullGame>(sql`
 		SELECT
 			g.id,
@@ -79,7 +79,7 @@ export async function selectCompletedGame(gameId: string, userId: string): Promi
 		FROM games g
 		WHERE g.id = $1
 			AND g.finished_at IS NOT NULL
-			AND $2 IN (g.black_player_id, g.white_player_id)
+			AND ($2::uuid IN (g.black_player_id, g.white_player_id) OR g.allow_spectators)
 	`, [gameId, userId]);
 	return res.rows[0] ?? null;
 }

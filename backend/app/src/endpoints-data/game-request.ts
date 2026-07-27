@@ -1,4 +1,4 @@
-import { Winner } from "@gameLogic/game";
+import { Board, Winner } from "@gameLogic/game";
 import z from "zod";
 
 export const GameReqSchema = z.strictObject({
@@ -47,3 +47,7 @@ export type FullGame = {
   created_at: string;
   finished_at: string | null;
 };
+
+export type RecreatedGame = FullGame & {
+	steps: Board[];
+}
