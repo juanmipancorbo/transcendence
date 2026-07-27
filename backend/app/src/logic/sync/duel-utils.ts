@@ -67,4 +67,12 @@ export class DuelRequestsManager {
 
 		return null;
 	}
+
+	rejectRequest(receiver: string, sender: string): boolean {
+		const entry = `${sender},${receiver}`;
+		if (!this.duelSettings.has(entry)) return false;
+
+		this.removeRequest(sender, receiver);
+		return true;
+	}
 }

@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import { UUID } from "node:crypto";
 import * as Service from "./service";
 import { selectCompletedGame } from "./repository";
-import { applyPlayerMove, BLACK, Board, createInitialGameState } from "@gameLogic/game";
+import { applyPlayerMove, BLACK, Board, cloneBoard, createInitialGameState } from "@gameLogic/game";
 
 export async function getGame(req: Request<GameReq>, res: Response) {
 	const gameId = req.params.id;
@@ -30,25 +30,21 @@ export async function getCompletedGame(req: Request<GameReq>, res: Response) {
 }
 
 export async function recreateGame(req: Request<GameReq>, res: Response) {
-	const game = await selectCompletedGame(req.params.id);
+	const game = await selectCompletedGame(req.params.id, req.userId!);
 	if (!game)
 		return res.status(404).json({ success: false, data: "This game does not exist" });
 
 	let state = createInitialGameState(game.black_player_id, game.white_player_id);
-	const steps: Board[] = [];
+	const steps: Board[] = [cloneBoard(state.board)];
 
-	try {
-		steps.push(state.board);
-		for (const move of game.moves) {
-			state = applyPlayerMove(
-				state, move.player === BLACK ? game.black_player_id : game.white_player_id,
-				move.row,
-				move.col
-			);
-			steps.push(state.board);
-		}
-	} catch (e) { console.error(e); }
-	
+	for (const move of game.moves) {
+		state = applyPlayerMove(
+			state, move.player === BLACK ? game.black_player_id : game.white_player_id,
+			move.row,
+			move.col
+		);
+		steps.push(cloneBoard(state.board));
+	}
 
 	const data: RecreatedGame = {
 		...game,

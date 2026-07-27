@@ -7,7 +7,7 @@ import { getCompletedGame, getGame, recreateGame } from "./controller";
 const router = Router();
 
 router.get("/:id/result", authMiddleware, validateParams(GameReqSchema), getCompletedGame);
+router.get("/recreate/:id", authMiddleware, validateParams(GameReqSchema), recreateGame);
 router.get("/:id", validateParams(GameReqSchema), getGame);
-router.get("/recreate/:id", validateParams(GameReqSchema), recreateGame);
 
 export { router };

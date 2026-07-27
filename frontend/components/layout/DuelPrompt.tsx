@@ -1,10 +1,11 @@
 "use client";
 
 import PixelLoader from "@/components/ui/PixelLoader";
+import Avatar from "@/components/ui/Avatar";
 import { useMsg } from "@/hooks/useMsg";
 import { useWs } from "@/hooks/useWs";
 import { userApi } from "@/lib/api";
-import { buildDuelAccept } from "@/lib/ws/stream-utils";
+import { buildDuelAccept, buildDuelReject } from "@/lib/ws/stream-utils";
 import { DuelRequest, PublicUser } from "@/types";
 import { useEffect, useState } from "react";
 
@@ -30,12 +31,17 @@ export default function DuelPrompt({ duel, onDismiss }: Props) {
 		userApi.getProfile(duel.from)
 			.then(setUser)
 			.catch(e => error(e.message));
-	}, []);
+	}, [duel.from, error]);
 
 	function onAccept() {
 		onDismiss();
 		if (inGame) return;
 		socket.send(buildDuelAccept(duel.from));
+	}
+
+	function onReject() {
+		socket.send(buildDuelReject(duel.from));
+		onDismiss();
 	}
 
 	return (
@@ -48,11 +54,7 @@ export default function DuelPrompt({ duel, onDismiss }: Props) {
 			<div className="pixel-duel-body">
 				{user ? (
 					<>
-						<div className="pixel-duel-avatar">
-							{user.avatarUrl
-								? <img src={user.avatarUrl} alt={user.username} className="h-full w-full object-cover" />
-								: <span>{user.username[0]?.toUpperCase() ?? "?"}</span>}
-						</div>
+						<Avatar avatarUrl={user.avatarUrl} name={user.username} className="pixel-duel-avatar" />
 						<div className="pixel-duel-copy">
 							<p><strong>{user.username}</strong> is challenging you to a duel</p>
 							<div className="pixel-duel-tags">
@@ -71,7 +73,7 @@ export default function DuelPrompt({ duel, onDismiss }: Props) {
 
 			<div className="pixel-duel-actions">
 				<button type="button" className="pixel-duel-accept" onClick={onAccept}>Accept</button>
-				<button type="button" className="pixel-duel-reject" onClick={onDismiss}>Reject</button>
+				<button type="button" className="pixel-duel-reject" onClick={onReject}>Reject</button>
 			</div>
 
 			{/* Runs down over the lifetime of the request, so the deadline is visible. */}

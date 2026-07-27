@@ -351,9 +351,12 @@ export const gamesApi = {
 	},
 
 	recreateGame: async (gameId: string): Promise<RecreatedGame> => {
+		const tokens = getTokens();
 		const res = await apiFetch<{ success: boolean, data: RecreatedGame }>(
-			`/games/recreate/${gameId}`,
-			{ method: "GET" }
+			`/games/recreate/${gameId}`, {
+				method: "GET",
+				headers: tokens?.accessToken ? { "Authorization": "Bearer " + tokens.accessToken } : undefined
+			}
 		);
 
 		return res.data;

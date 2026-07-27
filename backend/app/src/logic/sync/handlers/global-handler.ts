@@ -24,7 +24,8 @@ export enum Protocol {
 	DuelAccept = 10,
 	Info = 11,
 	Error = 12,
-	Notification = 13
+	Notification = 13,
+	DuelReject = 14
 }
 
 export enum ProtocolCodes {
@@ -186,6 +187,16 @@ function onDuelAccept(p: ByteReader, conn: Socket) {
 	});
 }
 
+function onDuelReject(p: ByteReader, conn: Socket) {
+	const sender = p.readPrefixedUTF();
+	if (!duelsManager.rejectRequest(conn.id, sender))
+		return conn.send(buildError("No such duel request"));
+
+	conn.send(buildInfoMessage("Duel request declined"));
+	const clients = getSocksById(sender as UUID);
+	clients?.forEach(client => client.send(buildInfoMessage("Your duel request was declined")));
+}
+
 function onChat(p: ByteReader, conn: Socket) {
 	const to = p.readPrefixedUTF();
 	const message = p.readPrefixedUTF();
@@ -247,6 +258,7 @@ callbacks[Protocol.FriendReqReject] = onFriendRequestReject;
 callbacks[Protocol.FriendReqAccept] = onFriendRequestAccept;
 callbacks[Protocol.DuelRequest] = onDuelRequest;
 callbacks[Protocol.DuelAccept] = onDuelAccept;
+callbacks[Protocol.DuelReject] = onDuelReject;
 callbacks[Protocol.Chat] = onChat;
 callbacks[Protocol.JoinGame] = onJoinGame;
 
