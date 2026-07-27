@@ -34,7 +34,7 @@ function getScoreState(board: Board) {
 }
 
 function formatMs(ms: number) {
-	const totalSeconds = Math.floor(ms / 1000);
+	const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
 	const minutes = Math.floor(totalSeconds / 60);
 	const seconds = totalSeconds % 60;
 	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -66,6 +66,7 @@ export function useGame(id: string) {
 	const turnCountRef = useRef(0);
 	const abandonRequestedRef = useRef(false);
 	const finishedByAbandonRef = useRef(false);
+	const activeTimerRef = useRef<PlayerColor | null>(null);
 
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
@@ -223,6 +224,7 @@ export function useGame(id: string) {
 	function onMoveUpdate(p: ByteReader) {
 		window.clearInterval(blackTimer);
 		window.clearInterval(whiteTimer);
+		activeTimerRef.current = null;
 
 		const length = p.readUint32();
 		const updates: { content: CellState; row: number; col: number }[] = [];
@@ -264,11 +266,14 @@ export function useGame(id: string) {
 		let timeLeft = p.readInt32();
 
 		if (timeLeft !== -1) {
+			activeTimerRef.current = BLACK;
 			setBlackTimeLeftFormat(formatMs(timeLeft));
+			const deadline = performance.now() + timeLeft;
 			blackTimer = window.setInterval(() => {
-				timeLeft -= 300;
+				timeLeft = Math.max(0, deadline - performance.now());
 				setBlackTimeLeftFormat(formatMs(timeLeft));
-			}, 300);
+				if (timeLeft === 0) window.clearInterval(blackTimer);
+			}, 100);
 		}
 		const validMoves: Array<[number, number]> = [];
 		const len = p.readUint32();
@@ -287,11 +292,14 @@ export function useGame(id: string) {
 		let timeLeft = p.readInt32();
 
 		if (timeLeft !== -1) {
+			activeTimerRef.current = WHITE;
 			setWhiteTimeLeftFormat(formatMs(timeLeft));
+			const deadline = performance.now() + timeLeft;
 			whiteTimer = window.setInterval(() => {
-				timeLeft -= 300;
+				timeLeft = Math.max(0, deadline - performance.now());
 				setWhiteTimeLeftFormat(formatMs(timeLeft));
-			}, 300);
+				if (timeLeft === 0) window.clearInterval(whiteTimer);
+			}, 100);
 		}
 		const validMoves: Array<[number, number]> = [];
 		const len = p.readUint32();          // backend writes Uint32
@@ -329,7 +337,12 @@ export function useGame(id: string) {
 	}
 
 	function onGameEnd(p: ByteReader) {
+		window.clearInterval(blackTimer);
+		window.clearInterval(whiteTimer);
 		const result = p.readUint8() as PlayerColor | 0;
+		if (activeTimerRef.current === BLACK) setBlackTimeLeftFormat(formatMs(0));
+		if (activeTimerRef.current === WHITE) setWhiteTimeLeftFormat(formatMs(0));
+		activeTimerRef.current = null;
 		if (!finishedByAbandonRef.current) message("Game finished");
 		setUser({ ...user!, currentGame: undefined });
 		socket.handlers = globalHandler;
