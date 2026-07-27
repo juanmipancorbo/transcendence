@@ -1,11 +1,11 @@
 "use client";
 
+import MatchEntry from "@/components/layout/MatchEntry";
 import PixelLoader from "@/components/ui/PixelLoader";
 import { useAuth } from "@/hooks/useAuth";
 import { useMsg } from "@/hooks/useMsg";
 import { userApi } from "@/lib/api";
 import { FullGame } from "@/types"
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react"
 
 const PAGE_SIZE = 20;
@@ -17,7 +17,6 @@ interface MatchHistoryProps extends React.ComponentProps<'div'> {
 export default function MatchHistory({ userId, className, ...rest }: MatchHistoryProps) {
 	const { user } = useAuth();
 	const { error } = useMsg();
-	const router = useRouter();
 	const [games, setGames] = useState<FullGame[]>([]);
 	const [names, setNames] = useState<Map<string, string>>(new Map());
 	const [loading, setLoading] = useState<boolean>(true);
@@ -69,23 +68,17 @@ export default function MatchHistory({ userId, className, ...rest }: MatchHistor
 	}, [final, loading, games, load]);
 
 	return <div className={`match-history ${className ?? ""}`} {...rest}>
-		<h2>Match_History</h2>
+		<h2>Match History</h2>
 
-		{games.length === 0 && !loading && <p className="match-history-empty">No_matches_played_yet</p>}
+		{games.length === 0 && !loading && <p className="match-history-empty">No matches played yet</p>}
 
 		<ul className="match-history-list">
-			{games.map(game => {
-				const outcome = !game.finished_at ? "ongoing"
-					: !game.winner_id ? "draw"
-					: game.winner_id === ownerId ? "win" : "loss";
-
-				return <li key={game.id} className="match-history-row">
-					<span className={`match-history-tag ${outcome}`}>{outcome}</span>
-					<span className="match-history-name">vs {names.get(opponentOf(game)) ?? "Unknown"}</span>
-					<span className="match-history-date">{new Date(game.created_at).toLocaleDateString()}</span>
-					<button type="button" onClick={() => router.push(`/review?gameId=${game.id}`)}>Review</button>
-				</li>;
-			})}
+			{games.map(game => <MatchEntry
+				key={game.id}
+				game={game}
+				ownerId={ownerId}
+				opponent={names.get(opponentOf(game)) ?? "Unknown"}
+			/>)}
 		</ul>
 
 		<div ref={end} className="match-history-foot">
