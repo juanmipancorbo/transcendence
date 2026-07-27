@@ -33,24 +33,36 @@ export const tokenUtils = {
   },
 
   verifyAccessToken(token: string): TokenPayload {
-    try {
-      const payload = jwt.verify(token, JWT_SECRET) as VerifiedTokenPayload;
-      if (payload.tokenType !== 'access') throw new Error();
-      return payload;
-    } catch (error) {
-      throw new Error('Invalid access token');
-    }
-  },
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as VerifiedTokenPayload;
+    if (payload.tokenType !== "access")
+      throw new Error();
+    return {
+      id: payload.id,
+      email: payload.email,
+      username: payload.username,
+    };
+  } catch {
+    throw new Error("Invalid access token");
+  }
+},
 
   verifyRefreshToken(token: string): TokenPayload {
-    try {
-      const payload = jwt.verify(token, JWT_SECRET) as VerifiedTokenPayload;
-      if (payload.tokenType !== 'refresh') throw new Error();
-      return payload;
-    } catch (error) {
-      throw new Error('Invalid refresh token');
-    }
-  },
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as VerifiedTokenPayload;
+
+    if (payload.tokenType !== "refresh")
+      throw new Error();
+
+    return {
+      id: payload.id,
+      email: payload.email,
+      username: payload.username
+    };
+  } catch {
+    throw new Error("Invalid refresh token");
+  }
+},
 
   decodeToken(token: string) {
     return jwt.decode(token);
