@@ -37,15 +37,18 @@ export async function recreateGame(req: Request<GameReq>, res: Response) {
 	let state = createInitialGameState(game.black_player_id, game.white_player_id);
 	const steps: Board[] = [];
 
-	steps.push(state.board);
-	for (const move of game.moves) {
-		state = applyPlayerMove(
-			state, move.player === BLACK ? game.black_player_id : game.white_player_id,
-			move.row,
-			move.row
-		);
+	try {
 		steps.push(state.board);
-	}
+		for (const move of game.moves) {
+			state = applyPlayerMove(
+				state, move.player === BLACK ? game.black_player_id : game.white_player_id,
+				move.row,
+				move.col
+			);
+			steps.push(state.board);
+		}
+	} catch (e) { console.error(e); }
+	
 
 	const data: RecreatedGame = {
 		...game,

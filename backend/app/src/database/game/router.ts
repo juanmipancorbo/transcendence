@@ -8,6 +8,6 @@ const router = Router();
 
 router.get("/:id/result", authMiddleware, validateParams(GameReqSchema), getCompletedGame);
 router.get("/:id", validateParams(GameReqSchema), getGame);
-router.get("/:id/recreate", validateParams(GameReqSchema), recreateGame);
+router.get("/recreate/:id", validateParams(GameReqSchema), recreateGame);
 
 export { router };

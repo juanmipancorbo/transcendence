@@ -1214,6 +1214,55 @@
 .pixel-friend-popover button { color: var(--pixel-ink) !important; background: var(--pixel-cream); }
 .pixel-friend-popover button:hover { background: var(--pixel-mustard); }
 
+/* Game review controls */
+.review-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  border: 3px solid var(--pixel-line);
+  background: var(--pixel-panel);
+  box-shadow: 5px 5px 0 var(--pixel-line);
+}
+.review-btn {
+  min-width: 48px;
+  padding: 8px 12px;
+  border: 3px solid var(--pixel-line);
+  background: var(--pixel-mustard);
+  color: var(--pixel-ink);
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--pixel-line);
+  transition: transform 80ms linear, box-shadow 80ms linear, background 80ms linear;
+}
+.review-btn:hover:not(:disabled) { background: var(--pixel-teal); }
+.review-btn:active:not(:disabled) { transform: translate(4px, 4px); box-shadow: none; }
+.review-btn:disabled { background: #6d6156; color: #a2968a; cursor: not-allowed; box-shadow: 4px 4px 0 rgba(23, 21, 19, 0.4); }
+.review-counter {
+  min-width: 184px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border: 3px solid var(--pixel-line);
+  background: #292420;
+  font-family: "Courier New", ui-monospace, monospace;
+  text-align: center;
+}
+.review-counter strong { color: var(--pixel-cream); font-size: 13px; font-weight: 900; text-transform: uppercase; }
+.review-counter p { margin: 0; color: var(--pixel-mustard); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+.review-progress { display: block; width: 100%; height: 7px; border: 2px solid var(--pixel-line); background: #8a7d69; }
+.review-progress i { display: block; height: 100%; background: var(--pixel-teal); transition: width 120ms linear; }
+@media (max-width: 560px) {
+  .review-controls { flex-wrap: wrap; justify-content: center; }
+  .review-counter { order: -1; width: 100%; }
+}
+
 .match-history {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,5 @@
 
-import type { User, LeaderboardEntry, PublicUser, ChatMessage, UnreadChat, GameData, CompletedGameData, FullGame } from "@/types";
+import type { User, LeaderboardEntry, PublicUser, ChatMessage, UnreadChat, GameData, CompletedGameData, FullGame, RecreatedGame } from "@/types";
 import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
@@ -347,6 +347,15 @@ export const gamesApi = {
 				headers: tokens?.accessToken ? { "Authorization": "Bearer " + tokens.accessToken } : undefined
 			}
 		);
+		return res.data;
+	},
+
+	recreateGame: async (gameId: string): Promise<RecreatedGame> => {
+		const res = await apiFetch<{ success: boolean, data: RecreatedGame }>(
+			`/games/recreate/${gameId}`,
+			{ method: "GET" }
+		);
+
 		return res.data;
 	}
 };

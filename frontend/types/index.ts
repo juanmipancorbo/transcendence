@@ -147,6 +147,10 @@ export type FullGame = {
 	finished_at: string | null;
 };
 
+export type RecreatedGame = FullGame & {
+	steps: Board[];
+}
+
 // ─── Lobby / Matchmaking ─────────────────────────────────────────────────────
 
 export type GameMode = "ranked" | "casual" | "private";
