@@ -6,6 +6,7 @@ import { friendApi, userApi } from "@/lib/api";
 import type { PublicUser } from "@/types";
 import { useMsg } from "@/hooks/useMsg";
 import Avatar from "@/components/ui/Avatar";
+import MatchHistory from "@/components/layout/MatchHistory";
 
 export default function ProfilePage() {
   const { user, setUser, refreshUser } = useAuth();
@@ -222,6 +223,7 @@ export default function ProfilePage() {
               </button>
             )}
           </div>
+		  <MatchHistory />
 
         </div>
       </main>

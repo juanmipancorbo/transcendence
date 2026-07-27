@@ -8,6 +8,7 @@ import { useWs } from "@/hooks/useWs";
 import { buildDuelRequest } from "@/lib/ws/stream-utils";
 import type { PublicUser } from "@/types";
 import Avatar from "@/components/ui/Avatar";
+import MatchHistory from "@/components/layout/MatchHistory";
 
 type RelationStatus = "loading" | "friends" | "request-sent" | "request-received" | "none";
 
@@ -333,6 +334,9 @@ export default function FriendProfilePage() {
                   <div className="profile-stat-label">Victories</div>
                 </div>
               </section>
+			  <section>
+                <MatchHistory userId={profile.id} />
+			  </section>
             </>
           )}
 

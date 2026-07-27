@@ -44,6 +44,6 @@ export type FullGame = {
   allow_spectators: boolean;
   moves: Move[];
   winner_id: string | null;
-  created_at: string | null;
+  created_at: string;
   finished_at: string | null;
 };

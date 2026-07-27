@@ -1,5 +1,5 @@
 
-import type { User, LeaderboardEntry, PublicUser, ChatMessage, UnreadChat, GameData, CompletedGameData } from "@/types";
+import type { User, LeaderboardEntry, PublicUser, ChatMessage, UnreadChat, GameData, CompletedGameData, FullGame } from "@/types";
 import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
@@ -154,6 +154,32 @@ export const userApi = {
   getProfile: async (userId: string): Promise<PublicUser> => {
     const res = await apiFetch<{ success: boolean; data: PublicUser }>(`/users/profile/${userId}`);
     return res.data;
+  },
+
+  getMatchHistory: async (limit: number, before?: Date): Promise<FullGame[]> => {
+    const tokens = getTokens();
+    const headers = tokens?.accessToken ? { "Authorization": `Bearer ${tokens.accessToken}` } : undefined;
+	const params = new URLSearchParams({ limit: String(limit) });
+	if (before) params.set("before", before.toISOString());
+
+	const res = await apiFetch<{ success: boolean, data: FullGame[] }>(
+		`/users/match-history?${params}`,
+		{ method: "GET", headers },
+	);
+
+	return res.data;
+  },
+
+  getPublicMatchHistory: async (userId: string, limit: number, before?: Date): Promise<FullGame[]> => {
+	const params = new URLSearchParams({ limit: String(limit) });
+	if (before) params.set("before", before.toISOString());
+
+	const res = await apiFetch<{ success: boolean, data: FullGame[] }>(
+		`/users/match-history/${userId}?${params}`,
+		{ method: "GET" },
+	);
+
+	return res.data;
   },
 
   updateProfile: async (_userId: string, data: Partial<User>): Promise<boolean> => {

@@ -9,7 +9,6 @@ const router = Router();
 // Every chat action is scoped to the authenticated user.
 router.use(authMiddleware);
 
-
 router.get("/unread", getUnreadChats);
 
 router.patch("/:userId/read",

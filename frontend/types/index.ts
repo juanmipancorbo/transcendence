@@ -127,6 +127,26 @@ export type CompletedGameData = {
   finishedAt: string;
 };
 
+export type Move = {
+	row: number;
+	col: number;
+	player: number;
+};
+
+export type FullGame = {
+	id: string;
+	white_player_id: string;
+	black_player_id: string;
+	time_left_white: number;
+	time_left_black: number;
+	friendly: boolean;
+	allow_spectators: boolean;
+	moves: Move[];
+	winner_id: string | null;
+	created_at: string;
+	finished_at: string | null;
+};
+
 // ─── Lobby / Matchmaking ─────────────────────────────────────────────────────
 
 export type GameMode = "ranked" | "casual" | "private";
