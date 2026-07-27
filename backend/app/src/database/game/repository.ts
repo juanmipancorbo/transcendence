@@ -61,8 +61,13 @@ export async function selectCompletedGame(gameId: string, userId: string): Promi
 			g.id,
 			g.black_player_id,
 			g.white_player_id,
+			g.time_left_white,
+			g.time_left_black,
+			g.friendly,
+			g.allow_spectators,
 			g.winner_id,
-			COALESCE(g.finished_at, g.created_at) AS finished_at,
+			g.created_at,
+			g.finished_at,
 			COALESCE(
 				(SELECT json_agg(
 					json_build_object('row', m.row, 'col', m.col, 'player', m.player)
@@ -73,7 +78,7 @@ export async function selectCompletedGame(gameId: string, userId: string): Promi
 			) AS moves
 		FROM games g
 		WHERE g.id = $1
-			AND (g.finished_at IS NOT NULL OR g.winner_id IS NOT NULL)
+			AND g.finished_at IS NOT NULL
 			AND $2 IN (g.black_player_id, g.white_player_id)
 	`, [gameId, userId]);
 	return res.rows[0] ?? null;

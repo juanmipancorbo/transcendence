@@ -23,6 +23,22 @@ export async function getProfile(req: Request<ProfileReq>, res: Response) {
 	res.status(200).json({ success: true, data});
 }
 
+export async function getMatchHistory(req: Request, res: Response) {
+	const before = req.query.before ? new Date(req.query.before as string) : new Date();
+	const limit = req.query.limit ? Number(req.query.limit) : 20;
+	const data = await Service.getMatchHistory(req.userId!, limit, before);
+
+	res.status(200).json({ success: true, data });
+}
+
+export async function getPublicMatchHistory(req: Request<ProfileReq>, res: Response) {
+	const before = req.query.before ? new Date(req.query.before as string) : new Date();
+	const limit = req.query.limit ? Number(req.query.limit) : 20;
+	const data = await Service.getPublicMatchHistory(req.params.id, limit, before);
+
+	res.status(200).json({ success: true, data });
+}
+
 export async function updateUsername(req: Request<unknown, unknown, FullUserReq>, res: Response) {
 	if (!(await Service.updateUsername(req.userId!, req.body.username)))
 		return res.status(404).json({ success: false, data: "User likely doesn't exist" });

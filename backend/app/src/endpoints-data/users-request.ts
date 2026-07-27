@@ -7,6 +7,13 @@ export const ProfileReqSchema = z.strictObject({
 
 export type ProfileReq = z.infer<typeof ProfileReqSchema>;
 
+export const PageReqSchema = z.strictObject({
+	limit: z.coerce.number().int().min(1).max(100).default(20),
+	before: z.coerce.date().optional(),
+});
+
+export type PageReq = z.infer<typeof PageReqSchema>;
+
 export const FullUserReqSchema = z.strictObject({
   username: z.string()
     .min(3, vError.tooShort)

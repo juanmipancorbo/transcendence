@@ -1,8 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express"
 import multer, { type FileFilterCallback } from "multer";
-import { getProfile, updateAvatar, updateBio, updateUsername } from "./controller";
+import { getMatchHistory, getProfile, getPublicMatchHistory, updateAvatar, updateBio, updateUsername } from "./controller";
 import * as EPSchema from "@endpoints/users-request"
-import { validateBody, validateParams } from "@utils/validation-middelwares";
+import { validateBody, validateParams, validateQuery } from "@utils/validation-middelwares";
 import { authMiddleware } from "../../middleware/auth-middleware";
 
 const router = Router();
@@ -23,6 +23,8 @@ const upload = multer({
 
 // Profile routes
 router.get("/profile/:id", validateParams(EPSchema.ProfileReqSchema), getProfile);
+router.get("/match-history", authMiddleware, validateQuery(EPSchema.PageReqSchema), getMatchHistory);
+router.get("/match-history/:id", validateParams(EPSchema.ProfileReqSchema), validateQuery(EPSchema.PageReqSchema), getPublicMatchHistory);
 router.patch("/username", authMiddleware, validateBody(EPSchema.FullUserReqSchema), updateUsername);
 router.patch("/bio", authMiddleware, validateBody(EPSchema.UpdateBioReqSchema), updateBio);
 router.post("/avatar", authMiddleware, (req: Request, res: Response, next: NextFunction) => {

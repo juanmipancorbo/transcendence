@@ -1,6 +1,7 @@
 import { pool } from "@utils/pg-pool"
 import { sql } from "@utils/sql"
 import { PublicUser, FullUser } from "@endpoints/users-response" 
+import { FullGame } from "@endpoints/game-request";
 
 const PROFILE_DATA = `
   id,
@@ -76,4 +77,68 @@ export async function getUserCurrentGame(userId: string): Promise<string | null>
 		SELECT current_game FROM users WHERE id = $1
 	`, [userId]);
 	return res.rows[0]?.current_game ?? null;
+}
+
+export async function getMatchHistory(userId: string, limit: number, before: Date): Promise<FullGame[]> {
+	const sanitized = Math.min(Math.max(Math.trunc(limit), 1), 100);
+	const res = await pool.query(sql`
+		SELECT
+			g.id,
+			g.black_player_id,
+			g.white_player_id,
+			g.time_left_white,
+			g.time_left_black,
+			g.friendly,
+			g.allow_spectators,
+			g.winner_id,
+			g.created_at,
+			g.finished_at,
+			COALESCE(
+				(SELECT json_agg(
+					json_build_object('row', m.row, 'col', m.col, 'player', m.player)
+					ORDER BY ord
+				)
+				FROM unnest(g.moves) WITH ORDINALITY AS m(row, col, player, ord)),
+				'[]'
+			) AS moves
+		FROM games g
+		WHERE $1 IN (g.black_player_id, g.white_player_id)
+			AND g.created_at < $3
+		ORDER BY g.created_at DESC
+		LIMIT $2
+	`, [userId, sanitized, before]);
+
+	return res.rows;
+}
+
+export async function getPublicMatchHistory(userId: string, limit: number, before: Date): Promise<FullGame[]> {
+	const sanitized = Math.min(Math.max(Math.trunc(limit), 1), 100);
+	const res = await pool.query(sql`
+		SELECT
+			g.id,
+			g.black_player_id,
+			g.white_player_id,
+			g.time_left_white,
+			g.time_left_black,
+			g.friendly,
+			g.allow_spectators,
+			g.winner_id,
+			g.created_at,
+			g.finished_at,
+			COALESCE(
+				(SELECT json_agg(
+					json_build_object('row', m.row, 'col', m.col, 'player', m.player)
+					ORDER BY ord
+				)
+				FROM unnest(g.moves) WITH ORDINALITY AS m(row, col, player, ord)),
+				'[]'
+			) AS moves
+		FROM games g
+		WHERE $1 IN (g.black_player_id, g.white_player_id)
+			AND g.allow_spectators AND g.created_at < $3
+		ORDER BY g.created_at DESC
+		LIMIT $2
+	`, [userId, sanitized, before]);
+
+	return res.rows;
 }

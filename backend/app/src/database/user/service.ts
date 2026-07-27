@@ -1,6 +1,7 @@
 import { PublicUser } from "@endpoints/users-response";
 import * as Repo from "./repository"
 import { ApiError } from "@utils/error";
+import { FullGame } from "@endpoints/game-request";
 
 export async function readProfile(userId: string): Promise<PublicUser>
 {
@@ -53,4 +54,12 @@ export async function updateUserGame(userId: string, gameId: string) {
 
 export async function clearUserGame(userId: string) {
   await Repo.updateUserGame(userId, null);
+}
+
+export async function getMatchHistory(userId: string, limit: number, before: Date): Promise<FullGame[]> {
+	return Repo.getMatchHistory(userId, limit, before);
+}
+
+export async function getPublicMatchHistory(userId: string, limit: number, before: Date): Promise<FullGame[]> {
+	return Repo.getPublicMatchHistory(userId, limit, before);
 }
