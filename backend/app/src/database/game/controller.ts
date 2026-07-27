@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import { UUID } from "node:crypto";
 import * as Service from "./service";
 import { selectCompletedGame } from "./repository";
-import { applyPlayerMove, BLACK, Board, cloneBoard, createInitialGameState } from "@gameLogic/game";
+import { applyPlayerMove, BLACK, Board, createInitialGameState } from "@gameLogic/game";
 
 export async function getGame(req: Request<GameReq>, res: Response) {
 	const gameId = req.params.id;
@@ -35,7 +35,7 @@ export async function recreateGame(req: Request<GameReq>, res: Response) {
 		return res.status(404).json({ success: false, data: "This game does not exist" });
 
 	let state = createInitialGameState(game.black_player_id, game.white_player_id);
-	const steps: Board[] = [cloneBoard(state.board)];
+	const steps: Board[] = [state.board];
 
 	for (const move of game.moves) {
 		state = applyPlayerMove(
@@ -43,7 +43,7 @@ export async function recreateGame(req: Request<GameReq>, res: Response) {
 			move.row,
 			move.col
 		);
-		steps.push(cloneBoard(state.board));
+		steps.push(state.board);
 	}
 
 	const data: RecreatedGame = {
