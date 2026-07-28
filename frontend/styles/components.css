@@ -873,6 +873,37 @@
   .retro-hero h1 { font-size: 46px; }
   .retro-queue-actions { flex-direction: column; }
   .retro-stats { grid-template-columns: repeat(2, 1fr); }
+
+  .retro-shell > div:first-child { margin-left: 96px; }
+  .retro-shell > aside {
+    top: 0;
+    bottom: auto;
+    width: 96px;
+    height: 100vh;
+    padding: 24px 0;
+    border-top: 0;
+    border-right: 4px solid var(--pixel-line);
+  }
+  .retro-shell > aside nav {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .retro-shell > aside nav a {
+    min-width: 0;
+    flex: none;
+    justify-content: center;
+    padding: 14px 6px;
+    font-size: 10px;
+  }
+  .retro-shell > aside > div { display: none; }
+  .pixel-chat {
+    right: 12px;
+    bottom: 12px;
+    left: auto;
+    width: min(320px, calc(100vw - 120px));
+  }
+  .pixel-chat-composer input { min-width: 0; }
 }
 
 

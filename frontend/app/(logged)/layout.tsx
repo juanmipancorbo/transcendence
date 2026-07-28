@@ -338,6 +338,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
             {children}
             {activeChat && (
               <ChatWindow
+                key={activeChat.friendId}
                 chat={activeChat}
                 friendProfile={friends.find(friend => friend.id === activeChat.friendId)}
                 onClose={closeChat}
