@@ -27,7 +27,7 @@ export default function LeaderboardPage() {
 
   return (
     <>
-      <main className="pixel-rankings px-12 py-10 max-w-screen-2xl">
+      <main className="pixel-rankings mx-auto w-full max-w-screen-2xl px-12 py-10">
 
         {/* Header */}
         <div className="pixel-page-heading mb-12 flex items-end gap-6">
