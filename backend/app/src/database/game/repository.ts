@@ -44,13 +44,7 @@ export async function addGameMovement(gameId: string, userId: string, row: numbe
 export async function reportFinishedGame(gameId: string, winner: string | null): Promise<number | null>
 {
   const res = await pool.query(sql`
-	WITH report AS MATERIALIZED (
-		SELECT report_game($1, $2) AS xp
-	)
-	UPDATE games
-		SET finished_at = COALESCE(finished_at, CURRENT_TIMESTAMP)
-		WHERE id = $1
-	RETURNING (SELECT xp FROM report) AS xp
+	SELECT report_game($1, $2) AS xp
   `, [gameId, winner]);
   return res.rows[0]?.xp ?? null;
 }

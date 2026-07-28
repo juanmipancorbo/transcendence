@@ -9,9 +9,9 @@ type AchievementDefinition = {
 };
 
 const ACHIEVEMENTS: AchievementDefinition[] = [
-  { id: "first-match", title: "First_Match", description: "Complete your first match", target: 1, value: user => user.gamesWon + user.gamesLost },
+  { id: "first-match", title: "First_Match", description: "Complete your first match", target: 1, value: user => user.gamesPlayed },
   { id: "first-win", title: "First_Win", description: "Win your first match", target: 1, value: user => user.gamesWon },
-  { id: "challenger", title: "Challenger", description: "Complete 10 matches", target: 10, value: user => user.gamesWon + user.gamesLost },
+  { id: "challenger", title: "Challenger", description: "Complete 10 matches", target: 10, value: user => user.gamesPlayed },
   { id: "tactician", title: "Tactician", description: "Win 5 matches", target: 5, value: user => user.gamesWon },
   { id: "rising-star", title: "Rising_Star", description: "Reach level 5", target: 5, value: user => user.level },
 ];

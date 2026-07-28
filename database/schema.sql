@@ -112,11 +112,11 @@ EXECUTE FUNCTION trg_update_level_from_xp();
 
 -- Report the outcome of a game.
 -- Player numbers stored in moves[].player follow logic/game.ts: BLACK = 1, WHITE = 2.
+-- Count every completed game for both players and clear their current_game.
 -- For a ranked game with a winner: award the winner 85 + (2 * moves they made) xp,
--- bump games_won/games_lost, set winner_id and clear both players' current_game,
--- and return the winner's new xp.
--- For a friendly game (or a draw): only set winner_id and clear current_game,
--- skipping all xp/stat updates, and return NULL.
+-- bump games_won/games_lost and return the winner's new xp.
+-- Friendly games and draws skip ranked xp/win/loss updates and return NULL.
+-- Locking the game row makes repeated or concurrent finish reports harmless.
 -- If anything goes wrong, return the winner's current (unchanged) xp instead of
 -- raising.
 CREATE OR REPLACE FUNCTION report_game(game_id UUID, winner UUID)
@@ -129,20 +129,28 @@ DECLARE
 	loser        UUID;
 	winner_moves INT;
 	new_xp       INT;
+	finished      TIMESTAMPTZ;
 BEGIN
-	SELECT white_player_id, black_player_id, friendly, moves
-		INTO white_id, black_id, is_friendly, game_moves
+	SELECT white_player_id, black_player_id, friendly, moves, finished_at
+		INTO white_id, black_id, is_friendly, game_moves, finished
 		FROM games
-		WHERE id = game_id;
+		WHERE id = game_id
+		FOR UPDATE;
 
 	IF NOT FOUND THEN
 		RAISE EXCEPTION 'game % not found', game_id;
+	END IF;
+	IF finished IS NOT NULL THEN
+		RETURN NULL;
 	END IF;
 
 	UPDATE games
 		SET winner_id = winner, finished_at = CURRENT_TIMESTAMP
 		WHERE id = game_id;
-	UPDATE users SET current_game = NULL WHERE id IN (white_id, black_id);
+	UPDATE users
+		SET current_game = NULL,
+		    games_played = games_played + 1
+		WHERE id IN (white_id, black_id);
 
 	IF is_friendly OR winner IS NULL THEN
 		RETURN NULL;
