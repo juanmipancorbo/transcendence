@@ -144,7 +144,14 @@ export class GameSession {
 		} else if (this.allowSpectators) {
 			this.joinGameAsSpec(conn);
 		} else throw Error("This game doesn't allow spectators");
-		conn.send(buildGameState(this, (conn.player as SessionPlayer).player ?? 0));
+		const sessionPlayer = conn.player as SessionPlayer;
+		conn.send(buildGameState(this, sessionPlayer.player ?? 0));
+		const isSpectator = this.spectators.has(sessionPlayer);
+		for (const message of this.messages) {
+			const fromPlayer = message.source === this.blackPlayer.id || message.source === this.whitePlayer.id;
+			if (isSpectator || fromPlayer)
+				conn.send(buildChatMessage(message.source, message.content));
+		}
 	}
 
 	private clearSessionTimers() {
@@ -223,6 +230,9 @@ export class GameSession {
 	}
 
 	chat(sender: SessionPlayer, msg: string) {
+		this.messages.push({ source: sender.id, content: msg });
+		if (this.messages.length > 100) this.messages.shift();
+
 		const output = buildChatMessage(sender.id, msg);
 		this.spectators.forEach(s => s.send(output));
 

@@ -4,7 +4,7 @@ import { CloseCodes, getSocksById, Socket } from "../socket";
 import { createGameSession, SESSIONS } from "../session";
 import gameHandler from "./game-handler";
 import { buildDuelRequest, buildError, buildFriendChatMessage, buildFriendRequest, buildGameFatalError, buildInfoMessage, buildMatchFound } from "../protocol-utils";
-import { areFriends, declineFriendRequest, sendFriendRequest } from "@databaseAccess/friend/service";
+import { acceptFriendRequest, areFriends, declineFriendRequest, sendFriendRequest } from "@databaseAccess/friend/service";
 import { UUID } from "node:crypto";
 import { addChatMessage } from "@databaseAccess/chat/service";
 import { getUserCurrentGame } from "@databaseAccess/user/repository";
@@ -108,7 +108,7 @@ function onFriendRequestReject(p: ByteReader, conn: Socket) {
 
 function onFriendRequestAccept(p: ByteReader, conn: Socket) {
 	const sender = p.readPrefixedUTF();
-	declineFriendRequest(conn.id, sender).then(() => {
+	acceptFriendRequest(conn.id, sender).then(() => {
 		conn.send(buildInfoMessage("Friend request accepted"));
 
 		const online = getSocksById(sender as UUID);

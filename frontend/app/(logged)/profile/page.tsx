@@ -178,16 +178,16 @@ export default function ProfilePage() {
               <div className="flex justify-center md:justify-start gap-3 flex-wrap">
                 {editing ? (
                   <>
-                    <button onClick={handleSave} className="btn-primary" style={{ width: "auto", padding: "0.75rem 2rem" }}>
+                    <button type="button" onClick={handleSave} className="profile-edit-btn">
                       Save
                     </button>
-                    <button onClick={handleCancel} className="profile-edit-btn">Cancel</button>
+                    <button type="button" onClick={handleCancel} className="profile-edit-btn danger">Cancel</button>
                   </>
                 ) : !profileLocked ? (
-                  <button onClick={handleEdit} className="profile-edit-btn">Edit Profile</button>
+                  <button type="button" onClick={handleEdit} className="profile-edit-btn">Edit Profile</button>
                 ) : null}
                 {!profileLocked && (
-                  <label className={`profile-edit-btn cursor-pointer ${avatarUploading ? "pointer-events-none opacity-60" : ""}`}>
+                  <label className={`profile-edit-btn secondary cursor-pointer ${avatarUploading ? "pointer-events-none opacity-60" : ""}`}>
                     {avatarUploading ? "Uploading..." : "Change Avatar"}
                     <input
                       type="file"
