@@ -13,14 +13,20 @@ export default function ProfilePage() {
   const { user, setUser, refreshUser } = useAuth();
   const { message, error } = useMsg();
   const [profile, setProfile] = useState<PublicUser | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [friends, setFriends] = useState<PublicUser[]>([]);
   const [showAllFriends, setShowAllFriends] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.id)
-      userApi.getProfile(user.id).then(setProfile).catch(() => {});
+    if (!user?.id) return;
+
+    setProfileLoading(true);
+    userApi.getProfile(user.id)
+      .then(setProfile)
+      .catch(() => {})
+      .finally(() => setProfileLoading(false));
   }, [user?.id]);
 
   useEffect(() => {
@@ -123,9 +129,8 @@ export default function ProfilePage() {
   }
 
   const displayName   = user?.username ?? "User";
-  const achievementUser = profile ?? user;
-  const matchesPlayed = profile ? profile.gamesWon + profile.gamesLost : (user?.gamesWon ?? 0) + (user?.gamesLost ?? 0);
-  const victories     = profile?.gamesWon ?? user?.gamesWon ?? 0;
+  const matchesPlayed = profile?.gamesPlayed;
+  const victories     = profile?.gamesWon;
 
   return (
     <>
@@ -163,7 +168,11 @@ export default function ProfilePage() {
                   placeholder="Short bio…"
                 />
               ) : (
-                <p className="profile-bio">{bio || <span className="text-on-surface-variant/40 italic">No bio yet.</span>}</p>
+                <p className="profile-bio">
+                  {profileLoading
+                    ? <span className="invisible" aria-hidden="true">Loading profile</span>
+                    : bio || <span className="text-on-surface-variant/40 italic">No bio yet.</span>}
+                </p>
               )}
 
               <div className="flex justify-center md:justify-start gap-3 flex-wrap">
@@ -198,20 +207,20 @@ export default function ProfilePage() {
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="profile-stat-card">
               <div className="profile-stat-value" style={{ color: "var(--primary)" }}>
-                {matchesPlayed}
+                {matchesPlayed ?? "--"}
               </div>
               <div className="profile-stat-label">Matches_Played</div>
             </div>
 
             <div className="profile-stat-card secondary">
               <div className="profile-stat-value" style={{ color: "var(--secondary)" }}>
-                {victories}
+                {victories ?? "--"}
               </div>
               <div className="profile-stat-label">Victories</div>
             </div>
           </section>
 
-          {achievementUser && <Achievements user={achievementUser} />}
+          {profile && <Achievements user={profile} />}
 
           {/* ── Friends bar ───────────────────────────────────────────── */}
           <div className="friends-bar !flex-col !items-stretch">

@@ -182,7 +182,7 @@ export default function FriendProfilePage() {
     setDuelOpen(false);
   }
 
-  const matchesPlayed = profile ? profile.gamesWon + profile.gamesLost : 0;
+  const matchesPlayed = profile?.gamesPlayed ?? 0;
   const victories     = profile?.gamesWon ?? 0;
 
   return (
