@@ -12,6 +12,44 @@ type AuthPayload = {
   user: Partial<User>;
 };
 
+let refreshPromise: Promise<string | null> | null = null;
+
+function accessTokenExpiresSoon(token: string): boolean {
+  try {
+    const encoded = token.split(".")[1];
+    const padded = encoded.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(encoded.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(padded)) as { exp?: number };
+    return typeof payload.exp === "number" && payload.exp * 1000 <= Date.now() + 30_000;
+  } catch {
+    return false;
+  }
+}
+
+function refreshStoredAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const tokens = getTokens();
+    if (!tokens?.refreshToken) return null;
+
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+    });
+    if (!response.ok) return null;
+
+    const body = await response.json();
+    const accessToken = body?.data?.accessToken;
+    if (typeof accessToken !== "string") return null;
+
+    setTokens({ accessToken, refreshToken: tokens.refreshToken });
+    return accessToken;
+  })().catch(() => null).finally(() => { refreshPromise = null; });
+
+  return refreshPromise;
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false): Promise<T> {
   const headers: Record<string, string> = {};
 
@@ -25,29 +63,27 @@ async function apiFetch<T>(path: string, options?: RequestInit, _isRetry = false
     }
   }
 
+  const authorizationKey = Object.keys(headers).find(key => key.toLowerCase() === "authorization");
+  if (authorizationKey) {
+    const tokens = getTokens();
+    let accessToken = tokens?.accessToken;
+    if (accessToken && tokens?.refreshToken && accessTokenExpiresSoon(accessToken))
+      accessToken = await refreshStoredAccessToken() ?? accessToken;
+    if (accessToken) headers[authorizationKey] = `Bearer ${accessToken}`;
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers,
   });
 
   if (res.status === 401 && !_isRetry) {
-    const tokens = getTokens();
-    if (tokens?.refreshToken) {
-      try {
-        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-        });
-        if (refreshRes.ok) {
-          const body = await refreshRes.json();
-          const newAccessToken: string = body.data.accessToken;
-          setTokens({ accessToken: newAccessToken, refreshToken: tokens.refreshToken });
-          const headers = { ...(options?.headers as Record<string, string> ?? {}) };
-          if (headers["Authorization"]) headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return apiFetch<T>(path, { ...options, headers }, true);
-        }
-      } catch { /* fall through to original 401 error */ }
+    const newAccessToken = await refreshStoredAccessToken();
+    if (newAccessToken) {
+      const retryHeaders = { ...(options?.headers as Record<string, string> ?? {}) };
+      const key = Object.keys(retryHeaders).find(header => header.toLowerCase() === "authorization");
+      if (key) retryHeaders[key] = `Bearer ${newAccessToken}`;
+      return apiFetch<T>(path, { ...options, headers: retryHeaders }, true);
     }
   }
 
