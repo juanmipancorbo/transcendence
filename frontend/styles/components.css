@@ -459,16 +459,21 @@
   }
 
   .profile-edit-btn {
-    @apply px-8 py-3 font-bold text-[11px] tracking-[0.2em] rounded uppercase transition-all;
+    @apply inline-flex min-h-12 items-center justify-center px-8 py-3 font-bold text-[11px] leading-none uppercase transition-all;
     background-color: var(--surface-container-high);
     color: var(--on-surface);
     border: 1px solid var(--outline-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Courier New", ui-monospace, monospace;
   }
   .profile-edit-btn:hover {
     background-color: var(--surface-container-highest);
     border-color: rgba(172, 138, 255, 0.5);
   }
+  .profile-edit-btn.danger {
+    background-color: var(--error);
+    color: var(--on-surface);
+  }
+  .profile-edit-btn.secondary { background-color: var(--secondary); }
 
   .profile-stat-card {
     @apply p-8 rounded-xl transition-all;
@@ -1233,6 +1238,10 @@
 .pixel-profile .profile-edit-input, .pixel-profile .profile-edit-textarea { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-cream); color: var(--pixel-ink); box-shadow: 4px 4px 0 var(--pixel-line); }
 .pixel-profile .profile-edit-btn, .pixel-profile .btn-primary, .pixel-profile .btn-view-friends { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); color: var(--pixel-ink); box-shadow: 4px 4px 0 var(--pixel-line); letter-spacing: 0; }
 .pixel-profile .profile-edit-btn:hover, .pixel-profile .btn-view-friends:hover { border-color: var(--pixel-line); background: var(--pixel-teal); color: var(--pixel-ink); }
+.pixel-profile .profile-edit-btn.danger { background: var(--pixel-red); color: var(--pixel-cream); }
+.pixel-profile .profile-edit-btn.danger:hover { background: var(--error); color: var(--pixel-ink); }
+.pixel-profile .profile-edit-btn.secondary { background: var(--pixel-teal); color: var(--pixel-ink); }
+.pixel-profile .profile-edit-btn.secondary:hover { background: var(--secondary); }
 .pixel-profile .profile-stat-card { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); color: var(--pixel-ink); box-shadow: 6px 6px 0 var(--pixel-line); }
 .pixel-profile .profile-stat-card.secondary { background: var(--pixel-teal); }
 .pixel-profile .profile-stat-value { color: var(--pixel-ink) !important; font-family: "Courier New", ui-monospace, monospace; font-style: normal; }
