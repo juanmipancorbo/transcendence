@@ -176,7 +176,7 @@ export default function GamePage() {
           <div className="flex gap-4">
             {isSpectator ? (
               <button onClick={() => router.push("/lobby")} className="btn-ghost">
-                Leave Game
+                {game.state?.status === "FINISHED" ? "Back to Lobby" : "Leave Game"}
               </button>
             ) : (
               <button onClick={() => {
