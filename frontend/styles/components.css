@@ -867,18 +867,19 @@
 .retro-stat span { font-size: 11px; font-weight: 900; text-transform: uppercase; }
 .retro-stat strong { font-size: 32px; font-weight: 900; }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .retro-hero { grid-template-columns: 1fr; gap: 42px; }
   .retro-board-wrap { width: min(330px, 100%); }
   .retro-match-strip { grid-template-columns: 1fr; gap: 28px; }
 }
-@media (max-width: 640px) {
+@media (max-width: 800px) {
   .retro-lobby { padding: 18px; }
   .retro-hero { padding: 28px 22px; }
   .retro-hero h1 { font-size: 46px; }
   .retro-queue-actions { flex-direction: column; }
   .retro-stats { grid-template-columns: repeat(2, 1fr); }
-
+}
+@media (max-width: 640px) {
   .retro-shell > div:first-child { margin-left: 96px; }
   .retro-shell > aside {
     top: 0;
@@ -1413,19 +1414,23 @@
   .match-entry-date { display: none; }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1200px) {
   .pixel-rankings { padding: 28px 18px; }
   .pixel-rankings .lb-header-row, .pixel-rankings .lb-row { grid-template-columns: 46px minmax(140px, 1fr) 72px 86px; column-gap: 10px; padding-left: 12px; padding-right: 12px; }
   .pixel-rankings .lb-head-wins, .pixel-rankings .lb-head-losses, .pixel-rankings .lb-wins, .pixel-rankings .lb-losses { display: none; }
   .pixel-rankings .lb-avatar { width: 38px; height: 38px; }
-  .pixel-profile { padding: 28px 18px; }
 }
-@media (max-width: 560px) {
+@media (max-width: 720px) {
   .pixel-page-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
   .pixel-rankings .lb-header-row, .pixel-rankings .lb-row { grid-template-columns: 38px minmax(120px, 1fr) 64px; }
   .pixel-rankings .lb-head-rate, .pixel-rankings .lb-rate { display: none; }
   .pixel-rankings .lb-competitor { gap: 9px; }
   .pixel-rankings .lb-level-badge { display: none; }
+}
+@media (max-width: 820px) {
+  .pixel-profile { padding: 28px 18px; }
+}
+@media (max-width: 560px) {
   .pixel-profile .profile-card { padding: 28px 18px; }
   .pixel-profile .profile-username { font-size: 34px; }
 }
