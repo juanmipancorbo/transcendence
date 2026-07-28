@@ -1,7 +1,9 @@
 import type { Request, Response } from "express";
 import * as Service from "./service"
 import type { FriendTargetReq, RespondRequestReq, FriendParamReq } from "@endpoints/friend-request";
-import { injectStatus } from "@gameLogic/sync/socket";
+import { injectStatus, sendToOnlineUser } from "@gameLogic/sync/socket";
+import { buildInfoMessage } from "@gameLogic/sync/protocol-utils";
+import type { UUID } from "node:crypto";
 
 export async function getFriends(req: Request, res: Response) {
 	const data = await Service.readFriends(req.userId!);
@@ -38,6 +40,7 @@ export async function sendRequest(req: Request<unknown, unknown, FriendTargetReq
 
 export async function acceptRequest(req: Request<unknown, unknown, RespondRequestReq>, res: Response) {
 	await Service.acceptFriendRequest(req.userId!, req.body.senderId);
+	sendToOnlineUser(req.body.senderId as UUID, buildInfoMessage("Your friend request was accepted!"));
 	res.status(201).json({ success: true, data: null });
 }
 

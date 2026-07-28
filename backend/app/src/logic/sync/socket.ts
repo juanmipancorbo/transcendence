@@ -39,6 +39,12 @@ export function unregisterSocket(sock: Socket) {
 
 export function getSocksById(id: UUID): Set<Socket> | undefined { return connectedUsers.get(id); }
 
+export function sendToOnlineUser(id: UUID, data: BufferSource) {
+	for (const client of getSocksById(id) ?? []) {
+		if (client.status === "online") client.send(data);
+	}
+}
+
 export function injectStatus(users: PublicUser[]) {
 	for (const user of users) {
 		const sock = getSocksById(user.id);
