@@ -50,9 +50,12 @@ spectators.
   a backend restart by replaying its stored moves.
 - **🧑‍🤝‍🧑 Social layer** — friends, friend requests, and 1-to-1 **direct chat**, plus in-game
   chat between players and spectators.
-- **📈 Progression** — XP/level system (DB-driven), win/loss stats, and a global
-  **leaderboard**.
-- **👤 Profiles** — editable username/bio, avatar, and public profile pages.
+- **📈 Progression** — persistent XP/level, win/loss statistics, a global
+  **leaderboard**, six achievements with progress, and paginated match history with
+  move-by-move review.
+- **👤 Profiles** — editable username/bio, normalized avatar uploads, a default avatar,
+  and public profile pages.
+- **⚔️ Custom duels** — challenge a friend with selectable turn time and spectator access.
 
 The realtime layer runs over a **single binary WebSocket** with a custom, per-stage protocol
 (auth → lobby → game). It is documented in [`docs/WEBSOCKETS.md`](docs/WEBSOCKETS.md).
@@ -61,20 +64,16 @@ The realtime layer runs over a **single binary WebSocket** with a custom, per-st
 
 ## Team Information
 
-> ⚠️ **The subject requires roles to be documented** (for a 5-person team: dedicated **PO**,
-> **PM**, **Tech Lead**, and **2 Developers**) and evaluators will ask how they were
-> distributed — so these `_TBD_` fields must be filled before evaluation. They are left blank
-> here at the team's request. A suggested split based on actual code ownership: **Tech Lead**
-> → intherna; **PO** / **PM** → divide between jpancorb and one other member; **Developers**
-> → everyone. The *Responsibilities* column already reflects each member's real area of work.
+The team used the five roles required by the subject. Responsibilities reflect the areas each
+member must be able to explain and demonstrate during evaluation.
 
 | Login | Name | Role | Main Responsibilities |
 |-------|------|------|-----------------------|
-| **intherna** | Inti Hernández Servitja | _TBD_ | Realtime WebSocket subsystem (binary protocol, socket lifecycle, sessions, crash recovery), backend backbone & DB integration, frontend WS client and game hooks. |
-| **jpancorb** | Juan Miguel Pancorbo Gutiérrez | _TBD_ | Frontend UI evolution (game board, lobby, profile, leaderboard, friends), the retro pixel-art design system, shared layout components, plus backend leaderboard/user/game work. |
-| **cmarrued** | Carlos Marruedo | _TBD_ | Built the frontend foundation: app structure, routing, the initial pages and components (login/register, game view, profile, lobby, leaderboard), and the original *Velocity Noir* design; plus supporting backend user/friend endpoints. |
-| **anguil-l** | Antonio Guil Luque | _TBD_ | Authentication & security foundation: JWT access/refresh strategy, Argon2 password hashing, auth middleware, login/register integration. |
-| **pmorello** | Pau Anand Morello | _TBD_ | User profile media (avatar/photo) features and repository housekeeping. |
+| **intherna** | Inti Hernández Servitja | Technical Lead | Realtime WebSocket subsystem (binary protocol, socket lifecycle, sessions, crash recovery), backend backbone & DB integration, frontend WS client and game hooks. |
+| **jpancorb** | Juan Miguel Pancorbo Gutiérrez | Product Owner | Frontend UI evolution (game board, lobby, profile, leaderboard, friends), the retro pixel-art design system, shared layout components, plus backend leaderboard/user/game work. |
+| **cmarrued** | Carlos Marruedo | Project Manager | Built the frontend foundation: app structure, routing, the initial pages and components (login/register, game view, profile, lobby, leaderboard), and the original *Velocity Noir* design; plus supporting backend user/friend endpoints. |
+| **anguil-l** | Antonio Guil Luque | Developer | Authentication & security foundation: JWT access/refresh strategy, Argon2 password hashing, auth middleware, login/register integration. |
+| **pmorello** | Pau Anand Morello | Developer | User profile media (avatar/photo) features and repository housekeeping. |
 | **mvelazqu** | Maximiliano Velázquez *(former member)* | — | Docker Compose / nginx infrastructure, Makefile, backend database services (user/game/auth repositories & services), initial game-management endpoints, seed/reset database scripts, centralized error handling (`ApiError`). |
 
 See [Individual Contributions](#individual-contributions) for a detailed breakdown.
@@ -283,8 +282,9 @@ Attribution reflects primary ownership from the git history; most features were 
 ## Modules
 
 The *ft_transcendence — Surprise* subject requires **14 points** (Major = 2 pts, Minor = 1 pt).
-This project implements **20 points** — the 14 required, the **5-point bonus cap**, and one
-extra point of margin in case a module is not validated.
+This project implements **21 points**. Nineteen cover the 14 required points and the full
+**5-point bonus cap**; SSR and the custom binary protocol are also claimed as additional
+implemented modules.
 
 ### Major modules (2 pts each) — 6 × 2 = 12 pts
 
@@ -297,29 +297,31 @@ extra point of margin in case a module is not validated.
 | 5 | Gaming | **Remote players** | Two players on separate machines play in real time; latency-tolerant, with disconnect + **reconnection** handling (60s grace). | intherna, jpancorb |
 | 6 | User Management | **Standard user management & authentication** | Profile editing, avatars (with a default), friends + **online status**, profile pages; email/password with **Argon2 + JWT**. | anguil-l, intherna, cmarrued |
 
-### Minor modules (1 pt each) — 8 × 1 = 8 pts
+### Minor modules (1 pt each) — 9 × 1 = 9 pts
 
 | # | Category | Module | How it was implemented | Contributor(s) |
 |---|----------|--------|------------------------|----------------|
 | 7 | User Management | **Remote authentication (OAuth 2.0)** | Google Sign-in: authorization-code exchange with auto-provisioning of `account_host='google'` users. | intherna |
-| 8 | User Management | **Game statistics & match history** | Win/loss counts, XP/level ranking, finished-game records, and a global leaderboard. | jpancorb, intherna |
-| 9 | Gaming | **Game customization options** | Configurable match settings: timed vs. untimed, ranked vs. friendly, spectators on/off (with sensible defaults). | intherna, jpancorb |
+| 8 | User Management | **Game statistics & match history** | Wins, losses, XP, level and rank; paginated 1v1 history with dates, opponents and results; six achievements with progress; leaderboard integration; and move-by-move review. | jpancorb, intherna |
+| 9 | Gaming | **Game customization options** | Friend duels expose selectable per-player turn times and spectator access, starting from valid default options. | intherna, jpancorb |
 | 10 | Gaming | **Spectator mode** | Join a live game as a viewer with real-time state updates and shared in-game chat. | intherna, jpancorb, cmarrued |
-| 11 | Web | **Custom-made design system** | A custom retro pixel-art system — 200+ reusable component classes plus shared React components, a defined color palette, typography, and pixel iconography. | jpancorb |
-| 12 | Web | **Server-Side Rendering (SSR)** | Next.js App Router server rendering: `output: "standalone"` build served by a Node server (`node server.js`); server components (root layout, terms) and server-rendered initial HTML for all routes. | intherna, cmarrued |
-| 13 | Choice | **Custom module: binary WebSocket protocol** | A hand-designed binary wire format: big-endian `ByteReader`/`ByteWriter` codecs, per-stage type-ID namespaces (auth → lobby → game), length-prefixed UTF-8 strings, compact board/move encodings, in-band token handshake. Fully documented in [`docs/WEBSOCKETS.md`](docs/WEBSOCKETS.md). | intherna |
-| 14 | Accessibility & i18n | **Support for additional browsers** | Tested end-to-end on **Chromium** and **Zen** (Firefox/Gecko family) running simultaneously — including live cross-browser matches over the realtime socket — with consistent UI/UX across both engines and no browser-specific limitations found. | intherna |
+| 11 | Gaming | **Gamification system** | Three persistent features: achievements, leaderboard and XP/level. Profiles show six achievement states and progress bars; their source statistics persist in PostgreSQL. | jpancorb, intherna |
+| 12 | Web | **Custom-made design system** | Twelve documented reusable React components, a defined retro color palette, typography and pixel iconography. See [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). | jpancorb |
+| 13 | Web | **Server-Side Rendering (SSR)** | Next.js App Router Server Components render the root layout and public legal content, producing initial HTML and SEO metadata before client hydration; the standalone build is served by Node. | intherna, cmarrued |
+| 14 | Choice | **Custom module: binary WebSocket protocol** | A hand-designed binary wire format: big-endian `ByteReader`/`ByteWriter` codecs, per-stage type-ID namespaces (auth → lobby → game), length-prefixed UTF-8 strings, compact board/move encodings, in-band token handshake. Fully documented in [`docs/WEBSOCKETS.md`](docs/WEBSOCKETS.md). | intherna |
+| 15 | Accessibility & i18n | **Support for additional browsers** | Full workflows tested on Chrome 150, Firefox 152 and Edge 150 with consistent responsive UI and no functional browser-specific limitations. See [`docs/BROWSER_COMPATIBILITY.md`](docs/BROWSER_COMPATIBILITY.md). | jpancorb |
 
 ### Point calculation
 
 | Tier | Count | Points |
 |------|-------|--------|
 | Major | 6 | 12 |
-| Minor | 8 | 8 |
-| **Total** | **14** | **20** |
+| Minor | 9 | 9 |
+| **Total** | **15** | **21** |
 
-That is **14 required + the full 5-point bonus cap + 1 point of margin**. The modules beyond
-the 14-point threshold double as insurance in case any module is not validated at evaluation.
+That is **14 required points + the full 5-point bonus cap**, with two additional claimed
+points beyond the scoring cap.
+
 
 ### Justification for module choices
 
@@ -328,12 +330,12 @@ The module set follows the shape of a competitive online board game:
 - **The game itself** — a *complete web-based game* (Reversi) and *remote players* form the core loop.
 - **Making it live** — *real-time WebSockets* power moves, matchmaking, chat, and spectating from a single connection.
 - **Trustworthy accounts** — *standard user management* plus *OAuth 2.0* let players own an identity securely.
-- **Reasons to interact and return** — *user interaction* (chat/friends/profiles), *game statistics*, *game customization*, and *spectator mode*.
+- **Reasons to interact and return** — *user interaction* (chat/friends/profiles), **game statistics**, **gamification**, **game customization**, and **spectator mode**.
 - **Structure & identity** — a *framework on both ends* and a *custom design system* keep the app coherent and maintainable.
 - **Performance** — *SSR* delivers server-rendered initial HTML for fast first paints.
 - **Reach** — *additional browser* support (Blink + Gecko engines) keeps the game playable beyond Chrome.
 
-### Module of choice — justification (13, custom Minor)
+### Module of choice — justification (14, custom Minor)
 
 The subject requires custom modules to be explicitly justified:
 
@@ -355,7 +357,7 @@ The subject requires custom modules to be explicitly justified:
   itself — this module covers the custom wire-format engineering that an off-the-shelf
   solution would have provided for free.
 
-> **Demo checklist for evaluation:** for (8) show the per-user *match-history* view (dates/opponents/results), not just the leaderboard; for (11) the retro design system exceeds the required 10 reusable components (200+ component classes + shared React components); for (12) show that the initial HTML response is already rendered server-side (e.g. `curl -k https://localhost:8443/login` returns markup, or view-source before hydration); for (13) show the binary frames in the devtools Network tab during a game and walk through `logic/sync/stream-utils/` against `docs/WEBSOCKETS.md`; for (14) run a live match with one player on a Gecko browser (Zen or Firefox) and the other on Chromium. Everything else is demonstrable directly from the running app.
+> **Demo checklist for evaluation:** show statistics, achievements, match history and move review for (8); send a duel with non-default settings for (9); join it from a third account for (10); show persisted XP/level, leaderboard and achievement progress for (11); use `docs/DESIGN_SYSTEM.md` for (12); inspect initial HTML and metadata for (13); inspect binary frames and `docs/WEBSOCKETS.md` for (14); and repeat the core workflow in Firefox and Edge for (15).
 
 ---
 
@@ -560,9 +562,7 @@ cd frontend && npm install && npm run dev         # next dev on :3000
 
 ### How AI was used
 
-> _Team: adjust this section to reflect your team's actual usage before submission._
-
-AI assistants (primarily **Anthropic's Claude**, via **Claude Code**) were used during the
+AI assistants, including **Anthropic's Claude via Claude Code** and **OpenAI Codex**, were used during the
 project as an accelerator, **not** as a replacement for the team's own design and
 implementation decisions. Specifically:
 
@@ -574,6 +574,8 @@ implementation decisions. Specifically:
 - **SQL** — reviewing the PL/pgSQL functions and triggers (XP↔level conversion, canonical
   friend/chat ordering, `report_game`).
 - **Debugging assistance** — investigating specific bugs and edge cases.
+- **Implementation support** — preparing scoped patches for review, responsive UI fixes,
+  and focused verification after the team selected the intended behavior.
 
 All AI-assisted output was reviewed, tested, and integrated by the team; game rules,
 architecture, and the final code are the team's own work.
