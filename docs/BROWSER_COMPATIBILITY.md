@@ -3,16 +3,20 @@
 ## Supported Browsers
 
 Chrome is the baseline browser. Firefox and Microsoft Edge are the two additional browsers claimed for this module.
+Chromium and Zen Browser were also used by intherna for supplementary cross-browser and
+live-match checks; their exact versions were not recorded.
 
 | Browser | Tested version | Rendering engine | Result |
 |---|---:|---|---|
 | Google Chrome | 150.0.7871.186 | Blink | Pass |
 | Mozilla Firefox | 152.0.5 | Gecko | Pass |
 | Microsoft Edge | 150.0.4078.105 | Blink | Pass |
+| Chromium | Not recorded | Blink | Supplementary check |
+| Zen Browser | Not recorded | Gecko | Supplementary check |
 
 ## Test Scope
 
-The following workflows were exercised manually in all three browsers:
+The following workflows were exercised manually in Chrome, Firefox and Edge:
 
 - registration, password login, logout and authenticated navigation;
 - profile editing, avatar rendering, public profiles and achievements;
@@ -26,8 +30,12 @@ The following workflows were exercised manually in all three browsers:
 
 ## Limitations
 
-No functional browser-specific limitations were found in the tested workflows. Edge can emit an informational intervention message when it replaces lazily loaded images with placeholders; this is browser optimization output, not an application warning or error.
+No functional browser-specific limitations were found in the tested workflows. Edge can emit
+an informational intervention message when it replaces lazily loaded images with placeholders;
+this is browser optimization output, not an application warning or error.
 
-The application uses a self-signed development certificate, so every browser requires the certificate warning to be accepted once before testing HTTPS and secure WebSockets.
+The application uses a self-signed development certificate, so every browser requires the
+certificate warning to be accepted once before testing HTTPS and secure WebSockets.
 
-Safari was not tested and is not claimed by this module.
+Chromium and Zen strengthen the test coverage but are not needed as the two additional
+browsers claimed by the module. Safari was not tested and is not claimed.

@@ -64,17 +64,38 @@ The realtime layer runs over a **single binary WebSocket** with a custom, per-st
 
 ## Team Information
 
-The team used the five roles required by the subject. Responsibilities reflect the areas each
-member must be able to explain and demonstrate during evaluation.
+Technical ownership existed throughout development, while the formal PO, PM and Technical
+Lead labels were consolidated during the final project phase. Every active member also
+remained a Developer. The table documents current responsibility and evaluation coverage.
 
 | Login | Name | Role | Main Responsibilities |
 |-------|------|------|-----------------------|
-| **intherna** | Inti Hernández Servitja | Technical Lead | Realtime WebSocket subsystem (binary protocol, socket lifecycle, sessions, crash recovery), backend backbone & DB integration, frontend WS client and game hooks. |
-| **jpancorb** | Juan Miguel Pancorbo Gutiérrez | Product Owner | Frontend UI evolution (game board, lobby, profile, leaderboard, friends), the retro pixel-art design system, shared layout components, plus backend leaderboard/user/game work. |
-| **cmarrued** | Carlos Marruedo | Project Manager | Built the frontend foundation: app structure, routing, the initial pages and components (login/register, game view, profile, lobby, leaderboard), and the original *Velocity Noir* design; plus supporting backend user/friend endpoints. |
+| **intherna** | Inti Hernández Servitja | Technical Lead / Developer | Realtime WebSocket subsystem (binary protocol, socket lifecycle, sessions, crash recovery), backend backbone & DB integration, frontend WS client and game hooks. |
+| **jpancorb** | Juan Miguel Pancorbo Gutiérrez | Product Owner / Developer | Core Reversi engine, end-to-end gameplay validation, frontend evolution, retro design system, statistics and gamification. |
+| **cmarrued** | Carlos Marruedo | Project Manager / Developer | Built the frontend foundation: app structure, routing, the initial pages and components (login/register, game view, profile, lobby, leaderboard), and the original Stitch-assisted *Velocity Noir* design; plus supporting backend user/friend endpoints. |
 | **anguil-l** | Antonio Guil Luque | Developer | Authentication & security foundation: JWT access/refresh strategy, Argon2 password hashing, auth middleware, login/register integration. |
-| **pmorello** | Pau Anand Morello | Developer | User profile media (avatar/photo) features and repository housekeeping. |
+| **pmorello** | Pau Anand Morello | Developer | Avatar pipeline and current maintenance/evaluation ownership of the inherited infrastructure and database foundation. |
 | **mvelazqu** | Maximiliano Velázquez *(former member)* | — | Docker Compose / nginx infrastructure, Makefile, backend database services (user/game/auth repositories & services), initial game-management endpoints, seed/reset database scripts, centralized error handling (`ApiError`). |
+
+### Current Ownership And Evaluation Coverage
+
+Historical authorship and current ownership are documented separately. Ownership means that the
+current member is responsible for reviewing, maintaining, testing and explaining that area;
+it does not replace the original Git attribution.
+
+| Member | Primary evaluation area |
+|---|---|
+| **intherna** | Architecture, binary WebSocket protocol, sessions, crash recovery and backend integration. |
+| **jpancorb** | Product decisions, core Reversi engine, retro design system, statistics, gamification and end-to-end gameplay validation. |
+| **cmarrued** | Project coordination, frontend foundation, client authentication lifecycle and spectator UI. |
+| **anguil-l** | Authentication, JWT access/refresh model, Argon2, middleware and validation. |
+| **pmorello** | Avatar pipeline plus current maintenance and evaluation ownership of the infrastructure and database foundation inherited after mvelazqu left the team. |
+
+All active members remain responsible for understanding the complete product and their own
+contributions. The handover to pmorello does not claim authorship of code originally written
+by mvelazqu. Before evaluation, pmorello will complete the handover by reviewing the
+Docker/nginx/Makefile flow, validating a clean deployment and studying the database
+architecture.
 
 See [Individual Contributions](#individual-contributions) for a detailed breakdown.
 
@@ -82,9 +103,9 @@ See [Individual Contributions](#individual-contributions) for a detailed breakdo
 
 ## Project Management
 
-- **Task tracking:** **Trello** — work was split into feature cards (game engine, backend
-  domains, frontend pages, realtime, auth, infrastructure) and pulled by whoever owned that
-  area.
+- **Task tracking:** Trello was trialed primarily by cmarrued, with some early use by
+  intherna, but the team stopped relying on it because adoption was inconsistent. Day-to-day
+  ownership was tracked through Git branches, commits and Slack coordination.
 - **Communication:** **Slack** — day-to-day coordination, code-review pings, and design
   discussions.
 - **Version control workflow:** Git on a shared, unprotected `main` with a pragmatic
@@ -95,12 +116,11 @@ See [Individual Contributions](#individual-contributions) for a detailed breakdo
   pushed directly to `main`. The team favored **merging often** and avoiding long-lived
   branches; shared data structures (game state, DB schema, the WS protocol) were discussed
   before being changed.
-- **Work distribution:** two phases. At the start, each member was assigned a clear area of
-  ownership — game engine, backend/database, frontend, realtime, and auth/infrastructure
-  (see "Team Ownership" in [`docs/architecture.md`](docs/architecture.md)). Once those
-  initial areas were completed, the team converged and worked together on whatever was needed
-  to make everything work end-to-end — so most members ended up contributing across many
-  different parts of the project.
+- **Work distribution:** technical areas emerged early around the game engine,
+  backend/database, frontend, realtime and authentication/infrastructure. The formal
+  PO/PM/Technical Lead labels were not consistently used during that period. In the
+  integration phase, members worked across boundaries to complete and stabilize end-to-end
+  workflows.
 
 ---
 
@@ -262,7 +282,7 @@ Attribution reflects primary ownership from the git history; most features were 
 
 | Feature | Description | Primary contributor(s) |
 |---------|-------------|------------------------|
-| **Reversi game engine** | Board state, valid-move detection, move application, turn handling, pass/no-moves, game-over & winner logic (`backend/app/src/logic/game.ts`). | intherna, jpancorb |
+| **Reversi game engine** | Board state, valid-move detection, move application, turn handling, pass/no-moves, game-over & winner logic (`backend/app/src/logic/game.ts`). | jpancorb |
 | **Realtime WebSocket protocol** | Single binary socket with auth → lobby → game stages, keep-alive, sessions, spectators, reconnect grace, crash recovery. | intherna |
 | **Frontend game UI** | Interactive board rendering, valid-move hints, timers, turn indicator, in-game chat, result screen. | jpancorb, cmarrued |
 | **Matchmaking / lobby** | Casual queue that pairs waiting players and emits `MatchFound`. | intherna, jpancorb |
@@ -270,10 +290,13 @@ Attribution reflects primary ownership from the git history; most features were 
 | **Email/password auth** | Registration, login, refresh, logout; Argon2 hashing; JWT access/refresh. | anguil-l |
 | **Google OAuth 2.0 login** | Sign in / auto-register with a Google account. | intherna |
 | **Friends & requests** | Send/accept/reject friend requests, friends list. | intherna, jpancorb, cmarrued |
-| **Direct & in-game chat** | 1-to-1 messaging over the socket; conversation history endpoint; in-game chat. | intherna, jpancorb |
+| **Direct & in-game chat** | 1-to-1 messaging over the socket; conversation history endpoint; in-game chat. | intherna, jpancorb, cmarrued |
 | **XP / level & stats** | DB-driven XP awards, derived levels, win/loss counts. | intherna, jpancorb |
 | **Leaderboard** | Global top-players ranking. | jpancorb |
-| **User profiles** | Editable username/bio, avatar/photo, public profile pages. | cmarrued, pmorello |
+| **Match history & review** | Paginated private/public game history and authenticated move-by-move board reconstruction. | intherna, jpancorb |
+| **Achievements** | Six profile achievements with persisted-stat progress and visual feedback. | jpancorb |
+| **Configurable duels** | Friend challenges with selectable turn duration and spectator access. | intherna, jpancorb |
+| **User profiles** | Editable username/bio, avatar/photo, public profile pages. | cmarrued, pmorello, jpancorb, intherna |
 | **Retro design system** | Tailwind-based retro pixel-art UI, shared layout (navbar, sidebar, chat window). | jpancorb |
 | **Terms & Privacy page** | In-app terms of service and privacy policy. | jpancorb |
 
@@ -290,12 +313,12 @@ implemented modules.
 
 | # | Category | Module | How it was implemented | Contributor(s) |
 |---|----------|--------|------------------------|----------------|
-| 1 | Web | **Framework for frontend *and* backend** | **Next.js 16** (React) frontend + **Express 5** backend, each using their framework's routing/architecture conventions. | cmarrued, jpancorb, intherna, anguil-l |
+| 1 | Web | **Framework for frontend *and* backend** | **Next.js 16** (React) frontend + **Express 5** backend, each using their framework's routing/architecture conventions. | cmarrued, intherna, mvelazqu, jpancorb, anguil-l |
 | 2 | Web | **Real-time features (WebSockets)** | A single binary WebSocket: live state broadcast to players & spectators, graceful connect/disconnect (reconnect grace period), efficient per-move framing. | intherna, jpancorb |
 | 3 | Web | **User interaction** | 1-to-1 chat (send/receive between users), public profile pages, and a friends system (add/remove, friends list). | intherna, jpancorb, cmarrued |
-| 4 | Gaming | **Complete web-based game** | A server-authoritative **Reversi** engine with clear rules and win/loss/draw conditions (2D). | intherna, jpancorb |
-| 5 | Gaming | **Remote players** | Two players on separate machines play in real time; latency-tolerant, with disconnect + **reconnection** handling (60s grace). | intherna, jpancorb |
-| 6 | User Management | **Standard user management & authentication** | Profile editing, avatars (with a default), friends + **online status**, profile pages; email/password with **Argon2 + JWT**. | anguil-l, intherna, cmarrued |
+| 4 | Gaming | **Complete web-based game** | A server-authoritative **Reversi** engine with clear rules and win/loss/draw conditions (2D). | jpancorb, intherna, cmarrued |
+| 5 | Gaming | **Remote players** | Two players on separate machines play in real time; latency-tolerant, with disconnect + **reconnection** handling (60s grace). | intherna, cmarrued, jpancorb |
+| 6 | User Management | **Standard user management & authentication** | Profile editing, avatars (with a default), friends + **online status**, profile pages; email/password with **Argon2 + JWT**. | anguil-l, mvelazqu, intherna, cmarrued, pmorello, jpancorb |
 
 ### Minor modules (1 pt each) — 9 × 1 = 9 pts
 
@@ -306,10 +329,10 @@ implemented modules.
 | 9 | Gaming | **Game customization options** | Friend duels expose selectable per-player turn times and spectator access, starting from valid default options. | intherna, jpancorb |
 | 10 | Gaming | **Spectator mode** | Join a live game as a viewer with real-time state updates and shared in-game chat. | intherna, jpancorb, cmarrued |
 | 11 | Gaming | **Gamification system** | Three persistent features: achievements, leaderboard and XP/level. Profiles show six achievement states and progress bars; their source statistics persist in PostgreSQL. | jpancorb, intherna |
-| 12 | Web | **Custom-made design system** | Twelve documented reusable React components, a defined retro color palette, typography and pixel iconography. See [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). | jpancorb |
+| 12 | Web | **Custom-made design system** | Twelve documented reusable React components, a defined retro color palette, typography and pixel iconography. See [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). | jpancorb, cmarrued, intherna |
 | 13 | Web | **Server-Side Rendering (SSR)** | Next.js App Router Server Components render the root layout and public legal content, producing initial HTML and SEO metadata before client hydration; the standalone build is served by Node. | intherna, cmarrued |
 | 14 | Choice | **Custom module: binary WebSocket protocol** | A hand-designed binary wire format: big-endian `ByteReader`/`ByteWriter` codecs, per-stage type-ID namespaces (auth → lobby → game), length-prefixed UTF-8 strings, compact board/move encodings, in-band token handshake. Fully documented in [`docs/WEBSOCKETS.md`](docs/WEBSOCKETS.md). | intherna |
-| 15 | Accessibility & i18n | **Support for additional browsers** | Full workflows tested on Chrome 150, Firefox 152 and Edge 150 with consistent responsive UI and no functional browser-specific limitations. See [`docs/BROWSER_COMPATIBILITY.md`](docs/BROWSER_COMPATIBILITY.md). | jpancorb |
+| 15 | Accessibility & i18n | **Support for additional browsers** | Full workflows tested on Chrome 150, Firefox 152 and Edge 150 with consistent responsive UI and no functional browser-specific limitations. See [`docs/BROWSER_COMPATIBILITY.md`](docs/BROWSER_COMPATIBILITY.md). | jpancorb, intherna |
 
 ### Point calculation
 
@@ -476,67 +499,98 @@ cd frontend && npm install && npm run dev         # next dev on :3000
 
 ## Individual Contributions
 
+This breakdown combines the Git history with the team account of collaborative and
+AI-assisted work. Commit authorship records who integrated a change; shared design, review,
+testing and later ownership are stated separately where relevant.
+
 ### intherna — Inti Hernández Servitja
-- **Realtime subsystem (core):** designed and implemented the single binary WebSocket
-  protocol — `Socket` wrapper, keep-alive/timeout, the auth/lobby/game handler stages, the
-  `ByteReader`/`ByteWriter` binary codecs, `GameSession`/`SessionPlayer`, matchmaking, and
-  spectators.
-- **Persistence & crash recovery:** move-by-move persistence and
-  `restoreUnfinishedSessions()`, which rebuilds live games by replaying stored moves after a
-  restart.
-- **Friends system (database & backend):** the `friends`/`friend_requests` schema (canonical
-  unordered pairs via triggers) and the friends/friend-request REST endpoints.
-- **Backend backbone & Google OAuth**, the frontend WebSocket client (`lib/ws`, `useWs`,
-  `useGame`), and most of the project documentation (`architecture.md`, `WEBSOCKETS.md`).
-- **Challenge:** browsers can't set headers on a `WebSocket` handshake — solved by an in-band
-  `Token` handshake as the connection's first message. Keeping an in-memory `GameSession` and
-  the database consistent under disconnects/reconnects was the hardest part, addressed with a
-  60s reconnect grace period and replay-based recovery.
+
+- **Realtime architecture:** designed and implemented the binary WebSocket protocol, socket
+  lifecycle, authentication/global/game handler stages, compact readers/writers, matchmaking
+  and the GameSession/SessionPlayer model.
+- **Session reliability:** implemented turn timing, disconnect/reconnect behavior, session
+  restoration after backend restart, current-game recovery, spectator synchronization and
+  production frontend deployment.
+- **Social backend and realtime flow:** implemented the friend schema and endpoints,
+  online/busy/offline presence, the global private-chat protocol and multi-client delivery.
+- **Product features:** implemented Google OAuth, configurable friend duels, match-history
+  endpoints and UI, and move-by-move game review.
+- **Documentation and validation:** documented the WebSocket protocol and architecture and
+  performed supplementary Chromium/Zen cross-browser and live-match checks.
+- **Main challenge:** keeping database state, in-memory sessions and multiple browser sockets
+  consistent through disconnects, reconnections and process restarts.
 
 ### jpancorb — Juan Miguel Pancorbo Gutiérrez
-- **Frontend UI & the retro design system:** replaced the initial *Velocity Noir* design
-  with the current retro pixel-art system, and evolved the game board UI, lobby, profile,
-  leaderboard, and friends pages on top of the original foundation, plus shared layout
-  (navbar, sidebar, chat window, current-game widget) and the app's styling.
-- **Backend contributions:** leaderboard, and parts of the user/game domains and the sync
-  layer.
-- **Challenge:** rendering live board updates and valid-move hints smoothly from a stream of
-  binary `MoveUpdate` frames while keeping the UI in sync with server-authoritative state.
+
+- **Core Reversi engine:** designed and implemented board initialization, directional
+  capture, legal moves, move application, turn passing, abandonment and winner calculation.
+  ChatGPT assisted the implementation; every suggestion was run, inspected and iteratively
+  corrected.
+- **Game validation:** created manual, complete-match and stress-test scenarios, and repeatedly
+  played end-to-end matches to refine scoring, pass turns, natural endings, resignation,
+  timers, reconnection, persistence and final results.
+- **Retro design system and frontend evolution:** replaced the initial visual direction with
+  the current retro pixel-art system and applied it across authentication, lobby, game,
+  profiles, leaderboard, legal pages, navigation, notifications and chat. Extracted and
+  documented the reusable component system.
+- **Progression and profiles:** implemented the leaderboard API/integration, global rank,
+  persisted biography, achievements, completed-game views and multiple statistics/XP fixes.
+- **Social and game-flow stabilization:** completed the friend-request UI and private chat,
+  profile navigation, unread/presence behavior, game/spectator chat edge cases, current-game
+  result recovery and responsive behavior.
+- **Compatibility and documentation:** performed the full Chrome/Firefox/Edge workflow and
+  console audit, documented browser coverage, and iteratively validated product behavior as
+  Product Owner.
+- **Main challenge:** turning server-authoritative binary game events into a clear,
+  synchronized UI while preserving correct behavior through every game-ending path.
 
 ### cmarrued — Carlos Marruedo
-- **Frontend foundation:** built the original Next.js app structure, routing, and the first
-  working versions of the main pages and components (login/register flows, game view,
-  profile, lobby, leaderboard, shared UI), including the initial *Velocity Noir* design
-  system — all of which the team later iterated on (design changes, backend/realtime
-  integration).
-- **Spectator mode (frontend):** implemented and fixed the spectator experience in the UI,
-  making live game viewing work end-to-end.
-- **Backend contributions:** user and friend endpoints and related sync work.
-- **Challenge:** integrating the auth token lifecycle (access/refresh) into the frontend so
-  protected pages and API calls transparently recover from expired tokens.
+
+- **Frontend foundation:** created the initial Next.js application, routes, Tailwind setup,
+  shared layout and first versions of login, registration, lobby, game, profile and
+  leaderboard pages. The initial visual direction and mockups were generated with Google
+  Stitch, then integrated and adapted into the application by cmarrued.
+- **Gameplay client:** connected the board to realtime state, corrected move rendering and
+  valid-move interaction, added the match log, remaining-turn timer and resignation handling.
+- **Social frontend:** added public friend profiles, friend actions and the initial in-game
+  chat experience.
+- **Spectator experience:** implemented and stabilized entry into live games, spectator UI
+  behavior and error handling for invalid or completed matches.
+- **Authentication lifecycle:** fixed client access-token refresh behavior and protected-page
+  continuity.
+- **Main challenge:** progressively replacing mock frontend data with authenticated REST and
+  WebSocket state without breaking the existing navigation and game screen.
 
 ### anguil-l — Antonio Guil Luque
-- **Authentication foundation:** the JWT access/refresh-token strategy, Argon2 password
-  hashing, the route-protecting `authMiddleware`, and the register/login endpoints and their
-  validation — documented in `AUTH.md` with a companion Postman collection.
-- **Challenge:** designing a token model that separates short-lived access tokens from
-  hashed, revocable refresh sessions (typed JWTs so a refresh token can't be used as an
-  access token, and vice versa).
+
+- **Authentication foundation:** implemented registration/login, Argon2 password hashing,
+  JWT access and refresh tokens, persisted refresh sessions, auth middleware and validation.
+- **Security hardening:** separated token types, corrected refresh behavior and documented the
+  authentication API in AUTH.md and the Postman collection.
+- **Main challenge:** designing short-lived access tokens and revocable refresh sessions that
+  cannot be used interchangeably.
 
 ### pmorello — Pau Anand Morello
-- **Profile media:** user avatar/photo features on the profile page.
-- **Repository housekeeping:** cleanup of stray Windows `Zone.Identifier` artifacts.
 
-### mvelazqu — Maximiliano Velázquez *(former member)*
-- **Infrastructure:** the Docker Compose setup (multi-stage production builds, healthchecks),
-  nginx gateway integration, the `Makefile` workflow, and environment bootstrapping for 42
-  machines.
-- **Backend foundation:** database initialization, backend database services (user/game/auth
-  repositories & services), the initial game-management endpoints, the seed/reset database
-  scripts (`seed-db` / `drop-db`), and centralized error handling (`ApiError` + the error
-  middleware).
-- Left the team before project completion; his work is retained in the codebase and
-  gratefully acknowledged.
+- **Avatar pipeline:** implemented profile-avatar upload across frontend and backend,
+  authenticated multipart handling, profile refresh and avatar persistence.
+- **Repository cleanup:** removed stray Windows Zone.Identifier artifacts from the repository.
+- **Inherited ownership:** after mvelazqu left the team, became the current maintenance and
+  evaluation owner for Docker, nginx, Makefile and the initial database-service foundation.
+  This responsibility requires reviewing, testing and explaining that area and does not
+  replace mvelazqu as its original author. Before evaluation, pmorello will validate a clean
+  deployment and document the operational flow.
+
+### mvelazqu — Maximiliano Velázquez (former member)
+
+- **Infrastructure foundation:** created the Docker/Compose service structure, backend
+  Dockerfile, PostgreSQL initialization, health checks, Makefile workflow and environment
+  setup for 42 machines.
+- **Backend and database foundation:** implemented the initial user/game data model,
+  repositories and services, game-management endpoints, seed/reset scripts and centralized
+  ApiError middleware.
+- **Handover:** left the team before completion. His work remains attributed to him; current
+  maintenance and evaluation ownership of this area was assigned to pmorello.
 
 ---
 
@@ -562,15 +616,21 @@ cd frontend && npm install && npm run dev         # next dev on :3000
 
 ### How AI was used
 
-AI assistants, including **Anthropic's Claude via Claude Code** and **OpenAI Codex**, were used during the
-project as an accelerator, **not** as a replacement for the team's own design and
-implementation decisions. Specifically:
+AI assistants, including **OpenAI ChatGPT**, **OpenAI Codex**, **Anthropic's Claude via
+Claude Code**, and **Google Stitch**, were used as accelerators, **not** as replacements for
+the team's own design and implementation decisions. Specifically:
 
 - **Documentation** — drafting and polishing the project docs (this `README.md`,
   `docs/architecture.md`, `docs/WEBSOCKETS.md`, `AUTH.md`) from the actual source code and
   git history.
+- **Initial frontend direction** — Google Stitch generated the first Velocity Noir visual
+  mockups. cmarrued integrated and adapted them into the initial Next.js frontend; the team
+  later replaced that direction with the current retro design system.
 - **Design review & rubber-ducking** — sanity-checking the WebSocket protocol design, the
   server-authoritative move flow, and the crash-recovery approach.
+- **Core game logic** — ChatGPT assisted jpancorb with the Reversi rule engine,
+  complete-match tests and stress scenarios. Suggestions were executed, reviewed and
+  iteratively corrected through automated checks and manual games.
 - **SQL** — reviewing the PL/pgSQL functions and triggers (XP↔level conversion, canonical
   friend/chat ordering, `report_game`).
 - **Debugging assistance** — investigating specific bugs and edge cases.
