@@ -93,7 +93,9 @@ it does not replace the original Git attribution.
 
 All active members remain responsible for understanding the complete product and their own
 contributions. The handover to pmorello does not claim authorship of code originally written
-by mvelazqu.
+by mvelazqu. Before evaluation, pmorello will complete the handover by reviewing the
+Docker/nginx/Makefile flow, validating a clean deployment and studying the database
+architecture.
 
 See [Individual Contributions](#individual-contributions) for a detailed breakdown.
 
@@ -576,7 +578,8 @@ testing and later ownership are stated separately where relevant.
 - **Inherited ownership:** after mvelazqu left the team, became the current maintenance and
   evaluation owner for Docker, nginx, Makefile and the initial database-service foundation.
   This responsibility requires reviewing, testing and explaining that area and does not
-  replace mvelazqu as its original author.
+  replace mvelazqu as its original author. Before evaluation, pmorello will validate a clean
+  deployment and document the operational flow.
 
 ### mvelazqu — Maximiliano Velázquez (former member)
 
