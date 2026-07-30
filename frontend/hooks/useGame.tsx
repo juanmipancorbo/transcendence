@@ -213,12 +213,19 @@ export function useGame(id: string) {
 	}
 
 	function onSpectatorJoin(p: ByteReader) {
-		setSpectators(prev =>[...prev, p.readPrefixedUTF()]);
+		const spectatorId = p.readPrefixedUTF();
+		if (stateRef.current) {
+			const username = profilesRef.current.get(spectatorId)?.username;
+			message(username ? username + " joined as spectator" : "A spectator joined");
+		}
+		setSpectators(prev => prev.includes(spectatorId) ? prev : [...prev, spectatorId]);
 	}
 
 	function onSpectatorLeave(p: ByteReader) {
-		const id = p.readPrefixedUTF();
-		setSpectators(prev =>[...prev.filter(s => s !== id)]);
+		const spectatorId = p.readPrefixedUTF();
+		const username = profilesRef.current.get(spectatorId)?.username;
+		message(username ? username + " left the spectators" : "A spectator left");
+		setSpectators(prev => prev.filter(id => id !== spectatorId));
 	}
 
 	function onError(p: ByteReader) {
