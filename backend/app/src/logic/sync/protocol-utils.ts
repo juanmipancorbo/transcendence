@@ -69,6 +69,13 @@ export function buildGameState(game: GameSession, as: number): BufferSource {
 		.writeInt32(game.timeLimit)
 		.writePrefixedUTF(game.state.status)
 		.writeBool(game.allowSpectators);
+	w.writeUint32(game.moves.length);
+	for (const move of game.moves) {
+		w.writeUint8(move.player);
+		w.writeUint8(move.pos.row);
+		w.writeUint8(move.pos.col);
+		w.writeUint8(Math.max(0, move.updates.length - 1));
+	}
 	if (game.state.status === STATUS_ACTIVE) {
 		w.writeUint8(game.state.currentTurn);
 		w.writeUint32(game.startedAt as number);

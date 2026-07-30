@@ -93,6 +93,23 @@ export function useGame(id: string) {
 		const timeLimit = payload.readInt32();
 		const status = payload.readPrefixedUTF() as GameStatus;
 		const allowSpectators = payload.readBool();
+		const moveCount = payload.readUint32();
+		const initialLog: LogEntry[] = [];
+		for (let turn = 1; turn <= moveCount; ++turn) {
+			const player = payload.readUint8() as PlayerColor;
+			const row = payload.readUint8();
+			const col = payload.readUint8();
+			const flips = payload.readUint8();
+			initialLog.unshift({
+				type: "move",
+				byMe: as !== 0 && player === as,
+				player,
+				col: String.fromCharCode(65 + col),
+				row: row + 1,
+				flips,
+				turn,
+			});
+		}
 
 		let currentTurn: number | undefined;
 		let startedAt: number | undefined;
@@ -135,6 +152,8 @@ export function useGame(id: string) {
 			timeLimit
 		}; 
 		setMyColor(as);  myColorRef.current = as;
+		turnCountRef.current = moveCount;
+		setLog(initialLog);
 		if (as === 0 && user) setUser({ ...user, currentGame: undefined });
 		if (timeLimit !== -1) {
 			const format = formatMs(timeLimit);

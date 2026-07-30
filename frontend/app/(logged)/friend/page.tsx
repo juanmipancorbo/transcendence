@@ -56,6 +56,7 @@ const STATUS_LABEL: Record<PublicUser["status"], string> = {
 export default function FriendProfilePage() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("id");
+  const openDuelFromFriends = searchParams.get("duel") === "1";
   const { socket, inGame } = useWs();
 
   const [profile,  setProfile]  = useState<PublicUser | null>(null);
@@ -68,6 +69,11 @@ export default function FriendProfilePage() {
   const [duelOpen,        setDuelOpen]        = useState(false);
   const [allowSpectators, setAllowSpectators] = useState(true);
   const [secsLimit,       setSecsLimit]       = useState(DEFAULT_TIME_LIMIT);
+
+  useEffect(() => {
+    if (openDuelFromFriends && relation === "friends" && !inGame)
+      setDuelOpen(true);
+  }, [openDuelFromFriends, relation, inGame]);
 
   function showError(err: unknown) {
     if (errorTimer.current) clearTimeout(errorTimer.current);
@@ -223,7 +229,7 @@ export default function FriendProfilePage() {
                   {/* Friend action */}
                   <div className="flex flex-col items-center md:items-start gap-2">
                   <div className="flex justify-center md:justify-start gap-3 flex-wrap">
-                    {profile.status === "busy" && profile.currentGame && (
+                    {profile.status === "busy" && profile.currentGame && profile.currentGameAllowsSpectators && (
                       <button
                         onClick={() => window.open(`/game?id=${profile.currentGame}`, "_blank")}
                         className="profile-edit-btn"

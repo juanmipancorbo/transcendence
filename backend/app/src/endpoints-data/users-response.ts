@@ -15,6 +15,7 @@ export interface FullUser {
 	bio: string,
 	status: "offline" | "online" | "busy",
 	currentGame?: UUID,
+	currentGameAllowsSpectators?: boolean,
 	gamesPlayed: number,
 	gamesWon: number,
 	gamesLost: number,
@@ -30,7 +31,7 @@ export interface Move {
 	player: number
 }
 
-export type PublicUser = Pick<FullUser, "id" | "username" | "avatarUrl" | "bio" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
+export type PublicUser = Pick<FullUser, "id" | "username" | "avatarUrl" | "bio" | "status" | "currentGame" | "currentGameAllowsSpectators" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 export interface AuthResponse {
   user: PublicUser;

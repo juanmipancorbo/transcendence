@@ -57,6 +57,10 @@ export function injectStatus(users: PublicUser[]) {
 				}
 			}
 			user.status = busy ? "busy" : "online";
+			if (busy && user.currentGame) {
+				const gameSocket = [...sock].find(client => client.player?.game.id === user.currentGame);
+				user.currentGameAllowsSpectators = gameSocket?.player?.game.allowSpectators ?? false;
+			}
 		} else user.status = "offline";
 	}
 }
