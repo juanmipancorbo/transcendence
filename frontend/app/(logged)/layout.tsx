@@ -10,7 +10,7 @@ import { Chat, WsContext } from "@/hooks/useWs";
 import { WS_URL } from "@/lib/config";
 import { useMsg } from "@/hooks/useMsg";
 import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
-import { chatApi, friendApi } from "@/lib/api";
+import { chatApi, friendApi, userApi } from "@/lib/api";
 import ChatWindow from "@/components/layout/ChatWindow";
 import PixelLoader from "@/components/ui/PixelLoader";
 import { DuelRequest, GlobalProtocol, ProtocolCodes, PublicUser } from "@/types";
@@ -23,7 +23,7 @@ interface ProtectedLayoutProps {
 
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { message, error } = useMsg();
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
@@ -108,6 +108,36 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       window.removeEventListener("focus", refresh);
     };
   }, [isAuthenticated, loadSocialState]);
+
+  useEffect(() => {
+    if (!inQueue || !user) return;
+
+    let cancelled = false;
+    let checking = false;
+    const recoverMatch = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        const profile = await userApi.getProfile(user.id);
+        if (cancelled || !profile.currentGame) return;
+
+        setInQueue(false);
+
+        router.push("/game?id=" + profile.currentGame);
+      } catch {
+        // MatchFound remains the primary path; retry while the user is queued.
+      } finally {
+        checking = false;
+      }
+    };
+
+    const interval = window.setInterval(recoverMatch, 1000);
+    recoverMatch();
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [inQueue, user, router]);
 
   useEffect(() => {
     if (previousInGameRef.current && !inGame) loadSocialState();
