@@ -37,6 +37,19 @@ export type Message = {
 	content: string
 }
 
+function getBoardUpdates(previous: GameState["board"], current: GameState["board"]): PositionUpdate[] {
+	const updates: PositionUpdate[] = [];
+
+	for (let row = 0; row < previous.length; ++row) {
+		for (let col = 0; col < previous[row].length; ++col) {
+			if (current[row][col] !== previous[row][col])
+				updates.push({ content: current[row][col], pos: { row, col } });
+		}
+	}
+
+	return updates;
+}
+
 export class SessionPlayer {
 	conn: Set<Socket> = new Set();
 	game: GameSession;
@@ -256,14 +269,7 @@ export class GameSession {
 		}
 		this.state = applyPlayerMove(this.state, conn.id, pos.row, pos.col);
 
-		const updates: PositionUpdate[] = [];
-
-		for (let i = 0; i < previousBoard.length; ++i) {
-			for (let j = 0; j < previousBoard[i].length; ++j) {
-				if (this.state.board[i][j] !== previousBoard[i][j])
-					updates.push({ content: this.state.board[i][j], pos: { row: i, col: j } });
-			}
-		}
+		const updates = getBoardUpdates(previousBoard, this.state.board);
 		this.moves.push({ player: conn.player, pos, updates });
 
 		// Send state updates to whole game
@@ -395,10 +401,17 @@ export function restoreUnfinishedSessions() {
 	console.log("Restoring unfinished games...")
 	getUnfinishedGames().then(games => games.forEach(game => {
 		let state = createInitialGameState(game.black_player_id, game.white_player_id);
+		const moves: PlayerMove[] = [];
 
 		for (const move of game.moves) {
+			const previousBoard = state.board;
 			const player = move.player === BLACK ? game.black_player_id : game.white_player_id;
 			state = applyPlayerMove(state, player, move.row, move.col);
+			moves.push({
+				player: move.player as Player,
+				pos: { row: move.row, col: move.col },
+				updates: getBoardUpdates(previousBoard, state.board),
+			});
 		}
 
 		const session = new GameSession(
@@ -412,6 +425,7 @@ export function restoreUnfinishedSessions() {
 		);
 		session.blackPlayer.timeLeft = game.time_left_black;
 		session.whitePlayer.timeLeft = game.time_left_white;
+		session.moves = moves;
 
 		SESSIONS.set(game.id as UUID, session);
 

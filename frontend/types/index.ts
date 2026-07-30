@@ -27,6 +27,7 @@ export interface User {
 	bio: string,
 	status: "offline" | "online" | "busy",
 	currentGame?: string,
+	currentGameAllowsSpectators?: boolean,
 	gamesPlayed: number,
 	gamesWon: number,
 	gamesLost: number,
@@ -36,7 +37,7 @@ export interface User {
 	updatedAt: Date
 }
 
-export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "bio" | "status" | "currentGame" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
+export type PublicUser = Pick<User, "id" | "username" | "avatarUrl" | "bio" | "status" | "currentGame" | "currentGameAllowsSpectators" | "createdAt" | "gamesPlayed" | "gamesWon" | "gamesLost" | "xp" | "level">;
 
 // A single message in a 1-to-1 chat (mirrors the backend ChatMessage).
 export interface ChatMessage {

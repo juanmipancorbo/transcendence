@@ -121,16 +121,36 @@ export default function TopBar({
                           )}
                           <button
                             type="button"
-                            disabled={inGame || friend.status === "busy"}
-                            onClick={() => { setFriendsOpen(false); onOpenChat?.(friend.id); }}
-                            title={inGame
-                              ? "Use the game chat while a match is active"
-                              : friend.status === "busy"
-                                ? `${friend.username} is currently in a game`
-                                : `Chat with ${friend.username}`}
+                            disabled={inGame || friend.status !== "online"}
+                            onClick={() => {
+                              setFriendsOpen(false);
+                              router.push("/friend?id=" + friend.id + "&duel=1");
+                            }}
+                            title={inGame ? "Finish your current game before starting a duel" : friend.status !== "online" ? friend.username + " is not available for a duel" : "Challenge " + friend.username}
                             className="pixel-friend-chat px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                           >
-                            {inGame ? "Use game chat" : friend.status === "busy" ? "In game" : "Chat"}
+                            Duel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={inGame || (friend.status === "busy" && !friend.currentGameAllowsSpectators)}
+                            onClick={() => {
+                              setFriendsOpen(false);
+                              if (friend.status === "busy" && friend.currentGame && friend.currentGameAllowsSpectators)
+                                router.push("/game?id=" + friend.currentGame);
+                              else
+                                onOpenChat?.(friend.id);
+                            }}
+                            title={inGame
+                              ? "Use the game chat while a match is active"
+                              : friend.status === "busy" && friend.currentGame && friend.currentGameAllowsSpectators
+                                ? "Watch game by " + friend.username
+                                : friend.status === "busy"
+                                  ? friend.username + " is currently in a game"
+                                  : "Chat with " + friend.username}
+                            className="pixel-friend-chat px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {inGame ? "Use game chat" : friend.status === "busy" && friend.currentGame && friend.currentGameAllowsSpectators ? "Watch game" : friend.status === "busy" ? "In game" : "Chat"}
                           </button>
                         </div>
                       ))}

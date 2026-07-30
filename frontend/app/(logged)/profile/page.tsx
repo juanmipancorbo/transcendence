@@ -320,7 +320,7 @@ function FriendEntry({ friend }: { friend: PublicUser }) {
           >
             View Profile ↗
           </button>
-          {friend.status === "busy" && friend.currentGame && (
+          {friend.status === "busy" && friend.currentGame && friend.currentGameAllowsSpectators && (
             <button
               onClick={e => { e.stopPropagation(); setPos(null); window.open(`/game?id=${friend.currentGame}`, "_blank"); }}
               className="w-full px-4 py-3 text-left text-xs font-semibold hover:bg-surface-container-highest transition-colors"
