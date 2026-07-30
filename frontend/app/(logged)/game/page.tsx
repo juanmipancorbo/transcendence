@@ -121,7 +121,7 @@ export default function GamePage() {
         </aside>
 
         {/* Board */}
-        <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2">
+        <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2 xl:self-start">
           {/* Turn banner */}
           <div className={["pixel-turn-banner px-6 py-2 flex items-center gap-3", resultTone].filter(Boolean).join(" ")}>
             {game.state?.status === "ACTIVE" && currentTurn && (
