@@ -86,9 +86,6 @@ export default function LoginPage() {
           {/* Left: hero */}
           <div className="hidden lg:flex flex-col lg:col-span-7 space-y-8">
             <div className="space-y-2">
-              <span className="label-micro accent tracking-[0.4em]">
-                Arcade server: online
-              </span>
               <h1 className="hero-title" style={{ fontSize: "4.5rem", lineHeight: 0.9 }}>
                 WELCOME <br />
                 <span>BACK, PLAYER</span>
