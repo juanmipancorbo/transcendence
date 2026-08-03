@@ -440,9 +440,8 @@ make
 `make` runs two steps:
 
 1. **`make setup`** — bootstraps configuration if it's missing:
-   - runs `setup-env.sh`, which **prompts you for a PostgreSQL password**, generates a random
-     `JWT_SECRET`, and writes `backend/container/.env` and `database/container/.env` from
-     their `.env.example` files;
+   - runs `setup-env.sh`, which generates random PostgreSQL and JWT secrets and writes
+     `backend/container/.env` and `database/container/.env` from their `.env.example` files;
    - copies `frontend/.env.example` → `frontend/.env`;
    - generates a self-signed TLS certificate into `nginx/certs/`.
 2. **`make up`** — builds and starts the four containers (`database`, `backend`, `frontend`,
@@ -452,6 +451,17 @@ make
 
 Open **https://localhost:8443** and accept the self-signed certificate warning.
 (HTTP on **http://localhost:8080** redirects to HTTPS.)
+
+For a second computer on the same network, find the server address with `hostname -I` and open
+`https://<SERVER_IP>:8443`. REST and WebSocket URLs are same-origin, so no frontend rebuild or
+per-machine URL changes are required. Accept the self-signed certificate warning on each browser
+and allow TCP ports 8080/8443 through the host firewall if it is enabled. Do not use `localhost`
+from the second computer, because it refers to that computer itself.
+
+Google OAuth is configured separately: its redirect URI must exactly match one authorized in Google
+Cloud. The default `https://localhost:8443/google` remains suitable for demonstrating OAuth on the
+server computer. Using OAuth from other devices requires a stable hostname and matching redirect URI
+in Google Cloud and both env files; email/password login and remote gameplay do not have this restriction.
 
 ### Environment configuration
 
@@ -465,6 +475,8 @@ Three env files are created from `*.env.example` templates:
 
 > To enable Google login, replace the `GOOGLE_*` placeholders (backend) and
 > `NEXT_PUBLIC_GOOGLE_*` values (frontend) with your own credentials.
+> The stack and regular username/password authentication work without Google OAuth, but real
+> Google credentials must be configured before `make` to demonstrate the OAuth module.
 
 ### Useful Make targets
 

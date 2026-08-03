@@ -15,11 +15,11 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    const backendUrl = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:3001";
     return [
       {
         source: "/api/:path*",
-        destination: `${backendUrl}/api/:path*`,
+        destination: `${backendUrl}/:path*`,
       },
     ];
   },

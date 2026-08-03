@@ -7,7 +7,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import { GameSocket } from "@/lib/ws/socket";
 import { Chat, WsContext } from "@/hooks/useWs";
-import { WS_URL } from "@/lib/config";
+import { getWebSocketUrl } from "@/lib/config";
 import { useMsg } from "@/hooks/useMsg";
 import { buildJoinQueue, buildLeaveQueue, ByteReader } from "@/lib/ws/stream-utils";
 import { chatApi, friendApi, userApi } from "@/lib/api";
@@ -76,7 +76,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
     const tokens = getTokens();
     if (!socket && isAuthenticated && tokens) {
-      const sock = new GameSocket(WS_URL + "/ws/create", tokens.accessToken, (e) => {
+      const sock = new GameSocket(getWebSocketUrl() + "/ws/create", tokens.accessToken, (e) => {
         if (e) return setFatalError(`Connection error: ${e.message}`);
         setSocket(sock);
       });
