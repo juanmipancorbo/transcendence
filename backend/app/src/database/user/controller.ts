@@ -9,8 +9,8 @@ import { injectStatus } from "@gameLogic/sync/socket";
 import { ApiError } from "@utils/error";
 
 const avatarDir = path.resolve(process.cwd(), "uploads", "avatars");
-const localAvatarPrefix = "/uploads/avatars/";
-const legacyAvatarPrefix = "/api/uploads/avatars/";
+const localAvatarPrefix = "/api/uploads/avatars/";
+const legacyAvatarPrefix = "/uploads/avatars/";
 const MAX_AVATAR_PIXELS = 4096 * 4096;
 
 function isLocalAvatarUrl(avatarUrl?: string) {

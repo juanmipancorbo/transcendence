@@ -497,6 +497,7 @@ export function useGame(id: string) {
 		const finished = { ...current, status: "FINISHED" as GameStatus };
 		stateRef.current = finished;
 		setState(finished);
+		sessionStorage.setItem("locallyAbandonedGame", current.id);
 		setUser({ ...user!, currentGame: undefined });
 		message("You abandoned the game");
 		socket.send(build(Protocol.Abandon).freeze());

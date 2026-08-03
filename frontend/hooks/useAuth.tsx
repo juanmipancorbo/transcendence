@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
 import { authApi } from "@/lib/api";
 import { getTokens, setTokens } from "@/lib/auth-storage";
 import type { User } from "@/types";
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
 
     const tokens = getTokens();
     if (!tokens?.accessToken){
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTokens(null);
       setUser(null);
     }
-  };
+  }, []);
   // Initialize from stored tokens on mount
   useEffect(() => {
     const tokens = getTokens();
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setIsLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);

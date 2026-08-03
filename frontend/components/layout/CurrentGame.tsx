@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const PENDING_RESULT_KEY = "completedGameToView";
+const LOCALLY_ABANDONED_GAME_KEY = "locallyAbandonedGame";
 
 export default function CurrentGame() {
 	const { user, setUser } = useAuth();
@@ -45,11 +46,17 @@ export default function CurrentGame() {
 				if (cancelled || profile.currentGame === gameId) return;
 
 				if (!profile.currentGame) {
-					const result = await gamesApi.getResult(gameId);
-					if (cancelled) return;
-					setEndedGame(result);
-					sessionStorage.setItem(PENDING_RESULT_KEY, gameId);
-					message("Match ended while you were away");
+					const locallyAbandoned = sessionStorage.getItem(LOCALLY_ABANDONED_GAME_KEY) === gameId;
+					if (locallyAbandoned) {
+						sessionStorage.removeItem(LOCALLY_ABANDONED_GAME_KEY);
+						sessionStorage.removeItem(PENDING_RESULT_KEY);
+					} else {
+						const result = await gamesApi.getResult(gameId);
+						if (cancelled) return;
+						setEndedGame(result);
+						sessionStorage.setItem(PENDING_RESULT_KEY, gameId);
+						message("Match ended while you were away");
+					}
 				}
 
 				setGame(null);
