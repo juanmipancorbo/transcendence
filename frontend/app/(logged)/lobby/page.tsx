@@ -13,9 +13,13 @@ const STARTING_PIECES: Record<number, "light" | "dark"> = {
 };
 
 export default function LobbyPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { inQueue, joinQueue, leaveQueue } = useWs();
   const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    void refreshUser();
+  }, [refreshUser]);
 
   useEffect(() => {
     if (!inQueue) { setElapsed(0); return; }
