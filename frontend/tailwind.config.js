@@ -50,9 +50,9 @@ module.exports = {
         full:    "0.75rem",
       },
       fontFamily: {
-        headline: ["Courier New", "ui-monospace", "monospace"],
-        body:     ["Courier New", "ui-monospace", "monospace"],
-        label:    ["Courier New", "ui-monospace", "monospace"],
+        headline: ["Retro Mono", "ui-monospace", "monospace"],
+        body:     ["Retro Mono", "ui-monospace", "monospace"],
+        label:    ["Retro Mono", "ui-monospace", "monospace"],
       },
       keyframes: {
         "slide-up": {

@@ -13,7 +13,7 @@
 
     background-color: var(--surface);
     color: var(--on-surface);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* Background ambient glow blobs (login, register) */
@@ -41,7 +41,7 @@
   .wordmark {
     @apply text-2xl font-black italic tracking-widest uppercase;
     color: var(--brand);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* Icon row in topbar */
@@ -68,7 +68,7 @@
   .field-label {
     @apply block text-[10px] font-bold tracking-[0.2em] uppercase pl-1;
     color: var(--on-surface-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* Wrapper that holds input + the sliding underline */
@@ -80,7 +80,7 @@
     @apply w-full text-sm p-4 outline-none;
     background-color: var(--surface-container-low);
     color: var(--on-surface);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .field-input::placeholder { color: var(--outline-variant); }
 
@@ -100,7 +100,7 @@
     @apply w-full py-4 font-bold tracking-[0.3em] rounded-lg transition-all active:scale-[0.98] uppercase;
     background: linear-gradient(to right, var(--primary), var(--primary-container));
     color: var(--on-primary-fixed);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
     box-shadow: 0 0 20px rgba(0, 238, 252, 0.3);
   }
   .btn-primary:hover {
@@ -113,7 +113,7 @@
     background-color: var(--surface-container-high);
     color: var(--on-surface-variant);
     border: 1px solid var(--outline-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .btn-secondary:hover {
     color: var(--primary);
@@ -127,7 +127,7 @@
     background-color: var(--surface-container-high);
     color: var(--on-surface-variant);
     border: 1px solid var(--outline-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .btn-ghost:hover { color: var(--primary); border-color: var(--primary); }
   .btn-ghost.danger:hover { color: var(--error); border-color: var(--error); }
@@ -136,7 +136,7 @@
   .label-micro {
     @apply text-[10px] font-bold tracking-widest uppercase;
     color: var(--on-surface-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .label-micro.accent { color: var(--primary); }
 
@@ -157,12 +157,12 @@
   }
   .stat-card-value {
     @apply text-4xl font-black tracking-tighter;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .stat-card-label {
     @apply text-[10px] font-bold tracking-widest uppercase mt-1;
     color: var(--on-surface-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* ── XP / progress bar ───────────────────────────────────────────────────── */
@@ -191,7 +191,7 @@
   .hero-title {
     @apply font-black tracking-tighter uppercase text-white leading-none;
     font-size: 4.5rem;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* ── Queue / find-match button ───────────────────────────────────────────── */
@@ -199,7 +199,7 @@
     @apply px-10 py-5 font-black text-lg tracking-tighter flex items-center gap-4 transition-all active:scale-95;
     background: linear-gradient(to right, var(--primary), var(--primary-container));
     color: var(--on-primary-fixed);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .btn-find-match:hover { box-shadow: 0 0 30px rgba(0, 238, 252, 0.4); }
   .btn-find-match:disabled { opacity: 0.5; }
@@ -231,7 +231,7 @@
   .mode-card-title {
     @apply text-4xl font-bold uppercase mb-4;
     color: white;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* ── Leaderboard table ───────────────────────────────────────────────────── */
@@ -240,7 +240,7 @@
     background-color: var(--surface-container-low);
     color: var(--on-surface-variant);
     font-size: 10px;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   .lb-row {
@@ -262,19 +262,19 @@
 
   .lb-rank {
     @apply col-span-1 text-2xl font-bold;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .lb-avatar {
     @apply w-12 h-12 rounded-lg flex items-center justify-center font-black text-lg flex-shrink-0;
     background-color: var(--surface-variant);
     color: var(--on-surface-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .lb-level-badge {
     @apply text-xs font-bold px-1.5 py-0.5 rounded;
     background-color: var(--surface-container-highest);
     color: var(--on-surface-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
     font-size: 9px;
     letter-spacing: 0.05em;
   }
@@ -345,7 +345,7 @@
   .turn-label {
     @apply font-bold tracking-tighter text-sm;
     color: var(--primary);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   /* Player panel (game page sidebar) */
@@ -355,7 +355,7 @@
   }
   .player-score-value {
     @apply font-black text-5xl tracking-tighter;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .player-score-label {
     @apply text-[10px] font-bold tracking-widest uppercase;
@@ -395,7 +395,7 @@
   .terms-section-number {
     @apply text-4xl font-black italic;
     color: var(--outline-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .terms-info-box {
     @apply p-8 rounded-lg;
@@ -449,13 +449,13 @@
   .profile-username {
     @apply text-5xl font-black tracking-tight italic;
     color: var(--on-surface);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   .profile-bio {
     @apply text-base max-w-xl mb-8 leading-relaxed;
     color: var(--on-surface-variant);
-    font-family: 'Manrope', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   .profile-edit-btn {
@@ -463,7 +463,7 @@
     background-color: var(--surface-container-high);
     color: var(--on-surface);
     border: 1px solid var(--outline-variant);
-    font-family: "Courier New", ui-monospace, monospace;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .profile-edit-btn:hover {
     background-color: var(--surface-container-highest);
@@ -485,14 +485,14 @@
 
   .profile-stat-value {
     @apply text-4xl font-black italic mb-2 transition-transform origin-left;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .profile-stat-card:hover .profile-stat-value { transform: scale(1.05); }
 
   .profile-stat-label {
     @apply text-[10px] tracking-[0.4em] uppercase font-bold;
     color: var(--on-surface-variant);
-    font-family: 'Manrope', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   .friends-bar {
@@ -598,21 +598,21 @@
   .friend-name {
     @apply hidden sm:block text-xs font-bold transition-colors;
     color: var(--on-surface);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .friend-entry:hover .friend-name { color: var(--primary); }
 
   .friend-status-label {
     @apply text-[9px] tracking-widest font-bold uppercase;
     color: var(--primary);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
 
   .btn-view-friends {
     @apply px-8 py-3 text-[10px] font-bold tracking-[0.2em] uppercase rounded transition-all;
     color: var(--on-surface-variant);
     border: 1px solid var(--outline-variant);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
   }
   .btn-view-friends:hover {
     color: var(--on-surface);
@@ -624,7 +624,7 @@
     background-color: var(--surface-container-low);
     color: var(--on-surface);
     border-bottom: 2px solid var(--primary);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
     width: 100%;
   }
 
@@ -634,7 +634,7 @@
     color: var(--on-surface);
     border: 1px solid var(--outline-variant);
     border-bottom: 2px solid var(--primary);
-    font-family: 'Manrope', sans-serif;
+    font-family: "Retro Mono", ui-monospace, monospace;
     font-weight: 400;
     width: 100%;
   }
@@ -654,7 +654,7 @@
   --pixel-line: #171513;
   background: #211e1b;
   color: var(--pixel-cream);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
 }
 
 /* Auth buttons */
@@ -674,7 +674,7 @@
 .retro-shell header > div { min-height: 76px; }
 .retro-shell header > div > div:first-child {
   color: var(--pixel-cream);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   font-style: normal;
   font-size: 18px;
   letter-spacing: 0;
@@ -686,7 +686,7 @@
   background: var(--pixel-cream) !important;
   color: var(--pixel-ink) !important;
   box-shadow: 3px 3px 0 var(--pixel-line);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   font-weight: 700;
 }
 .retro-shell header button:active { transform: translate(3px, 3px); box-shadow: none; }
@@ -699,7 +699,7 @@
 .retro-shell aside a,
 .retro-shell aside button {
   color: var(--pixel-ink);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   letter-spacing: 0;
 }
 .retro-shell aside a:hover { background: rgba(244, 231, 197, 0.35); color: var(--pixel-ink); }
@@ -716,7 +716,7 @@
   padding: 32px;
   background-color: var(--pixel-paper);
   color: var(--pixel-cream);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
 }
 .retro-lobby-inner { width: min(1120px, 100%); margin: 0 auto; }
 
@@ -747,7 +747,7 @@
 .retro-hero h1 {
   margin: 0;
   color: var(--pixel-mustard);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   font-size: 68px;
   font-weight: 900;
   line-height: 0.9;
@@ -770,7 +770,7 @@
   padding: 0 22px;
   border: 3px solid var(--pixel-line);
   border-radius: 0;
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   font-size: 14px;
   font-weight: 900;
   text-transform: uppercase;
@@ -842,7 +842,7 @@
   box-shadow: 6px 6px 0 var(--pixel-line);
 }
 .retro-match-strip .retro-section-label { background: var(--pixel-red); color: var(--pixel-cream); }
-.retro-match-strip h2 { margin: 0 0 10px; font-family: "Courier New", ui-monospace, monospace; font-size: 25px; font-weight: 900; text-transform: uppercase; }
+.retro-match-strip h2 { margin: 0 0 10px; font-family: "Retro Mono", ui-monospace, monospace; font-size: 25px; font-weight: 900; text-transform: uppercase; }
 .retro-match-strip p:not(.retro-section-label) { max-width: 620px; margin: 0; color: #5f554c; font-size: 13px; font-weight: 700; line-height: 1.6; }
 .retro-level { align-self: center; }
 .retro-level > div:first-child { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
@@ -919,7 +919,7 @@
 .retro-shell main:not(.retro-lobby) { background-color: var(--surface); }
 .retro-shell button,
 .retro-shell input,
-.retro-shell textarea { font-family: "Courier New", ui-monospace, monospace; }
+.retro-shell textarea { font-family: "Retro Mono", ui-monospace, monospace; }
 .retro-shell button { border-radius: 0; }
 
 .pixel-topbar {
@@ -1005,7 +1005,7 @@
   border: 3px solid var(--pixel-line, #171513);
   border-radius: 0;
   box-shadow: 5px 5px 0 var(--pixel-line, #171513);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   font-weight: 900;
 }
 .pixel-toast.info { background: var(--pixel-cream, #f4e7c5); color: var(--pixel-ink, #211e1b); }
@@ -1019,7 +1019,7 @@
   background: var(--pixel-paper, #302a27);
   color: var(--pixel-cream, #f4e7c5);
   box-shadow: 6px 6px 0 var(--pixel-line, #171513);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
 }
 .pixel-duel-header {
   display: flex;
@@ -1086,7 +1086,7 @@
   background: var(--pixel-paper);
   color: var(--pixel-cream);
   box-shadow: 5px 5px 0 var(--pixel-line);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   text-align: left;
 }
 .duel-setup-title {
@@ -1186,7 +1186,7 @@
 .pixel-player-avatar { border: 4px solid var(--pixel-line) !important; border-radius: 0; background: var(--pixel-mustard); box-shadow: 4px 4px 0 var(--pixel-line); }
 .pixel-player-name { border: 2px solid var(--pixel-line); border-radius: 0; letter-spacing: 0; box-shadow: 2px 2px 0 var(--pixel-line); }
 .pixel-player-panel .player-score-label,
-.pixel-player-panel .player-score-value { color: var(--pixel-cream) !important; font-family: "Courier New", ui-monospace, monospace; }
+.pixel-player-panel .player-score-value { color: var(--pixel-cream) !important; font-family: "Retro Mono", ui-monospace, monospace; }
 .pixel-player-panel .player-bar-track { border: 2px solid var(--pixel-line); border-radius: 0; background: #887b69; }
 .pixel-player-panel .player-active-badge { border: 2px solid var(--pixel-line); border-radius: 0; background: var(--pixel-teal) !important; color: var(--pixel-ink) !important; }
 .pixel-player-panel button { border: 2px solid var(--pixel-line) !important; border-radius: 0; background: var(--pixel-mustard) !important; color: var(--pixel-ink) !important; box-shadow: 3px 3px 0 var(--pixel-line); }
@@ -1197,7 +1197,7 @@
   background: var(--pixel-panel);
   box-shadow: 5px 5px 0 var(--pixel-line);
 }
-.pixel-game .match-log-title { color: var(--pixel-mustard); font-family: "Courier New", ui-monospace, monospace; letter-spacing: 0; }
+.pixel-game .match-log-title { color: var(--pixel-mustard); font-family: "Retro Mono", ui-monospace, monospace; letter-spacing: 0; }
 .pixel-game .match-log p { color: var(--pixel-cream); }
 .pixel-game .match-log input { border: 2px solid var(--pixel-line); border-radius: 0; background: #292420; color: var(--pixel-cream); }
 .pixel-game .match-log input::placeholder { color: #a9987e; opacity: 1; }
@@ -1210,32 +1210,32 @@
 /* Rankings and profiles */
 .pixel-page-heading { padding-bottom: 18px; border-bottom: 4px solid var(--pixel-line); }
 .pixel-rankings { background: #302a27 !important; }
-.pixel-page-heading h1 { color: var(--pixel-cream) !important; font-family: "Courier New", ui-monospace, monospace; font-size: clamp(42px, 8vw, 82px); font-style: normal; letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
+.pixel-page-heading h1 { color: var(--pixel-cream) !important; font-family: "Retro Mono", ui-monospace, monospace; font-size: clamp(42px, 8vw, 82px); font-style: normal; letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
 .pixel-page-heading .accent { color: var(--pixel-teal); letter-spacing: 0; }
 .pixel-page-heading .live-badge { border: 2px solid var(--pixel-line); border-radius: 0; background: var(--pixel-teal); color: var(--pixel-ink); box-shadow: 3px 3px 0 var(--pixel-line); }
 .pixel-page-heading .live-badge .label-micro { color: var(--pixel-ink) !important; }
 .pixel-page-heading .live-dot { background: var(--pixel-red); animation: pulse 1s steps(2, end) infinite; }
 .pixel-rankings .lb-header-row, .pixel-rankings .lb-row { grid-template-columns: 64px minmax(210px, 1fr) 100px 72px 72px 130px; column-gap: 18px; }
-.pixel-rankings .lb-header-row { padding: 13px 18px; border: 3px solid var(--pixel-line); background: var(--pixel-panel); color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; letter-spacing: 0; box-shadow: 4px 4px 0 var(--pixel-red); }
+.pixel-rankings .lb-header-row { padding: 13px 18px; border: 3px solid var(--pixel-line); background: var(--pixel-panel); color: var(--pixel-cream); font-family: "Retro Mono", ui-monospace, monospace; letter-spacing: 0; box-shadow: 4px 4px 0 var(--pixel-red); }
 .pixel-rankings .lb-header-row > div, .pixel-rankings .lb-row > .lb-rank, .pixel-rankings .lb-row > .lb-competitor, .pixel-rankings .lb-row > .lb-xp, .pixel-rankings .lb-row > .lb-wins, .pixel-rankings .lb-row > .lb-losses, .pixel-rankings .lb-row > .lb-rate { grid-column: auto; }
 .pixel-rankings .lb-row { min-height: 82px; padding: 14px 18px; border: 3px solid var(--pixel-line); background: #3a322c; color: var(--pixel-cream); box-shadow: 4px 4px 0 var(--pixel-line); }
 .pixel-rankings .lb-row-odd { background: #463c34; }
 .pixel-rankings .lb-row:hover { background: #594a3d; transform: translate(-2px, -2px); }
 .pixel-rankings .lb-row-me { outline: 4px solid var(--pixel-teal); outline-offset: -7px; }
 .pixel-rankings .lb-row-me-accent { width: 7px; background: var(--pixel-red); }
-.pixel-rankings .lb-rank { color: var(--pixel-mustard) !important; font-family: "Courier New", ui-monospace, monospace; }
+.pixel-rankings .lb-rank { color: var(--pixel-mustard) !important; font-family: "Retro Mono", ui-monospace, monospace; }
 .pixel-rankings .lb-competitor p, .pixel-rankings .lb-wins { color: var(--pixel-cream) !important; }
 .pixel-rankings .lb-xp { color: var(--pixel-mustard) !important; }
 .pixel-rankings .lb-losses, .pixel-rankings .lb-rate .label-micro { color: #cdbd9f !important; }
-.pixel-rankings .lb-avatar { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-teal); color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; box-shadow: 3px 3px 0 var(--pixel-line); }
+.pixel-rankings .lb-avatar { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-teal); color: var(--pixel-ink); font-family: "Retro Mono", ui-monospace, monospace; box-shadow: 3px 3px 0 var(--pixel-line); }
 .pixel-rankings .lb-level-badge { border: 2px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); color: var(--pixel-ink); font-family: inherit; }
 .pixel-rankings .lb-win-bar-track { height: 9px; border: 2px solid var(--pixel-line); background: #8a7d69; }
 .pixel-rankings .lb-win-bar-fill { background: var(--pixel-red); box-shadow: none; }
 .pixel-profile > div { max-width: 980px; }
 .pixel-profile .profile-card { border: 4px solid var(--pixel-line); border-radius: 0; background: var(--pixel-panel); color: var(--pixel-cream); box-shadow: 9px 9px 0 var(--pixel-red); }
 .pixel-profile .profile-avatar-frame { border: 4px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); box-shadow: 6px 6px 0 var(--pixel-teal); }
-.pixel-profile .profile-username { color: var(--pixel-mustard); font-family: "Courier New", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 3px 3px 0 var(--pixel-red); }
-.pixel-profile .profile-bio { color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-profile .profile-username { color: var(--pixel-mustard); font-family: "Retro Mono", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 3px 3px 0 var(--pixel-red); }
+.pixel-profile .profile-bio { color: var(--pixel-cream); font-family: "Retro Mono", ui-monospace, monospace; }
 .pixel-profile .profile-edit-input, .pixel-profile .profile-edit-textarea { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-cream); color: var(--pixel-ink); box-shadow: 4px 4px 0 var(--pixel-line); }
 .pixel-profile .profile-edit-btn, .pixel-profile .btn-primary, .pixel-profile .btn-view-friends { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); color: var(--pixel-ink); box-shadow: 4px 4px 0 var(--pixel-line); letter-spacing: 0; }
 .pixel-profile .profile-edit-btn:hover, .pixel-profile .btn-view-friends:hover { border-color: var(--pixel-line); background: var(--pixel-teal); color: var(--pixel-ink); }
@@ -1245,7 +1245,7 @@
 .pixel-profile .profile-edit-btn.secondary:hover { background: var(--secondary); }
 .pixel-profile .profile-stat-card { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); color: var(--pixel-ink); box-shadow: 6px 6px 0 var(--pixel-line); }
 .pixel-profile .profile-stat-card.secondary { background: var(--pixel-teal); }
-.pixel-profile .profile-stat-value { color: var(--pixel-ink) !important; font-family: "Courier New", ui-monospace, monospace; font-style: normal; }
+.pixel-profile .profile-stat-value { color: var(--pixel-ink) !important; font-family: "Retro Mono", ui-monospace, monospace; font-style: normal; }
 .pixel-profile .profile-stat-label { color: var(--pixel-ink); font-family: inherit; letter-spacing: 0; }
 .pixel-profile .friends-bar { padding: 24px; border: 3px solid var(--pixel-line); background: var(--pixel-cream); box-shadow: 6px 6px 0 var(--pixel-line); }
 .pixel-profile .friend-avatar { border: 3px solid var(--pixel-line); border-radius: 0; background: var(--pixel-mustard); }
@@ -1271,7 +1271,7 @@
   border: 3px solid var(--pixel-line);
   background: var(--pixel-mustard);
   color: var(--pixel-ink);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
@@ -1292,7 +1292,7 @@
   padding: 7px 14px;
   border: 3px solid var(--pixel-line);
   background: #292420;
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   text-align: center;
 }
 .review-counter strong { color: var(--pixel-cream); font-size: 13px; font-weight: 900; text-transform: uppercase; }
@@ -1313,7 +1313,7 @@
   border: 3px solid var(--pixel-line);
   background: var(--pixel-panel);
   color: var(--pixel-cream);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   box-shadow: 6px 6px 0 var(--pixel-line);
 }
 .achievements-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 3px solid var(--pixel-line); }
@@ -1344,7 +1344,7 @@
   border: 3px solid var(--pixel-line);
   background: var(--pixel-panel);
   color: var(--pixel-cream);
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Retro Mono", ui-monospace, monospace;
   box-shadow: 6px 6px 0 var(--pixel-line);
 }
 .match-history h2 { margin: 0; padding-bottom: 10px; border-bottom: 3px solid var(--pixel-line); color: var(--pixel-mustard); font-size: 18px; font-weight: 900; text-transform: uppercase; }
@@ -1437,16 +1437,16 @@
 
 
 /* Authentication and legal pages */
-.pixel-auth { min-height: 100vh; background: var(--pixel-paper); color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-auth { min-height: 100vh; background: var(--pixel-paper); color: var(--pixel-ink); font-family: "Retro Mono", ui-monospace, monospace; }
 .pixel-auth .page-glow-layer { display: none; }
 .pixel-auth .auth-topbar { border-bottom: 4px solid var(--pixel-line); background: var(--pixel-red); backdrop-filter: none; }
-.pixel-auth .wordmark { color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; font-size: 20px; font-style: normal; letter-spacing: 0; text-shadow: 3px 3px 0 var(--pixel-line); }
+.pixel-auth .wordmark { color: var(--pixel-cream); font-family: "Retro Mono", ui-monospace, monospace; font-size: 20px; font-style: normal; letter-spacing: 0; text-shadow: 3px 3px 0 var(--pixel-line); }
 .pixel-auth main { background-image: linear-gradient(rgba(34, 31, 27, 0.055) 2px, transparent 2px), linear-gradient(90deg, rgba(34, 31, 27, 0.055) 2px, transparent 2px); background-size: 28px 28px; }
-.pixel-auth .hero-title { color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
+.pixel-auth .hero-title { color: var(--pixel-ink); font-family: "Retro Mono", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
 .pixel-auth .hero-title span { color: var(--pixel-red); background: none; -webkit-text-fill-color: currentColor; }
 .pixel-auth .label-micro { color: var(--pixel-ink); letter-spacing: 0; }
 .pixel-auth .label-micro.accent { display: inline-block; width: fit-content; padding: 5px 8px; border: 2px solid var(--pixel-line); background: var(--pixel-teal); box-shadow: 3px 3px 0 var(--pixel-line); }
-.pixel-auth h1 { color: var(--pixel-ink); font-family: "Courier New", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 4px 4px 0 var(--pixel-mustard); }
+.pixel-auth h1 { color: var(--pixel-ink); font-family: "Retro Mono", ui-monospace, monospace; font-style: normal; letter-spacing: 0; text-shadow: 4px 4px 0 var(--pixel-mustard); }
 .pixel-auth h1 span { color: var(--pixel-red); background: none; -webkit-text-fill-color: currentColor; }
 .pixel-auth-card { border: 4px solid var(--pixel-line) !important; border-radius: 0; background: #3a322c; color: var(--pixel-cream); box-shadow: 9px 9px 0 var(--pixel-line); backdrop-filter: none; }
 .pixel-auth .field-label { color: var(--pixel-mustard); font-family: inherit; letter-spacing: 0; }
@@ -1460,7 +1460,7 @@
 .pixel-auth .btn-primary:active, .pixel-auth .btn-secondary:active { transform: translate(5px, 5px); box-shadow: none; }
 .pixel-auth-card .label-micro { color: #d8c8a8; }
 .pixel-auth a { color: var(--pixel-mustard); }
-.pixel-terms { background: #302a27; color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-terms { background: #302a27; color: var(--pixel-cream); font-family: "Retro Mono", ui-monospace, monospace; }
 .pixel-terms main { background-color: #302a27 !important; }
 .pixel-terms h1 { color: var(--pixel-cream) !important; font-family: inherit; font-size: clamp(42px, 8vw, 82px); letter-spacing: 0; text-shadow: 5px 5px 0 var(--pixel-mustard), 8px 8px 0 var(--pixel-red); }
 .pixel-terms h2, .pixel-terms h3, .pixel-terms h4 { color: var(--pixel-mustard) !important; font-family: inherit; }
@@ -1484,7 +1484,7 @@
 
 
 /* Pixel loading indicator. */
-.pixel-loader { display: flex; flex-direction: column; align-items: center; gap: 16px; color: var(--pixel-cream); font-family: "Courier New", ui-monospace, monospace; }
+.pixel-loader { display: flex; flex-direction: column; align-items: center; gap: 16px; color: var(--pixel-cream); font-family: "Retro Mono", ui-monospace, monospace; }
 .pixel-loader-track { display: flex; gap: 7px; padding: 8px; border: 3px solid var(--pixel-line); background: #3a322c; box-shadow: 4px 4px 0 var(--pixel-line); }
 .pixel-loader-track i { width: 13px; height: 13px; background: #66594c; animation: pixel-loading 1s steps(1, end) infinite; }
 .pixel-loader-track i:nth-child(2) { animation-delay: 0.15s; }
@@ -1496,3 +1496,204 @@
   25%, 100% { background: #66594c; transform: translateY(0); }
 }
 .pixel-auth .pixel-loader { color: var(--pixel-cream); }
+
+
+/* Compact mobile shell: full-width content with navigation anchored below it. */
+@media (max-width: 640px) {
+  .retro-shell > div:first-child {
+    margin-left: 0;
+    padding-bottom: 68px;
+  }
+  .retro-shell > aside {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: 64px;
+    padding: 0;
+    border-top: 4px solid var(--pixel-line);
+    border-right: 0;
+    z-index: 90;
+  }
+  .retro-shell > aside nav {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    overflow: hidden;
+  }
+  .retro-shell > aside nav a {
+    min-width: 0;
+    height: 100%;
+    flex: 1 1 20%;
+    justify-content: center;
+    padding: 0 2px;
+    gap: 0;
+    font-size: 8px;
+    text-align: center;
+  }
+  .retro-shell > aside > div { display: none; }
+
+  .pixel-topbar > div {
+    min-height: 60px;
+    padding: 8px 10px;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .pixel-wordmark { display: none; }
+  .pixel-topbar > div > div:last-child {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .pixel-topbar > div > div:last-child > button { padding: 8px; font-size: 11px; }
+  .pixel-friends-menu {
+    position: fixed !important;
+    top: 64px !important;
+    right: 10px !important;
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 144px);
+    overflow-y: auto;
+  }
+
+  .pixel-chat {
+    right: 10px;
+    bottom: 76px;
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 152px);
+  }
+  .pixel-chat-messages { height: min(20rem, calc(100dvh - 270px)); }
+  .pixel-toast { min-width: 0; width: calc(100vw - 24px); }
+  [role="status"].fixed, [role="alert"].fixed { bottom: 76px; }
+  .retro-shell .pointer-events-none.fixed.right-2.bottom-2 {
+    right: 10px;
+    bottom: 76px;
+    width: calc(100vw - 20px);
+  }
+  .pixel-duel { width: 100%; }
+}
+
+@media (max-width: 640px) {
+  .retro-lobby { padding: 14px 12px 24px; }
+  .retro-hero { min-height: 0; padding: 24px 16px; gap: 30px; }
+  .retro-hero h1 { font-size: 42px; }
+  .retro-board-wrap { width: min(280px, calc(100vw - 68px)); }
+  .retro-match-strip { padding: 22px 16px; gap: 20px; }
+  .retro-stats { gap: 10px; }
+  .retro-stat { min-height: 96px; padding: 14px; }
+  .retro-stat strong { font-size: 26px; }
+
+  .pixel-rankings { padding: 24px 10px; overflow-x: hidden; }
+  .pixel-rankings .lb-header-row, .pixel-rankings .lb-row {
+    grid-template-columns: 30px minmax(0, 1fr) 52px;
+    column-gap: 7px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pixel-rankings .lb-avatar { width: 32px; height: 32px; }
+  .pixel-rankings .lb-competitor { min-width: 0; gap: 7px; }
+  .pixel-rankings .lb-competitor > div { min-width: 0; }
+  .pixel-rankings .lb-competitor p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pixel-rankings .lb-xp { font-size: 11px; }
+
+  .pixel-profile { padding: 24px 10px; }
+  .pixel-profile .profile-card { padding: 22px 14px; }
+  .pixel-profile .profile-username { max-width: 100%; overflow-wrap: anywhere; font-size: 30px; }
+  .pixel-game { padding-left: 10px !important; padding-right: 10px !important; }
+}
+
+@media (max-width: 640px) {
+  .retro-shell > aside { box-shadow: none !important; }
+  .retro-shell > aside nav a {
+    border: 0;
+    background: var(--pixel-teal);
+    color: var(--pixel-ink);
+    box-shadow: none;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+    transition: none !important;
+  }
+  .retro-shell > aside nav a:hover,
+  .retro-shell > aside nav a:active {
+    background: var(--pixel-teal);
+    color: var(--pixel-ink);
+    box-shadow: none;
+    transform: none;
+  }
+  .retro-shell > aside nav a.sidebar-item-active,
+  .retro-shell > aside nav a.sidebar-item-active:hover,
+  .retro-shell > aside nav a.sidebar-item-active:active {
+    border: 0;
+    border-left: 3px solid var(--pixel-line);
+    border-right: 3px solid var(--pixel-line);
+    background: var(--pixel-cream);
+    color: var(--pixel-ink);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+
+/* Compact desktop/tablet shell for half-screen and lower-resolution windows. */
+@media (min-width: 641px) and (max-width: 1100px) {
+  .retro-shell > div:first-child { margin-left: 176px; }
+  .retro-shell > aside {
+    width: 176px;
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+  .retro-shell > aside nav a {
+    padding-left: 18px;
+    padding-right: 18px;
+    gap: 0;
+    font-size: 11px;
+  }
+  .retro-shell > aside > div { padding-left: 18px; padding-right: 18px; }
+
+  .pixel-topbar > div {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .pixel-wordmark { font-size: 13px; }
+  .pixel-topbar > div > div:last-child { gap: 8px; }
+  .pixel-topbar > div > div:last-child > button { padding-left: 10px; padding-right: 10px; }
+  .pixel-friends-menu {
+    position: fixed !important;
+    top: 76px !important;
+    right: 16px !important;
+    width: min(384px, calc(100vw - 208px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: calc(100dvh - 92px);
+    overflow-y: auto;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .retro-shell > div:first-child {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  .retro-shell > aside {
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pixel-chat {
+    right: 10px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 164px) !important;
+  }
+  .pixel-chat > div:first-child,
+  .pixel-chat-composer { flex: 0 0 auto; }
+  .pixel-chat-messages {
+    min-height: 80px;
+    height: min(20rem, calc(100dvh - 290px)) !important;
+    flex: 1 1 auto;
+  }
+}
+
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .game-chat-composer { flex-direction: column; }
+  .game-chat-input { width: 100%; min-width: 0; }
+  .game-chat-send { width: 100%; }
+}

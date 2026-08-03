@@ -91,10 +91,10 @@ export default function GamePage() {
 
   return (
     <>
-      <main className="pixel-game max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col xl:flex-row gap-8 xl:gap-12 min-h-[calc(100vh-100px)]">
+      <main className="pixel-game max-w-screen-2xl mx-auto w-full px-4 sm:px-6 xl:px-8 py-8 xl:py-12 flex flex-col lg:flex-row gap-8 lg:gap-6 xl:gap-12 min-h-[calc(100vh-100px)]">
 
         {/* My panel */}
-        <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-2 xl:order-1">
+        <aside className="w-full lg:w-48 xl:w-72 lg:flex-shrink-0 flex flex-col gap-6 order-2 lg:order-1">
           <PlayerPanel
             name={username}
             label={username}
@@ -121,7 +121,7 @@ export default function GamePage() {
         </aside>
 
         {/* Board */}
-        <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 xl:order-2 xl:self-start">
+        <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 lg:order-2 lg:self-start">
           {/* Turn banner */}
           <div className={["pixel-turn-banner px-6 py-2 flex items-center gap-3", resultTone].filter(Boolean).join(" ")}>
             {game.state?.status === "ACTIVE" && currentTurn && (
@@ -192,7 +192,7 @@ export default function GamePage() {
         </section>
 
         {/* Opponent panel + Chat */}
-        <aside className="w-full xl:w-72 xl:flex-shrink-0 flex flex-col gap-6 order-3">
+        <aside className="w-full lg:w-48 xl:w-72 lg:flex-shrink-0 flex flex-col gap-6 order-3">
           <PlayerPanel
             name={username1}
             label={username1}
@@ -442,9 +442,9 @@ function ChatPanel({ title, messages, profiles, myId, onSend, readOnly = false, 
 
       {readOnly
         ? <p className="text-[10px] text-on-surface-variant/40 italic mt-1">Player messages are read-only</p>
-        : <div className="flex gap-2 mt-1">
+        : <div className="game-chat-composer flex gap-2 mt-1">
         <input
-          className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-2 py-1 outline-none border border-outline/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
+          className="game-chat-input min-w-0 flex-1 bg-surface-container-highest text-on-surface text-xs rounded px-2 py-1 outline-none border border-outline/20 focus:border-primary/50 transition-colors placeholder:text-on-surface-variant/40"
           placeholder={disabled ? "Match finished" : "Message…"}
           value={draft}
           disabled={disabled}
@@ -455,7 +455,7 @@ function ChatPanel({ title, messages, profiles, myId, onSend, readOnly = false, 
         <button
           onClick={submit}
           disabled={disabled || !draft.trim()}
-          className="text-xs px-2 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="game-chat-send text-xs px-2 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Send
         </button>
