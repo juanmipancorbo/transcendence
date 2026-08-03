@@ -7,7 +7,7 @@
 
 ```bash
 cd frontend
-cp .env.example .env.local   # set API + WS URLs
+cp .env.example .env         # set API + WS URLs
 npm install
 npm run dev                   # http://localhost:3000
 ```
