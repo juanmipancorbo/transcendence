@@ -64,16 +64,22 @@ export default function ProfilePage() {
       return;
     }
 
+    const nextName = draftName.trim();
     const nextBio = draftBio.trim();
+    if (nextName.length < 3 || nextName.length > 16) {
+      error("Username must be between 3 and 16 characters");
+      return;
+    }
+
     try {
-      await userApi.updateProfile(user?.id ?? "", { username: draftName, bio: nextBio });
+      await userApi.updateProfile(user?.id ?? "", { username: nextName, bio: nextBio });
       await refreshUser();
       const refreshedProfile = await userApi.getProfile(user?.id ?? "");
       setBio(nextBio);
       if (user) {
-        setUser({ ...user, username: draftName, bio: nextBio });
+        setUser({ ...user, username: nextName, bio: nextBio });
       }
-      setProfile(current => current ? { ...current, username: draftName, bio: nextBio } : current);
+      setProfile(current => current ? { ...current, username: nextName, bio: nextBio } : current);
       if (refreshedProfile) {
         setProfile(refreshedProfile);
       }

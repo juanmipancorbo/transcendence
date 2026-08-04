@@ -30,10 +30,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
+    const username = form.username.trim();
+    const email = form.email.trim();
     const validationErrors = [];
-    if (form.username.length < 3 || form.username.length > 16)
+    if (username.length < 3 || username.length > 16)
       validationErrors.push("Username must be between 3 and 16 characters");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       validationErrors.push("Email address is invalid");
     if (form.password.length < 8 || form.password.length > 16)
       validationErrors.push("Password must be between 8 and 16 characters");
@@ -54,7 +56,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(form.email, form.username, form.password);
+      await register(email, username, form.password);
       router.push("/lobby");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");

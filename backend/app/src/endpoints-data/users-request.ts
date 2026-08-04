@@ -14,10 +14,13 @@ export const PageReqSchema = z.strictObject({
 
 export type PageReq = z.infer<typeof PageReqSchema>;
 
+const UsernameSchema = z.string()
+  .trim()
+  .min(3, vError.tooShort)
+  .max(16, vError.tooLong);
+
 export const FullUserReqSchema = z.strictObject({
-  username: z.string()
-    .min(3, vError.tooShort)
-    .max(16, vError.tooLong)
+  username: UsernameSchema
 });
 
 export type FullUserReq = z.infer<typeof FullUserReqSchema>;
@@ -30,9 +33,7 @@ export type UpdateBioReq = z.infer<typeof UpdateBioReqSchema>;
 
 export const RegisterReqSchema = z.strictObject({
   email: z.email(vError.invalidEmail),
-  username: z.string()
-    .min(3, vError.tooShort)
-    .max(16, vError.tooLong),
+  username: UsernameSchema,
   password: z.string()
     .min(8, vError.tooShort)
     .max(16, vError.tooLong)
