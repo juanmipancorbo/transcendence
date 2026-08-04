@@ -17,7 +17,8 @@ export type PageReq = z.infer<typeof PageReqSchema>;
 const UsernameSchema = z.string()
   .trim()
   .min(3, vError.tooShort)
-  .max(16, vError.tooLong);
+  .max(16, vError.tooLong)
+  .regex(/^[a-zA-Z0-9_-]+$/, "can only contain letters, numbers, hyphen (-) and underscore (_)");
 
 export const FullUserReqSchema = z.strictObject({
   username: UsernameSchema
