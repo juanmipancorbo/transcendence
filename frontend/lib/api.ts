@@ -4,7 +4,7 @@ import { getTokens, setTokens } from "./auth-storage";
 
 // Set up for real backend
 
-import { API_URL } from "./config";
+import { API_URL, GOOGLE_REDIRECT_URI } from "./config";
 
 type AuthPayload = {
   accessToken: string;
@@ -136,7 +136,7 @@ export const authApi = {
   loginGoogle: async (code: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
     const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/google/login", {
       method: "POST",
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, redirect: window.location.origin + GOOGLE_REDIRECT_URI }),
     });
     return {
       accessToken: res.data.accessToken,

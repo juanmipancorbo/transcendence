@@ -4,13 +4,13 @@ import { Request, Response } from "express";
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const redirectUri = process.env.GOOGLE_REDIRECT_URI;
 
 export async function login(req: Request<unknown, unknown, GoogleLoginReq>, res: Response) {
-	if (!clientId || !clientSecret || !redirectUri)
+	if (!clientId || !clientSecret)
 		return res.status(401).json({ success: false, data: "Client id/secret are not properly set up" });
 
 	const code = req.body.code;
+	const redirect = req.body.redirect;
 	const tokens = await (await fetch("https://oauth2.googleapis.com/token", {
 		method: "POST",
 		headers: {
@@ -20,7 +20,7 @@ export async function login(req: Request<unknown, unknown, GoogleLoginReq>, res:
 			code,
 			client_id: clientId,
 			client_secret: clientSecret,
-			redirect_uri: redirectUri,
+			redirect_uri: redirect,
 			grant_type: "authorization_code",
 		})
 	})).json();
