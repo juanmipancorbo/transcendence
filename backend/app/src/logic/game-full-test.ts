@@ -5,6 +5,7 @@ import {
 	getPublicGameState,
 	applyPlayerMove,
 	countPieces,
+	getWinnerUserId,
 	printBoard,
 } from './game';
 
@@ -18,6 +19,11 @@ function getCurrentUserId(currentTurn: number): string
 {
 	return (currentTurn === BLACK ? 'u1' : 'u2');
 }
+
+const initialState = createInitialGameState('u1', 'u2');
+assert(getWinnerUserId({ ...initialState, winner: BLACK }) === 'u1', 'BLACK winner ID should be u1');
+assert(getWinnerUserId({ ...initialState, winner: WHITE }) === 'u2', 'WHITE winner ID should be u2');
+assert(getWinnerUserId({ ...initialState, winner: 'DRAW' }) === null, 'DRAW should not have a winner ID');
 
 let state = createInitialGameState('u1', 'u2');
 let turnCount = 0;

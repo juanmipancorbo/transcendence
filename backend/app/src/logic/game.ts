@@ -125,6 +125,15 @@ export function getPlayerByUserId(
 	return (null);
 }
 
+export function getWinnerUserId(state: GameState): string | null
+{
+	if (state.winner === BLACK)
+		return (state.blackPlayerId);
+	if (state.winner === WHITE)
+		return (state.whitePlayerId);
+	return (null);
+}
+
 export function isPlayersTurn(
 	state: GameState,
 	userId: string,
