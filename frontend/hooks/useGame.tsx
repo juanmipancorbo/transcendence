@@ -71,6 +71,22 @@ export function useGame(id: string) {
 	let blackTimer: number | undefined;
 	let whiteTimer: number | undefined;
 
+	function startTimer(color: PlayerColor, initialTime: number) {
+		if (initialTime === -1) return;
+		let timeLeft = initialTime;
+		activeTimerRef.current = color;
+		const setTime = color === BLACK ? setBlackTimeLeftFormat : setWhiteTimeLeftFormat;
+		setTime(formatMs(timeLeft));
+		const deadline = performance.now() + timeLeft;
+		const timer = window.setInterval(() => {
+			timeLeft = Math.max(0, deadline - performance.now());
+			setTime(formatMs(timeLeft));
+			if (timeLeft === 0) window.clearInterval(timer);
+		}, 100);
+		if (color === BLACK) blackTimer = timer;
+		else whiteTimer = timer;
+	}
+
 	function getPlayerLabel(color: PlayerColor) {
 		const fallback = color === BLACK ? "Black" : "White";
 		if (myColorRef.current === color) return "You";
@@ -91,6 +107,8 @@ export function useGame(id: string) {
 		const white = payload.readPrefixedUTF();
 		const black = payload.readPrefixedUTF();
 		const timeLimit = payload.readInt32();
+		const blackTimeLeft = payload.readInt32();
+		const whiteTimeLeft = payload.readInt32();
 		const status = payload.readPrefixedUTF() as GameStatus;
 		const allowSpectators = payload.readBool();
 		const moveCount = payload.readUint32();
@@ -156,9 +174,10 @@ export function useGame(id: string) {
 		setLog(initialLog);
 		if (as === 0 && user) setUser({ ...user, currentGame: undefined });
 		if (timeLimit !== -1) {
-			const format = formatMs(timeLimit);
-			setBlackTimeLeftFormat(format);
-			setWhiteTimeLeftFormat(format);
+			setBlackTimeLeftFormat(formatMs(blackTimeLeft));
+			setWhiteTimeLeftFormat(formatMs(whiteTimeLeft));
+			if (status === "ACTIVE" && currentTurn)
+				startTimer(currentTurn as PlayerColor, currentTurn === BLACK ? blackTimeLeft : whiteTimeLeft);
 		}
 	}
 
@@ -289,18 +308,8 @@ export function useGame(id: string) {
 	}
 
 	function onBlackTurn(p: ByteReader) {
-		let timeLeft = p.readInt32();
-
-		if (timeLeft !== -1) {
-			activeTimerRef.current = BLACK;
-			setBlackTimeLeftFormat(formatMs(timeLeft));
-			const deadline = performance.now() + timeLeft;
-			blackTimer = window.setInterval(() => {
-				timeLeft = Math.max(0, deadline - performance.now());
-				setBlackTimeLeftFormat(formatMs(timeLeft));
-				if (timeLeft === 0) window.clearInterval(blackTimer);
-			}, 100);
-		}
+		const timeLeft = p.readInt32();
+		startTimer(BLACK, timeLeft);
 		const validMoves: Array<[number, number]> = [];
 		const len = p.readUint32();
 		for (let i = 0; i < len; i++)
@@ -315,18 +324,8 @@ export function useGame(id: string) {
 	}
 
 	function onWhiteTurn(p: ByteReader) {
-		let timeLeft = p.readInt32();
-
-		if (timeLeft !== -1) {
-			activeTimerRef.current = WHITE;
-			setWhiteTimeLeftFormat(formatMs(timeLeft));
-			const deadline = performance.now() + timeLeft;
-			whiteTimer = window.setInterval(() => {
-				timeLeft = Math.max(0, deadline - performance.now());
-				setWhiteTimeLeftFormat(formatMs(timeLeft));
-				if (timeLeft === 0) window.clearInterval(whiteTimer);
-			}, 100);
-		}
+		const timeLeft = p.readInt32();
+		startTimer(WHITE, timeLeft);
 		const validMoves: Array<[number, number]> = [];
 		const len = p.readUint32();          // backend writes Uint32
 		for (let i = 0; i < len; i++)

@@ -278,6 +278,8 @@ as              : uint8   (viewer's side: 1 = BLACK, 2 = WHITE, other = spectato
 whitePlayerId   : prefixed UTF-8
 blackPlayerId   : prefixed UTF-8
 timeLimit       : int32   (seconds, -1 = unlimited)
+blackTimeLeft   : int32   (milliseconds, -1 = unlimited)
+whiteTimeLeft   : int32   (milliseconds, -1 = unlimited)
 status          : prefixed UTF-8  (WAITING | ACTIVE | FINISHED | ABANDONED)
 allowSpectators : bool    (1 byte)
 -- only if status == ACTIVE: --
