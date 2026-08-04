@@ -1,5 +1,5 @@
 import { randomUUID, UUID } from "crypto";
-import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
+import { abandonGame, applyPlayerMove, BLACK, Cell, createInitialGameState, GameState, getValidMoves, getWinnerUserId, Player, Position, STATUS_ABANDONED, STATUS_ACTIVE, STATUS_FINISHED, STATUS_WAITING, WHITE } from "../game";
 import { Socket } from "./socket";
 import { build, buildBlackAbandon, buildBlackDisconnect, buildBlackNoMoves, buildBlackReconnected, buildBlackTurn, buildChatMessage, buildGameEnd, buildGameError, buildGameState, buildMoveUpdate, buildSpectatorJoin, buildSpectatorLeave, buildWhiteAbandon, buildWhiteDisconnect, buildWhiteNoMoves, buildWhiteReconnected, buildWhiteTurn, buildXpUpdate } from "./protocol-utils";
 import { addGameMovement, createGame, reportFinishedGame, setUserTimeLeft } from "@databaseAccess/game/service";
@@ -197,11 +197,10 @@ export class GameSession {
 		if (this.closing) return
 		this.closing = true;
 		this.finishedAt = Date.now();
-		const winner = this.state.winner !== null ?
-			(this.state.winner === BLACK ?
-				this.blackPlayer
-				: this.whitePlayer)
-			: null;
+		const winnerId = getWinnerUserId(this.state);
+		const winner = winnerId === this.blackPlayer.id
+			? this.blackPlayer
+			: winnerId === this.whitePlayer.id ? this.whitePlayer : null;
 
 		reportFinishedGame(this.id, winner?.id ?? null)
 			.then(newXp => {
