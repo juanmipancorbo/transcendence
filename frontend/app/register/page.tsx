@@ -39,8 +39,8 @@ export default function RegisterPage() {
       validationErrors.push("Username can only contain letters, numbers, hyphen (-) and underscore (_)");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       validationErrors.push("Email address is invalid");
-    if (form.password.length < 8 || form.password.length > 16)
-      validationErrors.push("Password must be between 8 and 16 characters");
+    if (form.password.length < 8 || form.password.length > 64)
+      validationErrors.push("Password must be between 8 and 64 characters");
     if (!/[a-z]/.test(form.password))
       validationErrors.push("Password needs at least one lowercase letter");
     if (!/[A-Z]/.test(form.password))

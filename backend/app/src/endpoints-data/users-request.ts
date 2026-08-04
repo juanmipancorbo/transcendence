@@ -37,7 +37,7 @@ export const RegisterReqSchema = z.strictObject({
   username: UsernameSchema,
   password: z.string()
     .min(8, vError.tooShort)
-    .max(16, vError.tooLong)
+    .max(64, vError.tooLong)
     .regex(/[a-z]/, vError.lowerCase)
     .regex(/[A-Z]/, vError.upperCase)
     .regex(/[0-9]/, vError.digit)
