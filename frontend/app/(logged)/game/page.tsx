@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGame, type LogEntry } from "@/hooks/useGame";
-import { BLACK, WHITE } from "@/types";
+import { BLACK, WHITE, type PlayerColor } from "@/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { friendApi } from "@/lib/api";
 import { getTokens } from "@/hooks/useAuth";
@@ -28,6 +28,8 @@ export default function GamePage() {
   let score1;
   let leftPlayerId: string | undefined;
   let rightPlayerId: string | undefined;
+  let leftColor: PlayerColor;
+  let rightColor: PlayerColor;
   if (game.myColor === WHITE) {
     username   = game.profiles.get(game.state?.players.white ?? "")?.username ?? "Loading...";
     username1  = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
@@ -35,6 +37,8 @@ export default function GamePage() {
     score1     = game.state?.scores.black ?? 0;
     leftPlayerId = game.state?.players.white;
     rightPlayerId = game.state?.players.black;
+    leftColor = WHITE;
+    rightColor = BLACK;
   } else {
     // BLACK player or spectator — left = black, right = white
     username   = game.profiles.get(game.state?.players.black ?? "")?.username ?? "Loading...";
@@ -43,6 +47,8 @@ export default function GamePage() {
     score1     = game.state?.scores.white ?? 0;
     leftPlayerId = game.state?.players.black;
     rightPlayerId = game.state?.players.white;
+    leftColor = BLACK;
+    rightColor = WHITE;
   }
 
   const currentTurn = game.state?.currentTurn;
@@ -98,14 +104,14 @@ export default function GamePage() {
           <PlayerPanel
             name={username}
             label={username}
-            pieceColor={game.myColor === WHITE ? WHITE : BLACK}
+            pieceColor={leftColor}
             score={score}
             total={64}
             accentClass="border-primary"
             scoreColorClass="text-primary"
             glowColor="#d5a62b"
             isMyTurn={isSpectator ? currentTurn === BLACK : game.yourTurn ?? false}
-            timeLeft={game.myColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
+            timeLeft={leftColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
             avatarUrl={leftPlayerId ? game.profiles.get(leftPlayerId)?.avatarUrl : undefined}
           />
@@ -196,14 +202,14 @@ export default function GamePage() {
           <PlayerPanel
             name={username1}
             label={username1}
-            pieceColor={game.myColor === WHITE ? BLACK : WHITE}
+            pieceColor={rightColor}
             score={score1}
             total={64}
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
             glowColor="#3ca6a0"
             isMyTurn={isSpectator ? currentTurn === WHITE : game.yourTurn === false}
-            timeLeft={game.myColor === BLACK ? game.whiteTimeLeftFormat : game.blackTimeLeftFormat}
+            timeLeft={rightColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
             addFriendUserId={isSpectator ? undefined : rightPlayerId}
             avatarUrl={rightPlayerId ? game.profiles.get(rightPlayerId)?.avatarUrl : undefined}

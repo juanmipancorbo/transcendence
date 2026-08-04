@@ -77,6 +77,15 @@ export class SessionPlayer {
 	send(buf: BufferSource) {
 		this.conn.forEach(c => c.send(buf));
 	}
+
+	getTimeLeft(): number {
+		if (this.game.timeLimit === -1)
+			return (-1);
+		const isActive = this.game.state.status === STATUS_ACTIVE
+			&& this.game.state.currentTurn === this.player;
+		const elapsed = isActive && this.timer ? Date.now() - this.timer : 0;
+		return (Math.max(0, Math.ceil(this.timeLeft - elapsed)));
+	}
 }
 
 export class GameSession {

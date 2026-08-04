@@ -67,6 +67,8 @@ export function buildGameState(game: GameSession, as: number): BufferSource {
 		.writePrefixedUTF(game.whitePlayer.id)
 		.writePrefixedUTF(game.blackPlayer.id)
 		.writeInt32(game.timeLimit)
+		.writeInt32(game.blackPlayer.getTimeLeft())
+		.writeInt32(game.whitePlayer.getTimeLeft())
 		.writePrefixedUTF(game.state.status)
 		.writeBool(game.allowSpectators);
 	w.writeUint32(game.moves.length);
