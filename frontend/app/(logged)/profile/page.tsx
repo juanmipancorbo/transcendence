@@ -70,6 +70,10 @@ export default function ProfilePage() {
       error("Username must be between 3 and 16 characters");
       return;
     }
+    if (!/^[a-zA-Z0-9_-]+$/.test(nextName)) {
+      error("Username can only contain letters, numbers, hyphen (-) and underscore (_)");
+      return;
+    }
 
     try {
       await userApi.updateProfile(user?.id ?? "", { username: nextName, bio: nextBio });

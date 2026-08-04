@@ -35,6 +35,8 @@ export default function RegisterPage() {
     const validationErrors = [];
     if (username.length < 3 || username.length > 16)
       validationErrors.push("Username must be between 3 and 16 characters");
+    if (!/^[a-zA-Z0-9_-]+$/.test(username))
+      validationErrors.push("Username can only contain letters, numbers, hyphen (-) and underscore (_)");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       validationErrors.push("Email address is invalid");
     if (form.password.length < 8 || form.password.length > 16)
