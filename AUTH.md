@@ -15,8 +15,8 @@ Registers a new user and returns tokens (it logs the user in automatically).
 
 Validation rules (Zod, `users-request.ts`):
 - `email`: valid email
-- `username`: 3–16 characters
-- `password`: 8–16 characters, with at least one lowercase letter, one uppercase letter, one digit, and one symbol
+- `username`: 3–16 characters; letters, numbers, hyphen (`-`) and underscore (`_`) only
+- `password`: 8–64 characters, with at least one lowercase letter, one uppercase letter, one digit, and one symbol
 
 Request:
 ```json
@@ -66,7 +66,8 @@ Login/registration via Google OAuth. The frontend obtains a `code` from Google a
 Request:
 ```json
 {
-  "code": "google_authorization_code"
+  "code": "google_authorization_code",
+  "redirect": "https://localhost:8443/google"
 }
 ```
 
@@ -82,7 +83,7 @@ Response (200):
 }
 ```
 
-Requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in the environment.
+Requires `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the backend environment. The redirect URI is sent by the frontend and must match the URI configured in Google.
 
 ### GET /auth/me
 Returns the full profile of the authenticated user. Requires the `Authorization: Bearer <accessToken>` header.
@@ -293,10 +294,16 @@ The frontend (Next.js) integrates as follows:
 
 ## Environment variables
 
-Defined in `backend/container/.env` (see `.env.example`):
+Backend variables are defined in `backend/container/.env` (see `backend/container/.env.example`):
 
 - `JWT_SECRET` (required)
 - `JWT_ACCESS_EXPIRY` (default `15m`)
 - `JWT_REFRESH_EXPIRY` (default `7d`)
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (for Google login)
-```
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (for Google login)
+
+Frontend variables are defined in `frontend/.env` (see `frontend/.env.example`):
+
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_WS_URL`
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+- `NEXT_PUBLIC_GOOGLE_REDIRECT_URI`
