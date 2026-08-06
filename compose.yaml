@@ -8,8 +8,8 @@ services:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/00_schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ft_transcendence -U ${POSTGRES_USER:-ft_trans42}"]
-      interval: 300s
-      timeout: 30s
+      interval: 15s
+      timeout: 15s
       retries: 5
       start_period: 3s
   backend:
