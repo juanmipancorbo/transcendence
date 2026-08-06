@@ -115,7 +115,7 @@ export function useGame(id: string) {
 		const specs: string[] = [];
 		for (let i = 0; i < spectators; ++i)
 			specs.push(payload.readPrefixedUTF());
-		setSpectators(prev => [...prev, ...specs]);
+		setSpectators([...new Set(specs)]);
 		const moveCount = payload.readUint32();
 		const initialLog: LogEntry[] = [];
 		for (let turn = 1; turn <= moveCount; ++turn) {
@@ -451,6 +451,7 @@ export function useGame(id: string) {
 	}, []);
 
 	useEffect(() => {
+		let cancelled = false;
 		const promises = [];
 		const newProfiles = new Map();
 		if (state) {
@@ -470,12 +471,15 @@ export function useGame(id: string) {
 		}
 
 		Promise.all(promises).then(u => {
+			if (cancelled) return;
 			for (const user of u)
 				newProfiles.set(user.id, user);
 
 			profilesRef.current = newProfiles;
 			setProfiles(newProfiles);
 		});
+
+		return () => { cancelled = true; };
 	}, [spectators, state]);
 
 	const makeMove = (row: number, col: number) => {
