@@ -144,6 +144,20 @@ export class GameSession {
 		this.spectators.add(player);
 	}
 
+	private removeSpectatorConnection(conn: Socket): boolean {
+		for (const spec of this.spectators) {
+			if (spec.id !== conn.id || !spec.conn.delete(conn))
+				continue;
+			conn.restoreGlobalState();
+			if (spec.conn.size === 0) {
+				this.spectators.delete(spec);
+				this.broadcast(buildSpectatorLeave(spec.id));
+			}
+			return (true);
+		}
+		return (false);
+	}
+
 	broadcast(buf: BufferSource) {
 		this.blackPlayer.conn.forEach(b => b.send(buf));
 		this.whitePlayer.conn.forEach(w => w.send(buf));
@@ -336,31 +350,12 @@ export class GameSession {
 	}
 
 	playerAbandon(conn: Socket) {
-		// Remove spectator
-		for (const spec of this.spectators) {
-			if (spec.id === conn.id && spec.conn.has(conn)) {
-				this.broadcast(buildSpectatorLeave(spec.id));
-				this.spectators.delete(spec);
-				conn.restoreGlobalState();
-				return;
-			}
-		}
+		if (this.removeSpectatorConnection(conn)) return;
 		this.abandon(conn);
 	}
 
 	playerDisconnect(conn: Socket) {
-		// Remove spectator
-		for (const spec of this.spectators) {
-			if (spec.id === conn.id && spec.conn.has(conn)) {
-				if (spec.conn.size === 1) {
-					this.broadcast(buildSpectatorLeave(spec.id));
-					this.spectators.delete(spec);
-				}
-				spec.conn.delete(conn);
-				conn.restoreGlobalState();
-				return;
-			}
-		}
+		if (this.removeSpectatorConnection(conn)) return;
 
 		if (conn.id === this.blackPlayer.id && this.blackPlayer.conn.delete(conn) && this.blackPlayer.conn.size === 0) {
 			this.broadcast(buildBlackDisconnect(RECONNECT_TIME_MS));

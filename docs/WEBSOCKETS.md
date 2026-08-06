@@ -282,6 +282,10 @@ blackTimeLeft   : int32   (milliseconds, -1 = unlimited)
 whiteTimeLeft   : int32   (milliseconds, -1 = unlimited)
 status          : prefixed UTF-8  (WAITING | ACTIVE | FINISHED | ABANDONED)
 allowSpectators : bool    (1 byte)
+spectatorCount  : uint32
+spectatorCount x spectatorId: prefixed UTF-8
+moveCount       : uint32
+moveCount x (player: uint8, row: uint8, col: uint8, flips: uint8)
 -- only if status == ACTIVE: --
 currentTurn     : uint8
 startedAt       : uint32  (unix seconds)
