@@ -453,7 +453,8 @@ export function useGame(id: string) {
 	useEffect(() => {
 		let cancelled = false;
 		const promises = [];
-		const newProfiles = new Map();
+		// Keep profiles already seen so historical chat messages retain their author.
+		const newProfiles = new Map(profilesRef.current);
 		if (state) {
 			const white = profiles.get(state.players.white);
 			const black = profiles.get(state.players.black);
