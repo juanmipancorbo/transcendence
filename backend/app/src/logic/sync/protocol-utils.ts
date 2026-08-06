@@ -71,6 +71,9 @@ export function buildGameState(game: GameSession, as: number): BufferSource {
 		.writeInt32(game.whitePlayer.getTimeLeft())
 		.writePrefixedUTF(game.state.status)
 		.writeBool(game.allowSpectators);
+	w.writeUint32(game.spectators.size);
+	for (const spec of game.spectators)
+		w.writePrefixedUTF(spec.id);
 	w.writeUint32(game.moves.length);
 	for (const move of game.moves) {
 		w.writeUint8(move.player);

@@ -111,6 +111,11 @@ export function useGame(id: string) {
 		const whiteTimeLeft = payload.readInt32();
 		const status = payload.readPrefixedUTF() as GameStatus;
 		const allowSpectators = payload.readBool();
+		const spectators = payload.readUint32();
+		const specs: string[] = [];
+		for (let i = 0; i < spectators; ++i)
+			specs.push(payload.readPrefixedUTF());
+		setSpectators(prev => [...prev, ...specs]);
 		const moveCount = payload.readUint32();
 		const initialLog: LogEntry[] = [];
 		for (let turn = 1; turn <= moveCount; ++turn) {
