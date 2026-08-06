@@ -453,22 +453,19 @@ export function useGame(id: string) {
 	useEffect(() => {
 		let cancelled = false;
 		const promises = [];
-		// Keep profiles already seen so historical chat messages retain their author.
+		// Profiles remain cached for historical chat authors after they leave.
 		const newProfiles = new Map(profilesRef.current);
+		const requiredIds = new Set(spectators);
 		if (state) {
-			const white = profiles.get(state.players.white);
-			const black = profiles.get(state.players.black);
-
-			if (white) newProfiles.set(state.players.white, white);
-			else promises.push(api.user.getProfile(state.players.white));
-			if (black) newProfiles.set(state.players.black, black);
-			else promises.push(api.user.getProfile(state.players.black));
+			requiredIds.add(state.players.white);
+			requiredIds.add(state.players.black);
 		}
+		for (const chatMessage of messages)
+			requiredIds.add(chatMessage.sender);
 
-		for (const spec of spectators) {
-			const profile = profiles.get(spec);
-			if (profile) newProfiles.set(spec, profile);
-			else promises.push(api.user.getProfile(spec));
+		for (const id of requiredIds) {
+			if (!newProfiles.has(id))
+				promises.push(api.user.getProfile(id));
 		}
 
 		Promise.all(promises).then(u => {
@@ -481,7 +478,7 @@ export function useGame(id: string) {
 		});
 
 		return () => { cancelled = true; };
-	}, [spectators, state]);
+	}, [spectators, state, messages]);
 
 	const makeMove = (row: number, col: number) => {
 		const state    = stateRef.current;
