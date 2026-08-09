@@ -13,7 +13,7 @@ export async function createUser(input: {email: string, username: string, passwo
     await Repo.insertUser(input.email, input.username, hashPassword)
   } catch (err) {
     if (!(err instanceof DatabaseError) || err.code !== "23505") throw err;
-    throw (new ApiError ("Email or username is already taken", 409));
+    throw new ApiError("An account with that email or username already exists", 409);
   }
 }
 
