@@ -101,6 +101,7 @@ export default function GamePage() {
 
         {/* My panel */}
         <aside className="w-full lg:w-48 xl:w-72 lg:flex-shrink-0 flex flex-col gap-6 order-2 lg:order-1">
+          <div className="hidden lg:block">
           <PlayerPanel
             name={username}
             label={username}
@@ -110,11 +111,12 @@ export default function GamePage() {
             accentClass="border-primary"
             scoreColorClass="text-primary"
             glowColor="#d5a62b"
-            isMyTurn={isSpectator ? currentTurn === BLACK : game.yourTurn ?? false}
+            isMyTurn={game.state?.status === "ACTIVE" && (isSpectator ? currentTurn === BLACK : game.yourTurn ?? false)}
             timeLeft={leftColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
             avatarUrl={leftPlayerId ? game.profiles.get(leftPlayerId)?.avatarUrl : undefined}
           />
+          </div>
           <div className="match-log">
             <div className="match-log-title">Match_Log</div>
             <div className="overflow-y-auto max-h-64 flex flex-col gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -128,8 +130,25 @@ export default function GamePage() {
 
         {/* Board */}
         <section className="flex-1 min-w-0 flex flex-col items-center justify-center gap-8 order-1 lg:order-2 lg:self-start">
-          {/* Turn banner */}
-          <div className={["pixel-turn-banner px-6 py-2 flex items-center gap-3", resultTone].filter(Boolean).join(" ")}>
+          {/* Responsive match header */}
+          <div className="responsive-game-header">
+            <PlayerPanel
+              compact
+              compactSide="left"
+              name={username}
+              label={username}
+              pieceColor={leftColor}
+              score={score}
+              total={64}
+              accentClass="border-primary"
+              scoreColorClass="text-primary"
+              glowColor="#d5a62b"
+              isMyTurn={game.state?.status === "ACTIVE" && (isSpectator ? currentTurn === leftColor : game.yourTurn ?? false)}
+              timeLeft={leftColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
+              profileHref={isSpectator && leftPlayerId ? `/friend?id=${leftPlayerId}` : "/profile"}
+              avatarUrl={leftPlayerId ? game.profiles.get(leftPlayerId)?.avatarUrl : undefined}
+            />
+            <div className={["pixel-turn-banner px-6 py-2 flex items-center gap-3", resultTone].filter(Boolean).join(" ")}>
             {game.state?.status === "ACTIVE" && currentTurn && (
               <span
                 className={`pixel-turn-piece ${currentTurn === BLACK ? "black" : "white"}`}
@@ -145,6 +164,24 @@ export default function GamePage() {
                     ? "your turn"
                     : currentTurnName + " turn"}
             </span>
+          </div>
+            <PlayerPanel
+              compact
+              compactSide="right"
+              name={username1}
+              label={username1}
+              pieceColor={rightColor}
+              score={score1}
+              total={64}
+              accentClass="border-tertiary"
+              scoreColorClass="text-tertiary"
+              glowColor="#3ca6a0"
+              isMyTurn={game.state?.status === "ACTIVE" && (isSpectator ? currentTurn === rightColor : game.yourTurn === false)}
+              timeLeft={rightColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
+              profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
+              addFriendUserId={isSpectator ? undefined : rightPlayerId}
+              avatarUrl={rightPlayerId ? game.profiles.get(rightPlayerId)?.avatarUrl : undefined}
+            />
           </div>
 
           {/* Grid */}
@@ -199,6 +236,7 @@ export default function GamePage() {
 
         {/* Opponent panel + Chat */}
         <aside className="w-full lg:w-48 xl:w-72 lg:flex-shrink-0 flex flex-col gap-6 order-3">
+          <div className="hidden lg:block">
           <PlayerPanel
             name={username1}
             label={username1}
@@ -208,12 +246,13 @@ export default function GamePage() {
             accentClass="border-tertiary"
             scoreColorClass="text-tertiary"
             glowColor="#3ca6a0"
-            isMyTurn={isSpectator ? currentTurn === WHITE : game.yourTurn === false}
+            isMyTurn={game.state?.status === "ACTIVE" && (isSpectator ? currentTurn === WHITE : game.yourTurn === false)}
             timeLeft={rightColor === BLACK ? game.blackTimeLeftFormat : game.whiteTimeLeftFormat}
             profileHref={rightPlayerId ? `/friend?id=${rightPlayerId}` : undefined}
             addFriendUserId={isSpectator ? undefined : rightPlayerId}
             avatarUrl={rightPlayerId ? game.profiles.get(rightPlayerId)?.avatarUrl : undefined}
           />
+          </div>
           {isSpectator ? (
             <>
               <ChatPanel
@@ -255,7 +294,7 @@ export default function GamePage() {
   );
 }
 
-function PlayerPanel({ name, label, pieceColor, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft, avatarUrl }: {
+function PlayerPanel({ name, label, pieceColor, score, total, accentClass, scoreColorClass, glowColor, isMyTurn, profileHref, addFriendUserId, timeLeft, avatarUrl, compact = false, compactSide = "left" }: {
   name: string; label: string; score: number; total: number;
   pieceColor: typeof BLACK | typeof WHITE;
   accentClass: string; scoreColorClass: string; glowColor: string; isMyTurn: boolean;
@@ -263,6 +302,8 @@ function PlayerPanel({ name, label, pieceColor, score, total, accentClass, score
   addFriendUserId?: string;
   timeLeft?: string;
   avatarUrl?: string;
+  compact?: boolean;
+  compactSide?: "left" | "right";
 }) {
   const { message, error } = useMsg();
   const [friendRelation, setFriendRelation] = useState<"loading" | "none" | "incoming" | "sent" | "friends" | "sending">("loading");
@@ -319,12 +360,56 @@ function PlayerPanel({ name, label, pieceColor, score, total, accentClass, score
   }
 
   const avatar = (
-    <Avatar avatarUrl={avatarUrl} name={name} className={`pixel-player-avatar w-24 h-24 ${profileHref ? "cursor-pointer" : ""}`} />
+    <Avatar avatarUrl={avatarUrl} name={name} className={`pixel-player-avatar ${compact ? "compact-player-avatar" : "w-24 h-24"} ${profileHref ? "cursor-pointer" : ""}`} />
   );
 
   const namePlateStyle = pieceColor === BLACK
     ? { background: "#28231f", color: "var(--pixel-cream)", borderColor: "#28231f" }
     : { background: "var(--pixel-cream)", color: "#28231f", borderColor: "#28231f" };
+
+  const friendButton = addFriendUserId && !["loading", "friends"].includes(friendRelation) ? (
+    <button
+      type="button"
+      onClick={sendFriendRequest}
+      disabled={["sending", "sent"].includes(friendRelation)}
+      className={compact ? "compact-player-friend" : "mt-5 rounded border px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-60"}
+      title={friendRelation === "incoming" ? "Accept request" : friendRelation === "sent" ? "Request sent" : "Add friend"}
+      style={{ color: glowColor, borderColor: `${glowColor}50`, background: `${glowColor}10` }}
+    >
+      {friendRelation === "sending" ? "Updating..." : friendRelation === "sent" ? "Request sent" : friendRelation === "incoming" ? "Accept request" : "Add friend"}
+    </button>
+  ) : null;
+
+  if (compact) {
+    const piece = (
+      <span
+        className={`compact-player-piece ${pieceColor === BLACK ? "black" : "white"} ${isMyTurn ? "active" : ""}`}
+        aria-label={`${pieceColor === BLACK ? "Black" : "White"}${isMyTurn ? ", active" : ""}`}
+      />
+    );
+    const identity = (
+      <div className="compact-player-identity">
+        <div className="compact-player-avatar-wrap">
+          {profileHref ? <Link href={profileHref} aria-label={`View ${name}'s profile`}>{avatar}</Link> : avatar}
+          {friendButton}
+        </div>
+        {profileHref
+          ? <Link href={profileHref} className="compact-player-name" title={name}>{label}</Link>
+          : <span className="compact-player-name" title={name}>{label}</span>}
+      </div>
+    );
+    const stats = (
+      <div className="compact-player-stats">
+        <strong>{score}</strong>
+        {timeLeft && <time>{timeLeft}</time>}
+      </div>
+    );
+    return (
+      <div className={`compact-player-summary ${compactSide}`}>
+        {compactSide === "left" ? <>{identity}{stats}{piece}</> : <>{piece}{stats}{identity}</>}
+      </div>
+    );
+  }
 
   return (
     <div className={`pixel-player-panel player-panel ${accentClass}`}>
@@ -348,23 +433,7 @@ function PlayerPanel({ name, label, pieceColor, score, total, accentClass, score
         )}
       </div>
 
-      {addFriendUserId && !["loading", "friends"].includes(friendRelation) && (
-        <button
-          type="button"
-          onClick={sendFriendRequest}
-          disabled={["sending", "sent"].includes(friendRelation)}
-          className="mt-5 rounded border px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-60"
-          style={{ color: glowColor, borderColor: `${glowColor}50`, background: `${glowColor}10` }}
-        >
-          {friendRelation === "sending"
-            ? "Updating..."
-            : friendRelation === "sent"
-              ? "Request sent"
-              : friendRelation === "incoming"
-                ? "Accept request"
-                : "Add friend"}
-        </button>
-      )}
+      {friendButton}
 
       <div className="text-center mt-2">
         <div className={`player-score-value ${scoreColorClass}`}>{score}</div>
