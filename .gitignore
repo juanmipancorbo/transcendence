@@ -3,3 +3,4 @@
 *package-lock.json
 !backend/app/package-lock.json
 tools/
+nginx/certs

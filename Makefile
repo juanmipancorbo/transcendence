@@ -12,22 +12,9 @@ all: setup up
 
 setup:
 	@echo "Starting project..."
-	@if [ ! -f backend/container/.env ]; then \
-		echo "Creating backend/.env from backend/.env.example..."; \
+	@if [ ! -f backend/container/.env ] || [ ! -f frontend/.env ] || [ ! -f database/container/.env ]; then \
+		echo "Starting setup-env wizard..."; \
 		./setup-env.sh; \
-	fi
-	@if [ ! -f frontend/.env ]; then \
-		echo "Creating frontend/.env from frontend/.env.example..."; \
-		cp frontend/.env.example frontend/.env; \
-	fi
-	@if [ ! -f nginx/certs/cert.pem ]; then \
-		echo "Generating SSL certificates..."; \
-		mkdir -p nginx/certs; \
-		openssl req -x509 -nodes -days 365 \
-			-newkey rsa:2048 \
-			-keyout nginx/certs/key.pem \
-			-out nginx/certs/cert.pem \
-			-subj "/CN=localhost"; \
 	fi
 
 up:
@@ -51,3 +38,5 @@ clean:
 	${COMPOSE} down -v
 
 re: clean up
+
+.PHONY: all setup up down drop-db seed-db clean
