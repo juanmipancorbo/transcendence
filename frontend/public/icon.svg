@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Reversi Club">
+  <title>Reversi Club</title>
+  <!-- Notched-corner tile: reads as a pixel-art frame, matching the retro shell. -->
+  <path fill="#211e1b" d="M6 0h52v6h6v52h-6v6H6v-6H0V6h6z"/>
+  <path fill="none" stroke="#d5a62b" stroke-width="3" d="M7.5 1.5h49v6h6v49h-6v6h-49v-6h-6v-49h6z"/>
+  <!-- Reversi stone caught mid-flip: one half light, one half gold. -->
+  <path fill="#f4e7c5" d="M32 14a18 18 0 0 0 0 36z"/>
+  <path fill="#d5a62b" d="M32 14a18 18 0 0 1 0 36z"/>
+  <!-- Seam between the two faces. -->
+  <rect x="30.5" y="14" width="3" height="36" fill="#211e1b"/>
+</svg>

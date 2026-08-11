@@ -31,6 +31,7 @@ sed \
 
 sed \
 	-e "s|^NEXT_PUBLIC_GOOGLE_CLIENT_ID=replace_with_google_client_id$|NEXT_PUBLIC_GOOGLE_CLIENT_ID=$(esc "$GOOGLE_CLIENT_ID")|" \
+	-e "s|^NEXT_PUBLIC_SITE_URL=https://localhost$|NEXT_PUBLIC_SITE_URL=$(esc "https://${DOMAIN_NAME:-localhost}")|" \
 	frontend/.env.example > frontend/.env
 
 echo "Created backend/container/.env, database/container/.env and frontend/.env."
