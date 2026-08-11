@@ -4,3 +4,5 @@
 !backend/app/package-lock.json
 tools/
 nginx/certs
+nginx/acme-challenge
+letsencrypt/

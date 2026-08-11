@@ -48,12 +48,35 @@ openssl req -x509 -nodes -days 365 \
 if [ -n "$DOMAIN_NAME" ]; then
 	command -v certbot >/dev/null || { echo "certbot not installed" >&2; exit 1; }
 
+	# Serve a probe token so the wait below proves the challenge path really
+	# works, instead of just succeeding on the HTTP->HTTPS redirect.
+	mkdir -p nginx/acme-challenge/.well-known/acme-challenge
+	# nginx workers serve this as an unprivileged user inside the container, so
+	# the webroot has to be world-readable despite the umask 077 above.
+	# (certbot already chmods the token files it writes here to 644.)
+	chmod 755 nginx/acme-challenge \
+	          nginx/acme-challenge/.well-known \
+	          nginx/acme-challenge/.well-known/acme-challenge
+	printf 'ok' > nginx/acme-challenge/.well-known/acme-challenge/setup-probe
+	chmod 644 nginx/acme-challenge/.well-known/acme-challenge/setup-probe
+
 	docker compose up -d nginx
-	echo "Waiting for nginx..."
+	echo "Waiting for nginx to serve the ACME challenge path..."
+	ready=""
 	for _ in $(seq 30); do
-		curl -fsS "http://$DOMAIN_NAME/.well-known/acme-challenge/" >/dev/null 2>&1 && break
+		if [ "$(curl -fsSL "http://$DOMAIN_NAME/.well-known/acme-challenge/setup-probe" 2>/dev/null)" = "ok" ]; then
+			ready=1
+			break
+		fi
 		sleep 1
 	done
+	rm -f nginx/acme-challenge/.well-known/acme-challenge/setup-probe
+
+	[ -n "$ready" ] || {
+		echo "nginx is not serving http://$DOMAIN_NAME/.well-known/acme-challenge/" >&2
+		echo "Check that $DOMAIN_NAME resolves here and that port 80 is reachable." >&2
+		exit 1
+	}
 
 	certbot certonly --webroot -w "$PWD/nginx/acme-challenge" \
 		-d "$DOMAIN_NAME" \
@@ -63,10 +86,15 @@ if [ -n "$DOMAIN_NAME" ]; then
 		--work-dir  "$PWD/letsencrypt/work" \
 		--logs-dir  "$PWD/letsencrypt/logs" \
 		--deploy-hook "cp \"\$RENEWED_LINEAGE/fullchain.pem\" $PWD/nginx/certs/cert.pem && \
-		               cp \"\$RENEWED_LINEAGE/privkey.pem\"   $PWD/nginx/certs/key.pem"
+		               cp \"\$RENEWED_LINEAGE/privkey.pem\"   $PWD/nginx/certs/key.pem && \
+		               chmod 644 $PWD/nginx/certs/cert.pem && \
+		               docker compose -f $PWD/compose.yaml exec -T nginx nginx -s reload"
 
 	cp "$PWD/letsencrypt/config/live/$DOMAIN_NAME/fullchain.pem" nginx/certs/cert.pem
 	cp "$PWD/letsencrypt/config/live/$DOMAIN_NAME/privkey.pem"   nginx/certs/key.pem
 	chmod 644 nginx/certs/cert.pem
+
+	# nginx still has the self-signed cert loaded until it re-reads the files.
+	docker compose exec -T nginx nginx -s reload || docker compose restart nginx
 fi
 echo "Certificates in nginx/certs/{cert,key}.pem"
