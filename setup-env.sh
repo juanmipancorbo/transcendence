@@ -12,7 +12,7 @@ read -rp  "Specify google client ID: " GOOGLE_CLIENT_ID
 read -rsp "Specify google client secret: " GOOGLE_CLIENT_SECRET; echo
 read -rp  "Specify domain name for certificates (empty for self-signed): " DOMAIN_NAME
 if [ -n "$DOMAIN_NAME" ]; then
-	read -rp "Contact email for Let's Encrypt: " ACME_EMAIL
+	read -rp "Contact email for Let's Encrypt (can be any email): " ACME_EMAIL
 	[ -n "$ACME_EMAIL" ] || { echo "email required" >&2; exit 1; }
 fi
 
