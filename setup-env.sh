@@ -48,8 +48,6 @@ openssl req -x509 -nodes -days 365 \
 if [ -n "$DOMAIN_NAME" ]; then
 	command -v certbot >/dev/null || { echo "certbot not installed" >&2; exit 1; }
 
-	# Serve a probe token so the wait below proves the challenge path really
-	# works, instead of just succeeding on the HTTP->HTTPS redirect.
 	mkdir -p nginx/acme-challenge/.well-known/acme-challenge
 	# nginx workers serve this as an unprivileged user inside the container, so
 	# the webroot has to be world-readable despite the umask 077 above.
@@ -57,11 +55,26 @@ if [ -n "$DOMAIN_NAME" ]; then
 	chmod 755 nginx/acme-challenge \
 	          nginx/acme-challenge/.well-known \
 	          nginx/acme-challenge/.well-known/acme-challenge
+	# A probe token proves the challenge path actually serves files, rather than
+	# the wait below passing on a redirect or on nginx merely being up.
 	printf 'ok' > nginx/acme-challenge/.well-known/acme-challenge/setup-probe
 	chmod 644 nginx/acme-challenge/.well-known/acme-challenge/setup-probe
 
-	docker compose up -d nginx
-	echo "Waiting for nginx to serve the ACME challenge path..."
+	# Free port 80: the deployed nginx may be running, or crash-looping and
+	# reclaiming the binding between restarts.
+	docker compose stop nginx >/dev/null 2>&1 || true
+	docker rm -f acme-bootstrap >/dev/null 2>&1 || true
+
+	# Answer the challenge from a throwaway nginx that only serves the webroot,
+	# so issuing a certificate doesn't require the app stack to build and boot.
+	docker run -d --name acme-bootstrap -p 80:80 \
+		-v "$PWD/nginx/acme-bootstrap.conf:/etc/nginx/nginx.conf:ro" \
+		-v "$PWD/nginx/acme-challenge:/var/www/acme:ro" \
+		nginx:alpine >/dev/null
+	# Never leave it holding port 80 if anything below fails.
+	trap 'docker rm -f acme-bootstrap >/dev/null 2>&1 || true' EXIT INT TERM
+
+	echo "Waiting for the ACME challenge path to respond..."
 	ready=""
 	for _ in $(seq 30); do
 		if [ "$(curl -fsSL "http://$DOMAIN_NAME/.well-known/acme-challenge/setup-probe" 2>/dev/null)" = "ok" ]; then
@@ -73,8 +86,10 @@ if [ -n "$DOMAIN_NAME" ]; then
 	rm -f nginx/acme-challenge/.well-known/acme-challenge/setup-probe
 
 	[ -n "$ready" ] || {
-		echo "nginx is not serving http://$DOMAIN_NAME/.well-known/acme-challenge/" >&2
-		echo "Check that $DOMAIN_NAME resolves here and that port 80 is reachable." >&2
+		echo "http://$DOMAIN_NAME/.well-known/acme-challenge/ is not reachable." >&2
+		echo "Check that $DOMAIN_NAME resolves here and that port 80 is open." >&2
+		echo "--- acme-bootstrap logs ---" >&2
+		docker logs acme-bootstrap >&2 2>&1 || true
 		exit 1
 	}
 
@@ -88,13 +103,17 @@ if [ -n "$DOMAIN_NAME" ]; then
 		--deploy-hook "cp \"\$RENEWED_LINEAGE/fullchain.pem\" $PWD/nginx/certs/cert.pem && \
 		               cp \"\$RENEWED_LINEAGE/privkey.pem\"   $PWD/nginx/certs/key.pem && \
 		               chmod 644 $PWD/nginx/certs/cert.pem && \
-		               docker compose -f $PWD/compose.yaml exec -T nginx nginx -s reload"
+		               ( docker compose -f $PWD/compose.yaml exec -T nginx nginx -s reload || true )"
+
+	docker rm -f acme-bootstrap >/dev/null
+	trap - EXIT INT TERM
 
 	cp "$PWD/letsencrypt/config/live/$DOMAIN_NAME/fullchain.pem" nginx/certs/cert.pem
 	cp "$PWD/letsencrypt/config/live/$DOMAIN_NAME/privkey.pem"   nginx/certs/key.pem
 	chmod 644 nginx/certs/cert.pem
 
-	# nginx still has the self-signed cert loaded until it re-reads the files.
-	docker compose exec -T nginx nginx -s reload || docker compose restart nginx
+	# Only matters if the stack was already running; otherwise nginx picks the
+	# certificate up whenever it next starts.
+	docker compose exec -T nginx nginx -s reload >/dev/null 2>&1 || true
 fi
 echo "Certificates in nginx/certs/{cert,key}.pem"
