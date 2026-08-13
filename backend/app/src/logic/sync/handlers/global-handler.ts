@@ -68,9 +68,10 @@ function onQueueCasual(_: ByteReader, conn: Socket) {
 }
 
 function onQueueLeave(_: ByteReader, conn: Socket) {
-	if (waiting && waiting.id === conn.id)
+	if (waiting && waiting.id === conn.id) {
 		waiting = null;
-	else conn.send(buildError("You are not in any queue"));
+		conn.restoreGlobalState();
+	} else conn.send(buildError("You are not in any queue"));
 }
 
 function onFriendRequestSend(p: ByteReader, conn: Socket) {
