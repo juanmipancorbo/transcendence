@@ -88,14 +88,35 @@ export default function ProtectedShell({ children }: ProtectedShellProps) {
         setSocket(sock);
       });
       sock.ondisconnect = () => {
-        router.refresh();
+        setSocket(current => current === sock ? null : current);
       };
     }
   }, [isAuthenticated, isLoading, router, socket]);
 
   useEffect(() => {
     if (!socket) return;
-    return () => socket.disconnect(1000);
+    return () => {
+      socket.ondisconnect = undefined;
+      socket.disconnect(1000);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const reconnectIfStale = () => {
+      if (document.visibilityState === "visible" && !socket.isConnected)
+        setSocket(current => current === socket ? null : current);
+    };
+
+    document.addEventListener("visibilitychange", reconnectIfStale);
+    window.addEventListener("pageshow", reconnectIfStale);
+    window.addEventListener("online", reconnectIfStale);
+    return () => {
+      document.removeEventListener("visibilitychange", reconnectIfStale);
+      window.removeEventListener("pageshow", reconnectIfStale);
+      window.removeEventListener("online", reconnectIfStale);
+    };
   }, [socket]);
 
   useEffect(() => {

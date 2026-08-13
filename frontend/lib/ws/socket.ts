@@ -1,6 +1,5 @@
 import { Protocol } from "@/types";
 import { build, ByteReader, ByteWriter } from "./stream-utils";
-import { useRouter } from "next/navigation";
 
 export enum CloseCodes {
 	Error = 4444,
@@ -25,11 +24,9 @@ export class GameSocket {
 		this.ws.onerror = e => onConnect(new Error(`${e}`));
 		this.ws.onopen = _ => {
 			this.ws.onerror = e => {
-				const router = useRouter();
 				this.ws.onclose = () => {}; // Avoid ondisconnect being called twice
 				if (this.ondisconnect)
 					this.ondisconnect(new Error(`${e}`));
-				router.refresh();
 			};
 			this.ws.onclose = e => {
 				if (this.ondisconnect)
