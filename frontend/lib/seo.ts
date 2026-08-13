@@ -18,10 +18,10 @@ import type { Metadata } from "next";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://localhost")
   .replace(/\/+$/, "");
 
-export const SITE_NAME = "Reversi Club";
+export const SITE_NAME = "Reversiverse";
 
 /** Used for `title.template`, so keep it short — it is suffixed to every page title. */
-export const SITE_TAGLINE = "Reversi Club";
+export const SITE_TAGLINE = "Online Reversi Club";
 
 export const SITE_DESCRIPTION =
   "Play Reversi (Othello) online against real opponents. Casual matchmaking, " +
