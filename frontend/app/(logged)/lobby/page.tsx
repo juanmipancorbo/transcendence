@@ -41,7 +41,7 @@ export default function LobbyPage() {
         <section className="retro-hero">
           <div className="retro-hero-copy">
             <p className="retro-kicker">Online Reversi Club</p>
-            <h1>REVERSI</h1>
+            <h1>REVERSIVERSE</h1>
             <p className="retro-subtitle">A quiet game of strategy. Claim the board, one move at a time.</p>
 
             <div className="retro-queue-actions">

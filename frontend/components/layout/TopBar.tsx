@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { PublicUser } from "@/types";
@@ -33,6 +33,7 @@ export default function TopBar({
   const { user, logout } = useAuth();
   const { inGame, socket } = useWs();
   const router = useRouter();
+  const pathname = usePathname();
   const [friendsOpen, setFriendsOpen] = useState(false);
   const friendsRef = useRef<HTMLDivElement>(null);
   const notificationCount = friendRequests.length + Object.values(unreadChats).reduce((sum, count) => sum + count, 0);
@@ -57,10 +58,12 @@ export default function TopBar({
 
   return (
     <header className={`pixel-topbar sticky top-0 z-[70] w-full ${withSidebar ? "" : ""}`}>
-      <div className="flex justify-between items-center px-8 py-6 w-full">
-        <div className="pixel-wordmark text-2xl font-black font-headline uppercase select-none">
-          FT_TRANSCENDENCE
-        </div>
+      <div className="flex items-center px-8 py-6 w-full" style={{ justifyContent: pathname === "/lobby" ? "flex-end" : "space-between" }}>
+        {pathname !== "/lobby" && (
+          <div className="pixel-wordmark text-2xl font-black font-headline uppercase select-none">
+            REVERSIVERSE
+          </div>
+        )}
         <div className="flex items-center gap-4">
 		  <CurrentGame />
           <div className="relative" ref={friendsRef}>
