@@ -16,10 +16,12 @@ export const alt = OG_IMAGE_ALT;
 
 const SURFACE = "#211e1b";
 const GOLD = "#d5a62b";
+const GOLD_DARK = "#b9851d";
 const CREAM = "#f4e7c5";
 const MUTED = "#a99e88";
+const LINE = "#171513";
 
-/** Board layout for the decorative mini-game: 0 empty, 1 cream, 2 gold. */
+/** Board layout for the decorative mini-game: 0 empty, 1 white, 2 black. */
 const BOARD: number[][] = [
   [0, 0, 2, 0],
   [0, 1, 2, 0],
@@ -61,7 +63,7 @@ export async function renderOgImage() {
               marginBottom: 24,
             }}
           >
-            FT_TRANSCENDENCE
+            ONLINE REVERSI CLUB
           </div>
           <div
             style={{
@@ -73,7 +75,7 @@ export async function renderOgImage() {
             }}
           >
             <span>REVERSI</span>
-            <span style={{ color: GOLD }}>CLUB</span>
+            <span style={{ color: GOLD }}>VERSE</span>
           </div>
           <div
             style={{
@@ -94,12 +96,15 @@ export async function renderOgImage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            border: `6px solid ${GOLD}`,
-            background: "#191714",
+            gap: 2,
+            padding: 2,
+            border: `6px solid ${LINE}`,
+            background: LINE,
+            boxShadow: `10px 10px 0 ${LINE}`,
           }}
         >
           {BOARD.map((row, y) => (
-            <div key={y} style={{ display: "flex" }}>
+            <div key={y} style={{ display: "flex", gap: 2 }}>
               {row.map((cell, x) => (
                 <div
                   key={x}
@@ -109,7 +114,7 @@ export async function renderOgImage() {
                     justifyContent: "center",
                     width: 92,
                     height: 92,
-                    border: "2px solid #3a342c",
+                    background: (x + y) % 2 === 0 ? GOLD : GOLD_DARK,
                   }}
                 >
                   {cell !== 0 && (
@@ -118,7 +123,9 @@ export async function renderOgImage() {
                         width: 62,
                         height: 62,
                         borderRadius: "50%",
-                        background: cell === 1 ? CREAM : GOLD,
+                        background: cell === 1 ? CREAM : "#28231f",
+                        border: `3px solid ${LINE}`,
+                        boxShadow: `3px 3px 0 ${LINE}`,
                       }}
                     />
                   )}
