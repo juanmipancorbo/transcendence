@@ -63,6 +63,24 @@ export async function selectProfile(userId: string): Promise<PublicUser | null>
   return (res.rows[0] ? { ...res.rows[0], status: "offline" } : null)
 }
 
+export async function selectProfileByEmail(email: string): Promise<PublicUser | null> {
+  const res = await pool.query(sql`
+    SELECT ${PROFILE_DATA}
+      FROM users
+    WHERE email = $1
+  `, [email])
+  return (res.rows[0] ? { ...res.rows[0], status: "offline" } : null)
+}
+
+export async function isUsernameAvailable(username: string): Promise<boolean> {
+  const res = await pool.query(sql`
+    SELECT 1
+      FROM users
+    WHERE username = $1
+  `, [username])
+  return res.rowCount === 0
+}
+
 export async function updateUserGame(userId: string, gameId: string | null)
 {
   await pool.query(sql`

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express"
 import multer, { type FileFilterCallback } from "multer";
-import { getMatchHistory, getProfile, getPublicMatchHistory, updateAvatar, updateBio, updateUsername } from "./controller";
+import { checkUsernameAvailability, getMatchHistory, getProfile, getPublicMatchHistory, updateAvatar, updateBio, updateUsername } from "./controller";
 import * as EPSchema from "@endpoints/users-request"
 import { validateBody, validateParams, validateQuery } from "@utils/validation-middelwares";
 import { authMiddleware } from "../../middleware/auth-middleware";
@@ -42,5 +42,7 @@ router.post("/avatar", authMiddleware, (req: Request, res: Response, next: NextF
 		next();
 	});
 }, updateAvatar);
+
+router.get("/check-availability/:username", validateParams(EPSchema.UsernameReqSchema), checkUsernameAvailability);
 
 export { router };

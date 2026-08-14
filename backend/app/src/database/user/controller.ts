@@ -4,9 +4,11 @@ import path from "path";
 import { type NextFunction, type Response, type Request } from "express";
 import sharp from "sharp";
 import * as Service from "./service"
-import type { FullUserReq, ProfileReq, UpdateBioReq } from "@endpoints/users-request";
+import type { FullUserReq, ProfileReq, UpdateBioReq, UsernameReq } from "@endpoints/users-request";
 import { injectStatus } from "@gameLogic/sync/socket";
 import { ApiError } from "@utils/error";
+import { isUsernameAvailable } from "./repository";
+import { STATUS_CODES } from "http";
 
 const avatarDir = path.resolve(process.cwd(), "uploads", "avatars");
 const localAvatarPrefix = "/api/uploads/avatars/";
@@ -94,4 +96,11 @@ export async function updateAvatar(req: Request, res: Response, next: NextFuncti
 		await unlink(outputPath).catch(() => {});
 		return next(error);
 	}
+}
+
+export async function checkUsernameAvailability(req: Request<UsernameReq>, res: Response) {
+	const isAvailable = await isUsernameAvailable(req.params.username);
+	if (isAvailable)
+		return res.status(400).json({ success: false, data: "This username is already in use" });
+	res.status(200).json({ success: true, data: null });
 }

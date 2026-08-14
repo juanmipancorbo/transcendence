@@ -7,13 +7,18 @@ import type { User } from "@/types";
 
 export { getTokens } from "@/lib/auth-storage";
 
+// A Google account without a profile yet cannot be logged in until the user
+// picks a username, which setupGoogleUsername then posts back.
+export type GoogleLoginOutcome = "authenticated" | "username-required";
+
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<void>;
-  loginGoogle: (code: string) => Promise<void>;
+  loginGoogle: (code: string, state: string) => Promise<GoogleLoginOutcome>;
+  setupGoogleUsername: (username: string, state: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
@@ -50,37 +55,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [refreshUser]);
 
+  const startSession = async (tokens: { accessToken: string; refreshToken: string }) => {
+    setTokens({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
+    const userData = await authApi.me(tokens.accessToken);
+    setUser(userData);
+  };
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { accessToken, refreshToken } = await authApi.login(email, password);
-      setTokens({ accessToken, refreshToken });
-      const userData = await authApi.me(accessToken);
-      setUser(userData);
+      await startSession(await authApi.login(email, password));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loginGoogle = async (code: string) => {
-	  setIsLoading(true);
-	  try {
-		  const { accessToken, refreshToken } = await authApi.loginGoogle(code);
-		  setTokens({ accessToken, refreshToken });
-		  const userData = await authApi.me(accessToken);
-		  setUser(userData);
-	  } finally {
-		  setIsLoading(false);
-	  }
-  }
+  const loginGoogle = async (code: string, state: string): Promise<GoogleLoginOutcome> => {
+    setIsLoading(true);
+    try {
+      const result = await authApi.loginGoogle(code, state);
+      if (result.status === "authenticated") {
+        await startSession(result);
+      }
+      return result.status;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const setupGoogleUsername = async (username: string, state: string) => {
+    setIsLoading(true);
+    try {
+      await startSession(await authApi.setupGoogleUsername(username, state));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const register = async (email: string, username: string, password: string) => {
     setIsLoading(true);
     try {
-      const { accessToken, refreshToken } = await authApi.register(email, username, password);
-      setTokens({ accessToken, refreshToken });
-      const userData = await authApi.me(accessToken);
-      setUser(userData);
+      await startSession(await authApi.register(email, username, password));
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setUser,
         login,
 		loginGoogle,
+		setupGoogleUsername,
         register,
         logout,
         refreshUser,

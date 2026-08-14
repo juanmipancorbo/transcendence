@@ -12,6 +12,15 @@ type AuthPayload = {
   user: Partial<User>;
 };
 
+// /google/login only hands out a session when the Google account already has a
+// profile; otherwise it parks the account under the oauth state and waits for a
+// username to be posted to /google/setup-username.
+type GoogleAuthPayload = ({ setup: true } & AuthPayload) | { setup: false };
+
+export type GoogleLoginResult =
+  | { status: "authenticated"; accessToken: string; refreshToken: string; user: Partial<User> }
+  | { status: "username-required" };
+
 let refreshPromise: Promise<string | null> | null = null;
 
 function accessTokenExpiresSoon(token: string): boolean {
@@ -133,10 +142,26 @@ export const authApi = {
     };
   },
 
-  loginGoogle: async (code: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
-    const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/google/login", {
+  loginGoogle: async (code: string, state: string): Promise<GoogleLoginResult> => {
+    const res = await apiFetch<{ success: boolean; data: GoogleAuthPayload }>("/google/login", {
       method: "POST",
-      body: JSON.stringify({ code, redirect: window.location.origin + GOOGLE_REDIRECT_URI }),
+      body: JSON.stringify({ code, state, redirect: window.location.origin + GOOGLE_REDIRECT_URI }),
+    });
+    if (!res.data.setup) {
+      return { status: "username-required" };
+    }
+    return {
+      status: "authenticated",
+      accessToken: res.data.accessToken,
+      refreshToken: res.data.refreshToken,
+      user: res.data.user,
+    };
+  },
+
+  setupGoogleUsername: async (username: string, state: string): Promise<{ accessToken: string; refreshToken: string; user: Partial<User> }> => {
+    const res = await apiFetch<{ success: boolean; data: AuthPayload }>("/google/setup-username", {
+      method: "POST",
+      body: JSON.stringify({ username, state }),
     });
     return {
       accessToken: res.data.accessToken,
@@ -255,6 +280,12 @@ export const userApi = {
 
     return res.data.avatarUrl;
   },
+
+  checkUsernameAvailability: async (username: string): Promise<void> => {
+    await apiFetch<{ success: boolean, data: any }>(`/users/check-availability/${username}`, {
+      method: "GET",
+    });
+  }
 };
 
 // Friends

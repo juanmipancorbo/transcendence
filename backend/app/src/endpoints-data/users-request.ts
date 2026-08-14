@@ -20,6 +20,12 @@ const UsernameSchema = z.string()
   .max(16, vError.tooLong)
   .regex(/^[a-zA-Z0-9_-]+$/, "can only contain letters, numbers, hyphen (-) and underscore (_)");
 
+export const UsernameReqSchema = z.strictObject({
+  username: UsernameSchema,
+});
+
+export type UsernameReq = z.infer<typeof UsernameReqSchema>;
+
 export const FullUserReqSchema = z.strictObject({
   username: UsernameSchema
 });
@@ -56,6 +62,14 @@ export type LoginReq = z.infer<typeof LoginReqSchema>;
 export const GoogleLoginReqSchema = z.strictObject({
   code: z.string(),
   redirect: z.string(),
+  state: z.string(),
 });
 
 export type GoogleLoginReq = z.infer<typeof GoogleLoginReqSchema>;
+
+export const UserSetupReqSchema = z.strictObject({
+  username: UsernameSchema,
+  state: z.string(),
+});
+
+export type UserSetupReq = z.infer<typeof UserSetupReqSchema>;
