@@ -18,7 +18,7 @@ export async function setupUsername(req: Request<unknown, unknown, UserSetupReq>
 	const stateId = req.body.state;
 	const username = req.body.username;
 	const isAvailable = await isUsernameAvailable(username);
-	if (isAvailable)
+	if (!isAvailable)
 		return res.status(400).json({ success: false, data: "This username is already in use" });
 	const state = pending.get(stateId);
 	if (!state)

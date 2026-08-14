@@ -100,7 +100,7 @@ export async function updateAvatar(req: Request, res: Response, next: NextFuncti
 
 export async function checkUsernameAvailability(req: Request<UsernameReq>, res: Response) {
 	const isAvailable = await isUsernameAvailable(req.params.username);
-	if (isAvailable)
+	if (!isAvailable)
 		return res.status(400).json({ success: false, data: "This username is already in use" });
 	res.status(200).json({ success: true, data: null });
 }
