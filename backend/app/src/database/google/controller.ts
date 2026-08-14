@@ -23,6 +23,7 @@ export async function setupUsername(req: Request<unknown, unknown, UserSetupReq>
 	const state = pending.get(stateId);
 	if (!state)
 		return res.status(404).json({ success: false, data: "The state has expired." });
+	clearTimeout(state.timeout);
 
 	const login = await loginUserGoogle(state.email, username, state.picture);
 	const newTokens = await generateTokens(login);
